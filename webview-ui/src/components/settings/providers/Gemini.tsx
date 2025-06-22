@@ -74,7 +74,7 @@ export const Gemini = ({ apiConfiguration, setApiConfigurationField }: GeminiPro
 				)}
 			</div>
 			<div className="mt-4">
-				<label className="block font-medium mb-1">{t("settings:providers.topP")}</label>
+				<label className="block font-medium mb-1">{t("settings:providers.geminiParameters.topP.title")}</label>
 				<div className="flex items-center space-x-2">
 					<Slider
 						min={0}
@@ -87,11 +87,11 @@ export const Gemini = ({ apiConfiguration, setApiConfigurationField }: GeminiPro
 					<span className="w-10 text-right">{(apiConfiguration.topP ?? 0).toFixed(2)}</span>
 				</div>
 				<div className="text-sm text-vscode-descriptionForeground">
-					{t("settings:providers.topPDescription")}
+					{t("settings:providers.geminiParameters.topP.description")}
 				</div>
 			</div>
 			<div className="mt-4">
-				<label className="block font-medium mb-1">{t("settings:providers.topK")}</label>
+				<label className="block font-medium mb-1">{t("settings:providers.geminiParameters.topK.title")}</label>
 				<div className="flex items-center space-x-2">
 					<Slider
 						min={0}
@@ -104,11 +104,13 @@ export const Gemini = ({ apiConfiguration, setApiConfigurationField }: GeminiPro
 					<span className="w-10 text-right">{apiConfiguration.topK ?? 0}</span>
 				</div>
 				<div className="text-sm text-vscode-descriptionForeground">
-					{t("settings:providers.topKDescription")}
+					{t("settings:providers.geminiParameters.topK.description")}
 				</div>
 			</div>
 			<div className="mt-4">
-				<label className="block font-medium mb-1">{t("settings:providers.maxOutputTokens")}</label>
+				<label className="block font-medium mb-1">
+					{t("settings:providers.geminiParameters.maxOutputTokens.title")}
+				</label>
 				<div className="flex items-center space-x-2">
 					<Slider
 						min={0}
@@ -127,27 +129,29 @@ export const Gemini = ({ apiConfiguration, setApiConfigurationField }: GeminiPro
 					/>
 				</div>
 				<div className="text-sm text-vscode-descriptionForeground">
-					{t("settings:providers.maxOutputTokensDescription")}
+					{t("settings:providers.geminiParameters.maxOutputTokens.description")}
 				</div>
 			</div>
 			<Checkbox
 				checked={!!apiConfiguration.enableUrlContext}
 				onChange={(checked: boolean) => setApiConfigurationField("enableUrlContext", checked)}>
-				{t("settings:providers.enableUrlContext")}
+				{t("settings:providers.geminiParameters.urlContext.title")}
 			</Checkbox>
 			<div className="text-sm text-vscode-descriptionForeground mb-2">
-				{t("settings:providers.enableUrlContextDescription")}
+				{t("settings:providers.geminiParameters.urlContext.description")}
 			</div>
 			<Checkbox
 				checked={!!apiConfiguration.enableGrounding}
 				onChange={(checked: boolean) => setApiConfigurationField("enableGrounding", checked)}>
-				{t("settings:providers.enableGrounding")}
+				{t("settings:providers.geminiParameters.groundingSearch.title")}
 			</Checkbox>
 			<div className="text-sm text-vscode-descriptionForeground mb-2">
-				{t("settings:providers.enableGroundingDescription")}
+				{t("settings:providers.geminiParameters.groundingSearch.description")}
 			</div>
 			<div className="mt-4">
-				<label className="block font-medium mb-1">{t("settings:providers.contextLimit")}</label>
+				<label className="block font-medium mb-1">
+					{t("settings:providers.geminiParameters.contextLimit.title")}
+				</label>
 				<div className="flex items-center space-x-2">
 					<Slider
 						min={0}
@@ -166,7 +170,7 @@ export const Gemini = ({ apiConfiguration, setApiConfigurationField }: GeminiPro
 					/>
 				</div>
 				<div className="text-sm text-vscode-descriptionForeground">
-					{t("settings:providers.contextLimitDescription")}
+					{t("settings:providers.geminiParameters.contextLimit.description")}
 				</div>
 			</div>
 		</>
