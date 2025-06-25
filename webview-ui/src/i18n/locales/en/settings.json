@@ -210,6 +210,11 @@
 		"cacheUsageNote": "Note: If you don't see cache usage, try selecting a different model and then selecting your desired model again.",
 		"vscodeLmModel": "Language Model",
 		"vscodeLmWarning": "Note: This is a very experimental integration and provider support will vary. If you get an error about a model not being supported, that's an issue on the provider's end.",
+		"geminiSections": {
+			"modelParameters": "Model Parameters",
+			"advancedFeatures": "Advanced Features",
+			"geminiContextManagement": "Gemini Context Management"
+		},
 		"geminiParameters": {
 			"topK": {
 				"title": "Top K",
@@ -237,15 +242,18 @@
 			}
 		},
 		"geminiContextManagement": {
-			"title": "Gemini Context Management",
 			"useCustomContextWindow": "Use custom context window limit",
 			"description": "Override the model's default context window. When conversations approach this limit, Roo Code will automatically condense older messages.",
 			"modelDefault": "Model's default context window",
 			"condensingThreshold": {
+				"tokens": "tokens",
 				"title": "Context Condensing Threshold",
-				"description": "Automatically condense context when it reaches this percentage of the context window.",
-				"triggerAt": "Condensing will trigger at",
-				"availableContext": "Available context window"
+				"description": "Context condensing threshold for this Gemini profile. When context reaches this percentage, it will be automatically condensed.",
+				"condensingtriggerAt": "Condensing will trigger at",
+				"tokenLimitTriggered": "due to token limit, not percentage",
+				"availableContext": "Available context window",
+				"tokenLimitTrigger": "Token limit trigger",
+				"actualTrigger": "Actual trigger"
 			}
 		},
 		"googleCloudSetup": {

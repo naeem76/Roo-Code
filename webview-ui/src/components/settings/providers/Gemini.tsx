@@ -149,7 +149,7 @@ export const Gemini = ({
 			</div>
 
 			<div className="mt-6 border-t border-vscode-widget-border pt-4">
-				<h3 className="font-semibold text-lg mb-4">Model Parameters</h3>
+				<h3 className="font-semibold text-lg mb-4">{t("settings:providers.geminiSections.modelParameters")}</h3>
 
 				<div className="mt-4">
 					<label className="block font-medium mb-1">
@@ -219,7 +219,9 @@ export const Gemini = ({
 			</div>
 
 			<div className="mt-6 border-t border-vscode-widget-border pt-4">
-				<h3 className="font-semibold text-lg mb-4">{t("settings:providers.geminiContextManagement.title")}</h3>
+				<h3 className="font-semibold text-lg mb-4">
+					{t("settings:providers.geminiSections.geminiContextManagement")}
+				</h3>
 				<div>
 					<Checkbox
 						checked={isCustomContextLimit}
@@ -244,7 +246,8 @@ export const Gemini = ({
 
 					<div className="text-sm text-vscode-descriptionForeground mb-3">
 						<strong>{t("settings:providers.geminiContextManagement.modelDefault")}:</strong>{" "}
-						{(modelInfo?.contextWindow || 1048576).toLocaleString()} tokens
+						{(modelInfo?.contextWindow || 1048576).toLocaleString()}{" "}
+						{t("settings:providers.geminiContextManagement.condensingThreshold.tokenLimitTriggered")}
 					</div>
 
 					{isCustomContextLimit && (
@@ -253,7 +256,7 @@ export const Gemini = ({
 								<div className="flex items-center gap-2">
 									<Slider
 										min={32000}
-										max={2097152}
+										max={modelInfo?.contextWindow || 1048576}
 										step={1000}
 										value={[apiConfiguration.contextLimit ?? modelInfo?.contextWindow ?? 1048576]}
 										onValueChange={([value]) => setApiConfigurationField("contextLimit", value)}
@@ -271,7 +274,11 @@ export const Gemini = ({
 										)}
 										className="w-24"
 									/>
-									<span className="text-sm">tokens</span>
+									<span className="text-sm">
+										{t(
+											"settings:providers.geminiContextManagement.condensingThreshold.tokenLimitTriggered",
+										)}
+									</span>
 								</div>
 							</div>
 						</div>
@@ -284,8 +291,7 @@ export const Gemini = ({
 							{t("settings:providers.geminiContextManagement.condensingThreshold.title")}
 						</label>
 						<div className="text-sm text-vscode-descriptionForeground mb-3">
-							Context condensing threshold for this Gemini profile. When context reaches this percentage,
-							it will be automatically condensed.
+							{t("settings:providers.geminiContextManagement.condensingThreshold.description")}
 						</div>
 
 						<div className="flex items-center gap-2 mb-2">
@@ -318,36 +324,62 @@ export const Gemini = ({
 								return (
 									<>
 										<div>
-											<strong>Condensing will trigger at:</strong>{" "}
-											{details.actualTrigger.toLocaleString()} tokens
+											<strong>
+												{t(
+													"settings:providers.geminiContextManagement.condensingThreshold.condensingtriggerAt",
+												)}
+												:
+											</strong>{" "}
+											{details.actualTrigger.toLocaleString()}{" "}
+											{t("settings:providers.geminiContextManagement.condensingThreshold.tokens")}
 											{details.triggerReason === "token-limit" && (
 												<span className="text-yellow-600 ml-2">
-													(due to token limit, not percentage)
+													(
+													{t(
+														"settings:providers.geminiContextManagement.condensingThreshold.tokenLimitTriggered",
+													)}
+													)
 												</span>
 											)}
 										</div>
 										<div>
-											<strong>Available context window:</strong>{" "}
+											<strong>
+												{t(
+													"settings:providers.geminiContextManagement.condensingThreshold.availableContext",
+												)}
+												:
+											</strong>{" "}
 											{(
 												apiConfiguration?.contextLimit ||
 												modelInfo?.contextWindow ||
 												1048576
 											).toLocaleString()}{" "}
-											tokens
+											{t("settings:providers.geminiContextManagement.condensingThreshold.tokens")}
 										</div>
-										<div className="text-xs text-vscode-descriptionForeground">
+										<div className="text-vscode-descriptionForeground">
 											<div>
-												• Percentage trigger: {details.percentageBasedTrigger.toLocaleString()}{" "}
-												tokens ({getCurrentThreshold()}%)
-											</div>
-											<div>
-												• Token limit trigger: {details.allowedTokens.toLocaleString()} tokens
-											</div>
-											<div>
-												•{" "}
 												<strong>
-													Actual trigger: {details.actualTrigger.toLocaleString()} tokens
-												</strong>
+													{t(
+														"settings:providers.geminiContextManagement.condensingThreshold.tokenLimitTrigger",
+													)}
+													:
+												</strong>{" "}
+												{details.allowedTokens.toLocaleString()}{" "}
+												{t(
+													"settings:providers.geminiContextManagement.condensingThreshold.tokens",
+												)}
+											</div>
+											<div>
+												<strong>
+													{t(
+														"settings:providers.geminiContextManagement.condensingThreshold.actualTrigger",
+													)}
+													:
+												</strong>{" "}
+												{details.actualTrigger.toLocaleString()}{" "}
+												{t(
+													"settings:providers.geminiContextManagement.condensingThreshold.tokens",
+												)}
 											</div>
 										</div>
 									</>
@@ -359,7 +391,9 @@ export const Gemini = ({
 			</div>
 
 			<div className="mt-6 border-t border-vscode-widget-border pt-4">
-				<h3 className="font-semibold text-lg mb-4">Advanced Features</h3>
+				<h3 className="font-semibold text-lg mb-4">
+					{t("settings:providers.geminiSections.advancedFeatures")}
+				</h3>
 
 				<Checkbox
 					checked={!!apiConfiguration.enableUrlContext}
