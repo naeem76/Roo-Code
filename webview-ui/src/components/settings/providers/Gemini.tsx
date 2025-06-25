@@ -1,26 +1,100 @@
-import { useCallback, useState } from "react"
+import { useCallback, useState, useMemo } from "react"
 import { Checkbox } from "vscrui"
 import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import { Slider } from "@src/components/ui"
 
 import type { ProviderSettings } from "@roo-code/types"
+import { geminiModels, geminiDefaultModelId, type GeminiModelId } from "@roo-code/types"
 
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { VSCodeButtonLink } from "@src/components/common/VSCodeButtonLink"
+import { vscode } from "@src/utils/vscode"
 
 import { inputEventTransform } from "../transforms"
 
 type GeminiProps = {
 	apiConfiguration: ProviderSettings
 	setApiConfigurationField: (field: keyof ProviderSettings, value: ProviderSettings[keyof ProviderSettings]) => void
+	currentModelId?: string
+	currentProfileId?: string
+	profileThresholds?: Record<string, number>
+	autoCondenseContextPercent?: number
+	setProfileThreshold?: (profileId: string, threshold: number) => void
 }
 
-export const Gemini = ({ apiConfiguration, setApiConfigurationField }: GeminiProps) => {
+export const Gemini = ({
+	apiConfiguration,
+	setApiConfigurationField,
+	currentModelId,
+	currentProfileId,
+	profileThresholds = {},
+	autoCondenseContextPercent = 75,
+	setProfileThreshold,
+}: GeminiProps) => {
 	const { t } = useAppTranslation()
 
 	const [googleGeminiBaseUrlSelected, setGoogleGeminiBaseUrlSelected] = useState(
 		!!apiConfiguration?.googleGeminiBaseUrl,
 	)
+
+	const [isCustomContextLimit, setIsCustomContextLimit] = useState(
+		apiConfiguration?.contextLimit !== undefined && apiConfiguration?.contextLimit !== null,
+	)
+
+	const modelInfo = useMemo(() => {
+		const modelId = (
+			currentModelId && currentModelId in geminiModels ? currentModelId : geminiDefaultModelId
+		) as GeminiModelId
+		return geminiModels[modelId]
+	}, [currentModelId])
+
+	const getCurrentThreshold = useCallback(() => {
+		if (!currentProfileId) return autoCondenseContextPercent
+
+		const profileThreshold = profileThresholds[currentProfileId]
+		if (profileThreshold === undefined || profileThreshold === -1) {
+			return autoCondenseContextPercent
+		}
+		return profileThreshold
+	}, [currentProfileId, profileThresholds, autoCondenseContextPercent])
+
+	const handleThresholdChange = useCallback(
+		(newThreshold: number) => {
+			if (!currentProfileId || !setProfileThreshold) return
+
+			setProfileThreshold(currentProfileId, newThreshold)
+
+			vscode.postMessage({
+				type: "profileThresholds",
+				values: {
+					...profileThresholds,
+					[currentProfileId]: newThreshold,
+				},
+			})
+		},
+		[currentProfileId, profileThresholds, setProfileThreshold],
+	)
+
+	const getTriggerDetails = useCallback(() => {
+		const contextWindow = apiConfiguration?.contextLimit || modelInfo?.contextWindow || 1048576
+		const threshold = getCurrentThreshold()
+
+		const TOKEN_BUFFER_PERCENTAGE = 0.1
+		const maxTokens = modelInfo?.maxTokens
+		const reservedTokens = maxTokens || contextWindow * 0.2
+		const allowedTokens = Math.floor(contextWindow * (1 - TOKEN_BUFFER_PERCENTAGE) - reservedTokens)
+
+		const percentageBasedTrigger = Math.floor(contextWindow * (threshold / 100))
+
+		return {
+			percentageBasedTrigger,
+			allowedTokens,
+			actualTrigger: Math.min(percentageBasedTrigger, allowedTokens),
+			triggerReason: allowedTokens < percentageBasedTrigger ? "token-limit" : "percentage-threshold",
+			maxTokens,
+			reservedTokens,
+		}
+	}, [apiConfiguration?.contextLimit, modelInfo, getCurrentThreshold])
 
 	const handleInputChange = useCallback(
 		<K extends keyof ProviderSettings, E>(
@@ -51,12 +125,12 @@ export const Gemini = ({ apiConfiguration, setApiConfigurationField }: GeminiPro
 					{t("settings:providers.getGeminiApiKey")}
 				</VSCodeButtonLink>
 			)}
+
 			<div>
 				<Checkbox
 					checked={googleGeminiBaseUrlSelected}
 					onChange={(checked: boolean) => {
 						setGoogleGeminiBaseUrlSelected(checked)
-
 						if (!checked) {
 							setApiConfigurationField("googleGeminiBaseUrl", "")
 						}
@@ -73,104 +147,236 @@ export const Gemini = ({ apiConfiguration, setApiConfigurationField }: GeminiPro
 					/>
 				)}
 			</div>
-			<div className="mt-4">
-				<label className="block font-medium mb-1">{t("settings:providers.geminiParameters.topP.title")}</label>
-				<div className="flex items-center space-x-2">
-					<Slider
-						min={0}
-						max={1}
-						step={0.01}
-						value={[apiConfiguration.topP ?? 0]}
-						onValueChange={(values: number[]) => setApiConfigurationField("topP", values[0])}
-						className="flex-grow"
-					/>
-					<span className="w-10 text-right">{(apiConfiguration.topP ?? 0).toFixed(2)}</span>
+
+			<div className="mt-6 border-t border-vscode-widget-border pt-4">
+				<h3 className="font-semibold text-lg mb-4">Model Parameters</h3>
+
+				<div className="mt-4">
+					<label className="block font-medium mb-1">
+						{t("settings:providers.geminiParameters.topP.title")}
+					</label>
+					<div className="flex items-center space-x-2">
+						<Slider
+							min={0}
+							max={1}
+							step={0.01}
+							value={[apiConfiguration.topP ?? 0]}
+							onValueChange={(values: number[]) => setApiConfigurationField("topP", values[0])}
+							className="flex-grow"
+						/>
+						<span className="w-10 text-right">{(apiConfiguration.topP ?? 0).toFixed(2)}</span>
+					</div>
+					<div className="text-sm text-vscode-descriptionForeground">
+						{t("settings:providers.geminiParameters.topP.description")}
+					</div>
 				</div>
-				<div className="text-sm text-vscode-descriptionForeground">
-					{t("settings:providers.geminiParameters.topP.description")}
+
+				<div className="mt-4">
+					<label className="block font-medium mb-1">
+						{t("settings:providers.geminiParameters.topK.title")}
+					</label>
+					<div className="flex items-center space-x-2">
+						<Slider
+							min={0}
+							max={100}
+							step={1}
+							value={[apiConfiguration.topK ?? 0]}
+							onValueChange={(values: number[]) => setApiConfigurationField("topK", values[0])}
+							className="flex-grow"
+						/>
+						<span className="w-10 text-right">{apiConfiguration.topK ?? 0}</span>
+					</div>
+					<div className="text-sm text-vscode-descriptionForeground">
+						{t("settings:providers.geminiParameters.topK.description")}
+					</div>
+				</div>
+
+				<div className="mt-4">
+					<label className="block font-medium mb-1">
+						{t("settings:providers.geminiParameters.maxOutputTokens.title")}
+					</label>
+					<div className="flex items-center space-x-2">
+						<Slider
+							min={3000}
+							max={8192}
+							step={1}
+							value={[apiConfiguration.maxOutputTokens ?? 0]}
+							onValueChange={(values: number[]) => setApiConfigurationField("maxOutputTokens", values[0])}
+							className="flex-grow"
+						/>
+						<VSCodeTextField
+							value={(apiConfiguration.maxOutputTokens ?? 0).toString()}
+							type="text"
+							inputMode="numeric"
+							onInput={handleInputChange("maxOutputTokens", (e) => parseInt((e as any).target.value, 10))}
+							className="w-16"
+						/>
+					</div>
+					<div className="text-sm text-vscode-descriptionForeground">
+						{t("settings:providers.geminiParameters.maxOutputTokens.description")}
+					</div>
 				</div>
 			</div>
-			<div className="mt-4">
-				<label className="block font-medium mb-1">{t("settings:providers.geminiParameters.topK.title")}</label>
-				<div className="flex items-center space-x-2">
-					<Slider
-						min={0}
-						max={100}
-						step={1}
-						value={[apiConfiguration.topK ?? 0]}
-						onValueChange={(values: number[]) => setApiConfigurationField("topK", values[0])}
-						className="flex-grow"
-					/>
-					<span className="w-10 text-right">{apiConfiguration.topK ?? 0}</span>
+
+			<div className="mt-6 border-t border-vscode-widget-border pt-4">
+				<h3 className="font-semibold text-lg mb-4">{t("settings:providers.geminiContextManagement.title")}</h3>
+				<div>
+					<Checkbox
+						checked={isCustomContextLimit}
+						onChange={(checked: boolean) => {
+							setIsCustomContextLimit(checked)
+							if (!checked) {
+								setApiConfigurationField("contextLimit", null)
+							} else {
+								setApiConfigurationField(
+									"contextLimit",
+									apiConfiguration.contextLimit ?? modelInfo?.contextWindow ?? 1048576,
+								)
+							}
+						}}>
+						<label className="block font-medium mb-1">
+							{t("settings:providers.geminiContextManagement.useCustomContextWindow")}
+						</label>
+					</Checkbox>
+					<div className="text-sm text-vscode-descriptionForeground mt-1 mb-3">
+						{t("settings:providers.geminiContextManagement.description")}
+					</div>
+
+					<div className="text-sm text-vscode-descriptionForeground mb-3">
+						<strong>{t("settings:providers.geminiContextManagement.modelDefault")}:</strong>{" "}
+						{(modelInfo?.contextWindow || 1048576).toLocaleString()} tokens
+					</div>
+
+					{isCustomContextLimit && (
+						<div className="flex flex-col gap-3 pl-3 border-l-2 border-vscode-button-background">
+							<div>
+								<div className="flex items-center gap-2">
+									<Slider
+										min={32000}
+										max={2097152}
+										step={1000}
+										value={[apiConfiguration.contextLimit ?? modelInfo?.contextWindow ?? 1048576]}
+										onValueChange={([value]) => setApiConfigurationField("contextLimit", value)}
+									/>
+									<VSCodeTextField
+										value={(
+											apiConfiguration.contextLimit ??
+											modelInfo?.contextWindow ??
+											1048576
+										).toString()}
+										type="text"
+										inputMode="numeric"
+										onInput={handleInputChange("contextLimit", (e) =>
+											parseInt((e as any).target.value, 10),
+										)}
+										className="w-24"
+									/>
+									<span className="text-sm">tokens</span>
+								</div>
+							</div>
+						</div>
+					)}
 				</div>
-				<div className="text-sm text-vscode-descriptionForeground">
-					{t("settings:providers.geminiParameters.topK.description")}
-				</div>
+
+				{currentProfileId && (
+					<div className="mt-6">
+						<label className="block font-medium mb-1">
+							{t("settings:providers.geminiContextManagement.condensingThreshold.title")}
+						</label>
+						<div className="text-sm text-vscode-descriptionForeground mb-3">
+							Context condensing threshold for this Gemini profile. When context reaches this percentage,
+							it will be automatically condensed.
+						</div>
+
+						<div className="flex items-center gap-2 mb-2">
+							<Slider
+								min={5}
+								max={100}
+								step={1}
+								value={[getCurrentThreshold()]}
+								onValueChange={([value]) => handleThresholdChange(value)}
+								className="flex-grow"
+							/>
+							<VSCodeTextField
+								value={getCurrentThreshold().toString()}
+								type="text"
+								inputMode="numeric"
+								onChange={(e) => {
+									const value = parseInt((e.target as HTMLInputElement).value, 10)
+									if (!isNaN(value) && value >= 5 && value <= 100) {
+										handleThresholdChange(value)
+									}
+								}}
+								className="w-16"
+							/>
+							<span className="text-sm">%</span>
+						</div>
+
+						<div className="text-sm text-vscode-descriptionForeground space-y-1">
+							{(() => {
+								const details = getTriggerDetails()
+								return (
+									<>
+										<div>
+											<strong>Condensing will trigger at:</strong>{" "}
+											{details.actualTrigger.toLocaleString()} tokens
+											{details.triggerReason === "token-limit" && (
+												<span className="text-yellow-600 ml-2">
+													(due to token limit, not percentage)
+												</span>
+											)}
+										</div>
+										<div>
+											<strong>Available context window:</strong>{" "}
+											{(
+												apiConfiguration?.contextLimit ||
+												modelInfo?.contextWindow ||
+												1048576
+											).toLocaleString()}{" "}
+											tokens
+										</div>
+										<div className="text-xs text-vscode-descriptionForeground">
+											<div>
+												• Percentage trigger: {details.percentageBasedTrigger.toLocaleString()}{" "}
+												tokens ({getCurrentThreshold()}%)
+											</div>
+											<div>
+												• Token limit trigger: {details.allowedTokens.toLocaleString()} tokens
+											</div>
+											<div>
+												•{" "}
+												<strong>
+													Actual trigger: {details.actualTrigger.toLocaleString()} tokens
+												</strong>
+											</div>
+										</div>
+									</>
+								)
+							})()}
+						</div>
+					</div>
+				)}
 			</div>
-			<div className="mt-4">
-				<label className="block font-medium mb-1">
-					{t("settings:providers.geminiParameters.maxOutputTokens.title")}
-				</label>
-				<div className="flex items-center space-x-2">
-					<Slider
-						min={0}
-						max={2048}
-						step={1}
-						value={[apiConfiguration.maxOutputTokens ?? 0]}
-						onValueChange={(values: number[]) => setApiConfigurationField("maxOutputTokens", values[0])}
-						className="flex-grow"
-					/>
-					<VSCodeTextField
-						value={(apiConfiguration.maxOutputTokens ?? 0).toString()}
-						type="text"
-						inputMode="numeric"
-						onInput={handleInputChange("maxOutputTokens", (e) => parseInt((e as any).target.value, 10))}
-						className="w-16"
-					/>
+
+			<div className="mt-6 border-t border-vscode-widget-border pt-4">
+				<h3 className="font-semibold text-lg mb-4">Advanced Features</h3>
+
+				<Checkbox
+					checked={!!apiConfiguration.enableUrlContext}
+					onChange={(checked: boolean) => setApiConfigurationField("enableUrlContext", checked)}>
+					{t("settings:providers.geminiParameters.urlContext.title")}
+				</Checkbox>
+				<div className="text-sm text-vscode-descriptionForeground mb-3">
+					{t("settings:providers.geminiParameters.urlContext.description")}
 				</div>
-				<div className="text-sm text-vscode-descriptionForeground">
-					{t("settings:providers.geminiParameters.maxOutputTokens.description")}
-				</div>
-			</div>
-			<Checkbox
-				checked={!!apiConfiguration.enableUrlContext}
-				onChange={(checked: boolean) => setApiConfigurationField("enableUrlContext", checked)}>
-				{t("settings:providers.geminiParameters.urlContext.title")}
-			</Checkbox>
-			<div className="text-sm text-vscode-descriptionForeground mb-2">
-				{t("settings:providers.geminiParameters.urlContext.description")}
-			</div>
-			<Checkbox
-				checked={!!apiConfiguration.enableGrounding}
-				onChange={(checked: boolean) => setApiConfigurationField("enableGrounding", checked)}>
-				{t("settings:providers.geminiParameters.groundingSearch.title")}
-			</Checkbox>
-			<div className="text-sm text-vscode-descriptionForeground mb-2">
-				{t("settings:providers.geminiParameters.groundingSearch.description")}
-			</div>
-			<div className="mt-4">
-				<label className="block font-medium mb-1">
-					{t("settings:providers.geminiParameters.contextLimit.title")}
-				</label>
-				<div className="flex items-center space-x-2">
-					<Slider
-						min={0}
-						max={2048}
-						step={1}
-						value={[apiConfiguration.contextLimit ?? 0]}
-						onValueChange={(values: number[]) => setApiConfigurationField("contextLimit", values[0])}
-						className="flex-grow"
-					/>
-					<VSCodeTextField
-						value={(apiConfiguration.contextLimit ?? 0).toString()}
-						type="text"
-						inputMode="numeric"
-						onInput={handleInputChange("contextLimit", (e) => parseInt((e as any).target.value, 10))}
-						className="w-16"
-					/>
-				</div>
-				<div className="text-sm text-vscode-descriptionForeground">
-					{t("settings:providers.geminiParameters.contextLimit.description")}
+
+				<Checkbox
+					checked={!!apiConfiguration.enableGrounding}
+					onChange={(checked: boolean) => setApiConfigurationField("enableGrounding", checked)}>
+					{t("settings:providers.geminiParameters.groundingSearch.title")}
+				</Checkbox>
+				<div className="text-sm text-vscode-descriptionForeground mb-3">
+					{t("settings:providers.geminiParameters.groundingSearch.description")}
 				</div>
 			</div>
 		</>

@@ -236,6 +236,18 @@
 				"description": "Maximum number of previous messages to include in context. Lower values reduce token usage and costs but may limit conversation continuity."
 			}
 		},
+		"geminiContextManagement": {
+			"title": "Gemini Context Management",
+			"useCustomContextWindow": "Use custom context window limit",
+			"description": "Override the model's default context window. When conversations approach this limit, Roo Code will automatically condense older messages.",
+			"modelDefault": "Model's default context window",
+			"condensingThreshold": {
+				"title": "Context Condensing Threshold",
+				"description": "Automatically condense context when it reaches this percentage of the context window.",
+				"triggerAt": "Condensing will trigger at",
+				"availableContext": "Available context window"
+			}
+		},
 		"googleCloudSetup": {
 			"title": "To use Google Cloud Vertex AI, you need to:",
 			"step1": "1. Create a Google Cloud account, enable the Vertex AI API & enable the desired Claude models.",

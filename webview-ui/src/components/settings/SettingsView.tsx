@@ -233,6 +233,16 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 		})
 	}, [])
 
+	const setProfileThreshold = useCallback(
+		(profileId: string, threshold: number) => {
+			setCachedStateField("profileThresholds", {
+				...profileThresholds,
+				[profileId]: threshold,
+			})
+		},
+		[profileThresholds, setCachedStateField],
+	)
+
 	const setTelemetrySetting = useCallback((setting: TelemetrySetting) => {
 		setCachedState((prevState) => {
 			if (prevState.telemetrySetting === setting) {
@@ -576,6 +586,10 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 									setApiConfigurationField={setApiConfigurationField}
 									errorMessage={errorMessage}
 									setErrorMessage={setErrorMessage}
+									currentProfileId={currentApiConfigName}
+									profileThresholds={profileThresholds || {}}
+									autoCondenseContextPercent={autoCondenseContextPercent || 75}
+									setProfileThreshold={setProfileThreshold}
 								/>
 							</Section>
 						</div>
