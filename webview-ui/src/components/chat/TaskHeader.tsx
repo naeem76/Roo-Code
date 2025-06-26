@@ -17,6 +17,7 @@ import { useSelectedModel } from "@/components/ui/hooks/useSelectedModel"
 import Thumbnails from "../common/Thumbnails"
 
 import { TaskActions } from "./TaskActions"
+import { ShareButton } from "./ShareButton"
 import { ContextWindowProgress } from "./ContextWindowProgress"
 import { Mention } from "./Mention"
 
@@ -24,7 +25,6 @@ export interface TaskHeaderProps {
 	task: ClineMessage
 	tokensIn: number
 	tokensOut: number
-	doesModelSupportPromptCache: boolean
 	cacheWrites?: number
 	cacheReads?: number
 	totalCost: number
@@ -38,7 +38,6 @@ const TaskHeader = ({
 	task,
 	tokensIn,
 	tokensOut,
-	doesModelSupportPromptCache,
 	cacheWrites,
 	cacheReads,
 	totalCost,
@@ -118,6 +117,7 @@ const TaskHeader = ({
 							}
 						/>
 						{condenseButton}
+						<ShareButton item={currentTaskItem} disabled={buttonsDisabled} />
 						{!!totalCost && <VSCodeBadge>${totalCost.toFixed(2)}</VSCodeBadge>}
 					</div>
 				)}
@@ -184,25 +184,24 @@ const TaskHeader = ({
 								{!totalCost && <TaskActions item={currentTaskItem} buttonsDisabled={buttonsDisabled} />}
 							</div>
 
-							{doesModelSupportPromptCache &&
-								((typeof cacheReads === "number" && cacheReads > 0) ||
-									(typeof cacheWrites === "number" && cacheWrites > 0)) && (
-									<div className="flex items-center gap-1 flex-wrap h-[20px]">
-										<span className="font-bold">{t("chat:task.cache")}</span>
-										{typeof cacheWrites === "number" && cacheWrites > 0 && (
-											<span className="flex items-center gap-0.5">
-												<CloudUpload size={16} />
-												{formatLargeNumber(cacheWrites)}
-											</span>
-										)}
-										{typeof cacheReads === "number" && cacheReads > 0 && (
-											<span className="flex items-center gap-0.5">
-												<CloudDownload size={16} />
-												{formatLargeNumber(cacheReads)}
-											</span>
-										)}
-									</div>
-								)}
+							{((typeof cacheReads === "number" && cacheReads > 0) ||
+								(typeof cacheWrites === "number" && cacheWrites > 0)) && (
+								<div className="flex items-center gap-1 flex-wrap h-[20px]">
+									<span className="font-bold">{t("chat:task.cache")}</span>
+									{typeof cacheWrites === "number" && cacheWrites > 0 && (
+										<span className="flex items-center gap-0.5">
+											<CloudUpload size={16} />
+											{formatLargeNumber(cacheWrites)}
+										</span>
+									)}
+									{typeof cacheReads === "number" && cacheReads > 0 && (
+										<span className="flex items-center gap-0.5">
+											<CloudDownload size={16} />
+											{formatLargeNumber(cacheReads)}
+										</span>
+									)}
+								</div>
+							)}
 
 							{!!totalCost && (
 								<div className="flex justify-between items-center h-[20px]">
