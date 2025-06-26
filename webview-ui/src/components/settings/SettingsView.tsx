@@ -177,6 +177,15 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 
 	const apiConfiguration = useMemo(() => cachedState.apiConfiguration ?? {}, [cachedState.apiConfiguration])
 
+	const getCurrentProfileId = useCallback(() => {
+		if (!currentApiConfigName || !listApiConfigMeta) {
+			return currentApiConfigName
+		}
+
+		const profile = listApiConfigMeta.find((p) => p.name === currentApiConfigName)
+		return profile ? profile.id : currentApiConfigName
+	}, [currentApiConfigName, listApiConfigMeta])
+
 	useEffect(() => {
 		// Update only when currentApiConfigName is changed.
 		// Expected to be triggered by loadApiConfiguration/upsertApiConfiguration.
@@ -586,7 +595,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 									setApiConfigurationField={setApiConfigurationField}
 									errorMessage={errorMessage}
 									setErrorMessage={setErrorMessage}
-									currentProfileId={currentApiConfigName}
+									currentProfileId={getCurrentProfileId()}
 									profileThresholds={profileThresholds || {}}
 									autoCondenseContextPercent={autoCondenseContextPercent || 75}
 									setProfileThreshold={setProfileThreshold}
