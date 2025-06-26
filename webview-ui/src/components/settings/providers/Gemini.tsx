@@ -198,7 +198,7 @@ export const Gemini = ({
 					<div className="flex items-center space-x-2">
 						<Slider
 							min={3000}
-							max={8192}
+							max={modelInfo.maxTokens}
 							step={1}
 							value={[apiConfiguration.maxOutputTokens ?? 0]}
 							onValueChange={(values: number[]) => setApiConfigurationField("maxOutputTokens", values[0])}
@@ -208,7 +208,10 @@ export const Gemini = ({
 							value={(apiConfiguration.maxOutputTokens ?? 0).toString()}
 							type="text"
 							inputMode="numeric"
-							onInput={handleInputChange("maxOutputTokens", (e) => parseInt((e as any).target.value, 10))}
+							onInput={handleInputChange("maxOutputTokens", (e) => {
+								const val = parseInt((e as any).target.value, 10)
+								return Number.isNaN(val) ? 0 : Math.min(val, modelInfo.maxTokens)
+							})}
 							className="w-16"
 						/>
 					</div>
