@@ -243,17 +243,17 @@
 		},
 		"geminiContextManagement": {
 			"useCustomContextWindow": "Use custom context window limit",
-			"description": "Override the model's default context window. When conversations approach this limit, Roo Code will automatically condense older messages.",
+			"description": "Override the model's default context window. Roo Code automatically condenses older messages when conversations reach either: (1) your chosen threshold percentage of the context window, or (2) the calculated token limit (which accounts for reserved tokens and safety buffers). The actual trigger uses whichever limit is reached first.",
 			"modelDefault": "Model's default context window",
 			"condensingThreshold": {
 				"tokens": "tokens",
 				"title": "Context Condensing Threshold",
-				"description": "Context condensing threshold for this Gemini profile. When context reaches this percentage, it will be automatically condensed.",
+				"description": "Set the percentage of context window usage that triggers automatic condensing. Note: If the calculated token limit (after reserving space for output and safety buffers) is lower than this percentage, the token limit will trigger condensing instead.",
 				"condensingtriggerAt": "Condensing will trigger at",
 				"tokenLimitTriggered": "due to token limit, not percentage",
 				"availableContext": "Available context window",
-				"tokenLimitTrigger": "Token limit trigger",
-				"actualTrigger": "Actual trigger"
+				"tokenLimitTrigger": "Token limit trigger (after reserving output tokens and safety buffer)",
+				"actualTrigger": "Actual trigger (minimum of percentage and token limit)"
 			}
 		},
 		"googleCloudSetup": {

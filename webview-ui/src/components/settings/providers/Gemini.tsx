@@ -255,7 +255,7 @@ export const Gemini = ({
 					<div className="text-sm text-vscode-descriptionForeground mb-3">
 						<strong>{t("settings:providers.geminiContextManagement.modelDefault")}:</strong>{" "}
 						{(modelInfo?.contextWindow || 1048576).toLocaleString()}{" "}
-						{t("settings:providers.geminiContextManagement.condensingThreshold.tokenLimitTriggered")}
+						{t("settings:providers.geminiContextManagement.condensingThreshold.tokens")}
 					</div>
 
 					{isCustomContextLimit && (
