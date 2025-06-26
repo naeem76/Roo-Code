@@ -236,6 +236,26 @@
 				"description": "संदर्भ में शामिल करने के लिए पिछले संदेशों की अधिकतम संख्या। निम्न मान टोकन उपयोग और लागत कम करते हैं, लेकिन बातचीत की निरंतरता सीमित कर सकते हैं।"
 			}
 		},
+		"geminiSections": {
+			"modelParameters": "मॉडल पैरामीटर",
+			"advancedFeatures": "उन्नत सुविधाएँ",
+			"geminiContextManagement": "Gemini संदर्भ प्रबंधन"
+		},
+		"geminiContextManagement": {
+			"useCustomContextWindow": "कस्टम संदर्भ विंडो सीमा का उपयोग करें",
+			"description": "मॉडल की डिफ़ॉल्ट संदर्भ विंडो को ओवरराइड करें। जब वार्तालाप इस सीमा के करीब पहुंचती है, तो Roo Code पुराने संदेशों को स्वचालित रूप से संक्षिप्त करेगा।",
+			"modelDefault": "मॉडल की डिफ़ॉल्ट संदर्भ विंडो",
+			"condensingThreshold": {
+				"tokens": "टोकन",
+				"title": "संदर्भ संक्षेपण थ्रेशोल्ड",
+				"description": "इस Gemini प्रोफ़ाइल के लिए संदर्भ संक्षेपण थ्रेशोल्ड। जब संदर्भ इस प्रतिशत तक पहुंचता है, तो इसे स्वचालित रूप से संक्षेपित किया जाएगा।",
+				"condensingtriggerAt": "संकुचन इस पर ट्रिगर होगा",
+				"tokenLimitTriggered": "टोकन सीमा के कारण, प्रतिशत नहीं",
+				"availableContext": "उपलब्ध संदर्भ विंडो",
+				"tokenLimitTrigger": "टोकन सीमा ट्रिगर",
+				"actualTrigger": "वास्तविक ट्रिगर"
+			}
+		},
 		"googleCloudSetup": {
 			"title": "Google Cloud Vertex AI का उपयोग करने के लिए, आपको आवश्यकता है:",
 			"step1": "1. Google Cloud खाता बनाएं, Vertex AI API सक्षम करें और वांछित Claude मॉडल सक्षम करें।",

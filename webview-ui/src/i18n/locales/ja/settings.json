@@ -236,6 +236,26 @@
 				"description": "コンテキストに含める過去のメッセージの最大数。値を小さくするとトークン使用量とコストが削減されますが、会話の連続性が制限される場合があります。"
 			}
 		},
+		"geminiSections": {
+			"modelParameters": "モデルパラメータ",
+			"advancedFeatures": "高度な機能",
+			"geminiContextManagement": "Gemini コンテキスト管理"
+		},
+		"geminiContextManagement": {
+			"useCustomContextWindow": "カスタムコンテキストウィンドウ制限を使用",
+			"description": "モデルのデフォルトのコンテキストウィンドウを上書きします。この制限に近づくと、Roo Codeは古いメッセージを自動的に要約します。",
+			"modelDefault": "モデルのデフォルトのコンテキストウィンドウ",
+			"condensingThreshold": {
+				"tokens": "トークン",
+				"title": "コンテキスト圧縮しきい値",
+				"description": "このGeminiプロファイルのコンテキスト圧縮しきい値です。このパーセンテージに達すると、自動的に圧縮されます。",
+				"condensingtriggerAt": "圧縮は次の時にトリガーされます",
+				"tokenLimitTriggered": "トークン制限が原因で、パーセンテージではありません",
+				"availableContext": "利用可能なコンテキストウィンドウ",
+				"tokenLimitTrigger": "トークン制限トリガー",
+				"actualTrigger": "実際のトリガー"
+			}
+		},
 		"googleCloudSetup": {
 			"title": "Google Cloud Vertex AIを使用するには：",
 			"step1": "1. Google Cloudアカウントを作成し、Vertex AI APIを有効にして、希望するClaudeモデルを有効にします。",

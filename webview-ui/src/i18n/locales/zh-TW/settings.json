@@ -236,6 +236,26 @@
 				"description": "生成期間要包含的最大上下文大小（以代幣為單位）。"
 			}
 		},
+		"geminiSections": {
+			"modelParameters": "模型參數",
+			"advancedFeatures": "進階功能",
+			"geminiContextManagement": "Gemini 上下文管理"
+		},
+		"geminiContextManagement": {
+			"useCustomContextWindow": "使用自訂上下文視窗限制",
+			"description": "覆寫模型的預設上下文視窗限制。當對話接近此限制時，Roo Code 將自動濃縮較舊訊息。",
+			"modelDefault": "模型的預設上下文視窗限制",
+			"condensingThreshold": {
+				"tokens": "代幣",
+				"title": "上下文濃縮閾值",
+				"description": "此 Gemini 設定檔的上下文濃縮閾值。當上下文達到此百分比時，將自動濃縮。",
+				"condensingtriggerAt": "濃縮將在以下條件觸發",
+				"tokenLimitTriggered": "因代幣限制而非百分比",
+				"availableContext": "可用上下文視窗",
+				"tokenLimitTrigger": "代幣限制觸發",
+				"actualTrigger": "實際觸發"
+			}
+		},
 		"googleCloudSetup": {
 			"title": "要使用 Google Cloud Vertex AI，您需要：",
 			"step1": "1. 建立 Google Cloud 帳戶，啟用 Vertex AI API 並啟用所需的 Claude 模型。",

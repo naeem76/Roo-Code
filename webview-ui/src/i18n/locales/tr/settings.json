@@ -236,6 +236,26 @@
 				"description": "Bağlamda dahil edilecek önceki mesajların maksimum sayısı. Daha düşük değerler token kullanımını ve maliyeti azaltır, ancak konuşmanın devamlılığını sınırlayabilir."
 			}
 		},
+		"geminiSections": {
+			"modelParameters": "Model Parametreleri",
+			"advancedFeatures": "Gelişmiş Özellikler",
+			"geminiContextManagement": "Gemini Bağlam Yönetimi"
+		},
+		"geminiContextManagement": {
+			"useCustomContextWindow": "Özel bağlam penceresi sınırı kullan",
+			"description": "Modelin varsayılan bağlam penceresini geçersiz kılar. Konuşmalar bu sınıra yaklaştığında, Roo Code eski mesajları otomatik olarak yoğunlaştırır.",
+			"modelDefault": "Modelin varsayılan bağlam penceresi",
+			"condensingThreshold": {
+				"tokens": "jetonlar",
+				"title": "Bağlam Yoğunlaştırma Eşiği",
+				"description": "Bu Gemini profili için bağlam yoğunlaştırma eşiği. Bağlam bu yüzdede olduğunda, otomatik olarak yoğunlaştırılır.",
+				"condensingtriggerAt": "Yoğunlaştırma şu anda tetiklenecek",
+				"tokenLimitTriggered": "yüzde değil jeton sınırı nedeniyle tetiklendi",
+				"availableContext": "Kullanılabilir bağlam penceresi",
+				"tokenLimitTrigger": "Jeton sınırı tetikleyicisi",
+				"actualTrigger": "Gerçek tetikleyici"
+			}
+		},
 		"googleCloudSetup": {
 			"title": "Google Cloud Vertex AI'yi kullanmak için şunları yapmanız gerekir:",
 			"step1": "1. Google Cloud hesabı oluşturun, Vertex AI API'sini etkinleştirin ve istediğiniz Claude modellerini etkinleştirin.",

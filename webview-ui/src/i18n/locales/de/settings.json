@@ -236,6 +236,26 @@
 				"description": "Maximale Anzahl vorheriger Nachrichten, die in den Kontext einbezogen werden. Niedrigere Werte reduzieren den Tokenverbrauch und die Kosten, können jedoch die Kontinuität der Konversation einschränken."
 			}
 		},
+		"geminiSections": {
+			"modelParameters": "Model Parameter",
+			"advancedFeatures": "Erweiterte Funktionen",
+			"geminiContextManagement": "Gemini-Kontextverwaltung"
+		},
+		"geminiContextManagement": {
+			"useCustomContextWindow": "Benutzerdefiniertes Kontextfensterlimit verwenden",
+			"description": "Überschreibt das Standard-Kontextfenster des Modells. Wenn Konversationen dieses Limit erreichen, fasst Roo Code ältere Nachrichten automatisch zusammen.",
+			"modelDefault": "Standard-Kontextfenster des Modells",
+			"condensingThreshold": {
+				"tokens": "Tokens",
+				"title": "Schwellwert für Kontextverdichtung",
+				"description": "Kontextverdichtungs-Schwellenwert für dieses Gemini-Profil. Wenn der Kontext diesen Prozentsatz erreicht, wird automatisch verdichtet.",
+				"condensingtriggerAt": "Verdichtung wird ausgelöst bei",
+				"tokenLimitTriggered": "aufgrund der Token-Grenze, nicht des Prozentsatzes",
+				"availableContext": "Verfügbares Kontextfenster",
+				"tokenLimitTrigger": "Auslösung bei Token-Grenze",
+				"actualTrigger": "Tatsächliche Auslösung"
+			}
+		},
 		"googleCloudSetup": {
 			"title": "Um Google Cloud Vertex AI zu verwenden, müssen Sie:",
 			"step1": "1. Ein Google Cloud-Konto erstellen, die Vertex AI API aktivieren & die gewünschten Claude-Modelle aktivieren.",

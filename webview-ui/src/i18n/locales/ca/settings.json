@@ -236,6 +236,26 @@
 				"description": "Nombre màxim de missatges anteriors a incloure en el context. Valors més baixos redueixen l’ús de tokens i els costos, però poden limitar la continuïtat de la conversa."
 			}
 		},
+		"geminiSections": {
+			"modelParameters": "Paràmetres del model",
+			"advancedFeatures": "Funcions avançades",
+			"geminiContextManagement": "Gestió de context de Gemini"
+		},
+		"geminiContextManagement": {
+			"useCustomContextWindow": "Utilitzar límit de finestra de context personalitzada",
+			"description": "Sobrescriviu la finestra de context predeterminada del model. Quan la conversa s'acosti a aquest límit, Roo Code condensarà automàticament els missatges més antics.",
+			"modelDefault": "Finestra de context predeterminada del model",
+			"condensingThreshold": {
+				"tokens": "tokens",
+				"title": "Umbral de condensació de context",
+				"description": "Umbral de condensació de context per a aquest perfil de Gemini. Quan el context arribi a aquest percentatge, es condensarà automàticament.",
+				"condensingtriggerAt": "La condensació s'activarà a",
+				"tokenLimitTriggered": "a causa del límit de tokens, no del percentatge",
+				"availableContext": "Finestra de context disponible",
+				"tokenLimitTrigger": "Activació per límit de tokens",
+				"actualTrigger": "Activació real"
+			}
+		},
 		"googleCloudSetup": {
 			"title": "Per utilitzar Google Cloud Vertex AI, necessiteu:",
 			"step1": "1. Crear un compte de Google Cloud, habilitar l'API de Vertex AI i habilitar els models Claude necessaris.",

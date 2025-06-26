@@ -236,6 +236,26 @@
 				"description": "Maksymalna liczba poprzednich wiadomości uwzględnianych w kontekście. Niższe wartości zmniejszają użycie tokenów i koszty, ale mogą ograniczać ciągłość rozmowy."
 			}
 		},
+		"geminiSections": {
+			"modelParameters": "Parametry modelu",
+			"advancedFeatures": "Zaawansowane funkcje",
+			"geminiContextManagement": "Zarządzanie kontekstem Gemini"
+		},
+		"geminiContextManagement": {
+			"useCustomContextWindow": "Użyj niestandardowego limitu okna kontekstu",
+			"description": "Nadpisuje domyślne okno kontekstu modelu. Gdy rozmowy zbliżą się do tego limitu, Roo Code automatycznie skróci starsze wiadomości.",
+			"modelDefault": "Domyślne okno kontekstu modelu",
+			"condensingThreshold": {
+				"tokens": "tokeny",
+				"title": "Próg kondensacji kontekstu",
+				"description": "Próg kondensacji kontekstu dla tego profilu Gemini. Gdy kontekst osiągnie ten procent, zostanie automatycznie skrócony.",
+				"condensingtriggerAt": "Kondensacja zostanie wyzwolona przy",
+				"tokenLimitTriggered": "wyzwolone z powodu limitu tokenów, a nie procentu",
+				"availableContext": "Dostępne okno kontekstu",
+				"tokenLimitTrigger": "Wyzwalacz limitu tokenów",
+				"actualTrigger": "Rzeczywisty wyzwalacz"
+			}
+		},
 		"googleCloudSetup": {
 			"title": "Aby korzystać z Google Cloud Vertex AI, potrzebujesz:",
 			"step1": "1. Utworzyć konto Google Cloud, włączyć API Vertex AI i włączyć żądane modele Claude.",

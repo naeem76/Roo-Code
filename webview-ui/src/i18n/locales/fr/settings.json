@@ -236,6 +236,26 @@
 				"description": "Nombre maximum de messages précédents à inclure dans le contexte. Des valeurs plus faibles réduisent l'utilisation des tokens et les coûts, mais peuvent limiter la continuité de la conversation."
 			}
 		},
+		"geminiSections": {
+			"modelParameters": "Paramètres du modèle",
+			"advancedFeatures": "Fonctionnalités avancées",
+			"geminiContextManagement": "Gestion du contexte Gemini"
+		},
+		"geminiContextManagement": {
+			"useCustomContextWindow": "Utiliser la limite de fenêtre de contexte personnalisée",
+			"description": "Remplace la fenêtre de contexte par défaut du modèle. Lorsque les conversations atteignent cette limite, Roo Code condensera automatiquement les anciens messages.",
+			"modelDefault": "Fenêtre de contexte par défaut du modèle",
+			"condensingThreshold": {
+				"tokens": "jetons",
+				"title": "Seuil de condensation du contexte",
+				"description": "Seuil de condensation du contexte pour ce profil Gemini. Lorsque le contexte atteint ce pourcentage, il sera automatiquement condensé.",
+				"condensingtriggerAt": "La condensation se déclenchera à",
+				"tokenLimitTriggered": "en raison de la limite de jetons, non du pourcentage",
+				"availableContext": "Fenêtre de contexte disponible",
+				"tokenLimitTrigger": "Déclencheur de limite de jetons",
+				"actualTrigger": "Déclenchement réel"
+			}
+		},
 		"googleCloudSetup": {
 			"title": "Pour utiliser Google Cloud Vertex AI, vous devez :",
 			"step1": "1. Créer un compte Google Cloud, activer l'API Vertex AI et activer les modèles Claude souhaités.",

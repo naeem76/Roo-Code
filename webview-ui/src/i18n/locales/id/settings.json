@@ -240,6 +240,26 @@
 				"description": "Jumlah maksimum pesan sebelumnya yang disertakan dalam konteks. Nilai lebih rendah mengurangi penggunaan token dan biaya tetapi dapat membatasi kelanjutan percakapan."
 			}
 		},
+		"geminiSections": {
+			"modelParameters": "Parameter Model",
+			"advancedFeatures": "Fitur Lanjutan",
+			"geminiContextManagement": "Manajemen Konteks Gemini"
+		},
+		"geminiContextManagement": {
+			"useCustomContextWindow": "Gunakan batas jendela konteks kustom",
+			"description": "Ganti jendela konteks default model. Ketika percakapan mendekati batas ini, Roo Code akan secara otomatis merangkum pesan yang lebih lama.",
+			"modelDefault": "Jendela konteks default model",
+			"condensingThreshold": {
+				"tokens": "token",
+				"title": "Ambang Pemadatan Konteks",
+				"description": "Ambang pemadatan konteks untuk profil Gemini ini. Ketika konteks mencapai persentase ini, akan dipadatkan secara otomatis.",
+				"condensingtriggerAt": "Pemadatan akan terjadi pada",
+				"tokenLimitTriggered": "karena batas token, bukan persentase",
+				"availableContext": "Jendela konteks tersedia",
+				"tokenLimitTrigger": "Pemicu batas token",
+				"actualTrigger": "Pemicu aktual"
+			}
+		},
 		"googleCloudSetup": {
 			"title": "Untuk menggunakan Google Cloud Vertex AI, kamu perlu:",
 			"step1": "1. Buat akun Google Cloud, aktifkan Vertex AI API & aktifkan model Claude yang diinginkan.",

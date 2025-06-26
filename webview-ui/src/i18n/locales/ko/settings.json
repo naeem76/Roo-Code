@@ -236,6 +236,26 @@
 				"description": "컨텍스트에 포함할 이전 메시지의 최대 수입니다. 낮은 값은 토큰 사용량과 비용을 줄이지만 대화 연속성이 제한될 수 있습니다."
 			}
 		},
+		"geminiSections": {
+			"modelParameters": "모델 매개변수",
+			"advancedFeatures": "고급 기능",
+			"geminiContextManagement": "Gemini 컨텍스트 관리"
+		},
+		"geminiContextManagement": {
+			"useCustomContextWindow": "사용자 지정 컨텍스트 창 제한 사용",
+			"description": "모델의 기본 컨텍스트 창을 재정의합니다. 이 제한에 가까워지면 Roo Code는 이전 메시지를 자동으로 요약합니다。",
+			"modelDefault": "모델의 기본 컨텍스트 창",
+			"condensingThreshold": {
+				"tokens": "토큰",
+				"title": "컨텍스트 압축 임계값",
+				"description": "이 Gemini 프로필의 컨텍스트 압축 임계값입니다. 컨텍스트가 이 백분율에 도달하면 자동으로 압축됩니다。",
+				"condensingtriggerAt": "압축은 다음에서 트리거됩니다",
+				"tokenLimitTriggered": "백분율이 아닌 토큰 제한으로 인해 트리거되었습니다",
+				"availableContext": "사용 가능한 컨텍스트 창",
+				"tokenLimitTrigger": "토큰 제한 트리거",
+				"actualTrigger": "실제 트리거"
+			}
+		},
 		"googleCloudSetup": {
 			"title": "Google Cloud Vertex AI를 사용하려면:",
 			"step1": "1. Google Cloud 계정을 만들고, Vertex AI API를 활성화하고, 원하는 Claude 모델을 활성화하세요.",

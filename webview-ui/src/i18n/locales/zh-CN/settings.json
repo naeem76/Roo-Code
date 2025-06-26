@@ -236,6 +236,26 @@
 				"description": "包括在上下文中的先前消息的最大数量。较低的值可减少令牌使用量和成本，但可能限制对话连续性。"
 			}
 		},
+		"geminiSections": {
+			"modelParameters": "模型参数",
+			"advancedFeatures": "高级功能",
+			"geminiContextManagement": "Gemini 上下文管理"
+		},
+		"geminiContextManagement": {
+			"useCustomContextWindow": "使用自定义上下文窗口限制",
+			"description": "覆盖模型的默认上下文窗口限制。当对话接近此限制时，Roo Code 会自动压缩较旧的消息。",
+			"modelDefault": "模型的默认上下文窗口限制",
+			"condensingThreshold": {
+				"tokens": "令牌",
+				"title": "上下文压缩阈值",
+				"description": "此 Gemini 配置文件的上下文压缩阈值。当上下文达到此百分比时，将自动压缩。",
+				"condensingtriggerAt": "压缩将在达到时触发",
+				"tokenLimitTriggered": "由于令牌限制触发，而非百分比",
+				"availableContext": "可用上下文窗口",
+				"tokenLimitTrigger": "令牌限制触发",
+				"actualTrigger": "实际触发"
+			}
+		},
 		"googleCloudSetup": {
 			"title": "要使用 Google Cloud Vertex AI，您需要：",
 			"step1": "1. 注册Google Cloud账号并启用Vertex AI API",
