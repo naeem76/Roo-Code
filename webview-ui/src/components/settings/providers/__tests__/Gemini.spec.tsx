@@ -1,4 +1,3 @@
-import React from "react"
 import { render, screen, fireEvent } from "@testing-library/react"
 import { Gemini } from "../Gemini"
 import type { ProviderSettings } from "@roo-code/types"
@@ -14,8 +13,8 @@ vi.mock("@vscode/webview-ui-toolkit/react", () => ({
 }))
 
 vi.mock("vscrui", () => ({
-	Checkbox: ({ children, checked, onChange }: any) => (
-		<label data-testid="checkbox-custom-context-limit">
+	Checkbox: ({ children, checked, onChange, "data-testid": testId, _ }: any) => (
+		<label data-testid={testId}>
 			<input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
 			{children}
 		</label>
@@ -23,9 +22,9 @@ vi.mock("vscrui", () => ({
 }))
 
 vi.mock("@src/components/ui", () => ({
-	Slider: ({ min, max, step, value, onValueChange }: any) => (
+	Slider: ({ min, max, step, value, onValueChange, "data-testid": testId, _ }: any) => (
 		<input
-			data-testid="slider"
+			data-testid={testId}
 			type="range"
 			min={min}
 			max={max}
@@ -54,19 +53,35 @@ describe("Gemini provider settings", () => {
 		render(
 			<Gemini apiConfiguration={config} setApiConfigurationField={setApiField} currentModelId={defaultModelId} />,
 		)
-		expect(screen.queryByTestId("slider")).toBeNull()
+		expect(screen.queryByTestId("slider-context-limit")).toBeNull()
+
+		expect(screen.getByTestId("slider-top-p")).toBeInTheDocument()
+		expect(screen.getByTestId("slider-top-k")).toBeInTheDocument()
+		expect(screen.getByTestId("slider-max-output-tokens")).toBeInTheDocument()
 	})
 
 	it("enables custom context limit on checkbox toggle and shows slider with default value", () => {
 		const setApiField = vi.fn()
 		const config: ProviderSettings = {}
-		render(
+		const { rerender } = render(
 			<Gemini apiConfiguration={config} setApiConfigurationField={setApiField} currentModelId={defaultModelId} />,
 		)
+
 		const checkbox = screen.getByTestId("checkbox-custom-context-limit")
 		fireEvent.click(checkbox)
+
 		expect(setApiField).toHaveBeenCalledWith("contextLimit", defaultContextWindow)
-		const slider = screen.getByTestId("slider")
+
+		const updatedConfig = { ...config, contextLimit: defaultContextWindow }
+		rerender(
+			<Gemini
+				apiConfiguration={updatedConfig}
+				setApiConfigurationField={setApiField}
+				currentModelId={defaultModelId}
+			/>,
+		)
+
+		const slider = screen.getByTestId("slider-context-limit")
 		expect(slider).toHaveValue(defaultContextWindow.toString())
 	})
 
@@ -77,8 +92,10 @@ describe("Gemini provider settings", () => {
 		render(
 			<Gemini apiConfiguration={config} setApiConfigurationField={setApiField} currentModelId={defaultModelId} />,
 		)
-		const slider = screen.getByTestId("slider")
+
+		const slider = screen.getByTestId("slider-context-limit")
 		expect(slider).toHaveValue(initialLimit.toString())
+
 		fireEvent.change(slider, { target: { value: "50000" } })
 		expect(setApiField).toHaveBeenCalledWith("contextLimit", 50000)
 	})

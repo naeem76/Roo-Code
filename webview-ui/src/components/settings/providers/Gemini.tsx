@@ -128,6 +128,7 @@ export const Gemini = ({
 
 			<div>
 				<Checkbox
+					data-testid="checkbox-custom-base-url"
 					checked={googleGeminiBaseUrlSelected}
 					onChange={(checked: boolean) => {
 						setGoogleGeminiBaseUrlSelected(checked)
@@ -157,6 +158,7 @@ export const Gemini = ({
 					</label>
 					<div className="flex items-center space-x-2">
 						<Slider
+							data-testid="slider-top-p"
 							min={0}
 							max={1}
 							step={0.01}
@@ -177,6 +179,7 @@ export const Gemini = ({
 					</label>
 					<div className="flex items-center space-x-2">
 						<Slider
+							data-testid="slider-top-k"
 							min={0}
 							max={100}
 							step={1}
@@ -197,6 +200,7 @@ export const Gemini = ({
 					</label>
 					<div className="flex items-center space-x-2">
 						<Slider
+							data-testid="slider-max-output-tokens"
 							min={3000}
 							max={modelInfo.maxTokens}
 							step={1}
@@ -227,6 +231,7 @@ export const Gemini = ({
 				</h3>
 				<div>
 					<Checkbox
+						data-testid="checkbox-custom-context-limit"
 						checked={isCustomContextLimit}
 						onChange={(checked: boolean) => {
 							setIsCustomContextLimit(checked)
@@ -258,6 +263,7 @@ export const Gemini = ({
 							<div>
 								<div className="flex items-center gap-2">
 									<Slider
+										data-testid="slider-context-limit"
 										min={32000}
 										max={modelInfo?.contextWindow || 1048576}
 										step={1000}
@@ -397,6 +403,7 @@ export const Gemini = ({
 				</h3>
 
 				<Checkbox
+					data-testid="checkbox-url-context"
 					checked={!!apiConfiguration.enableUrlContext}
 					onChange={(checked: boolean) => setApiConfigurationField("enableUrlContext", checked)}>
 					{t("settings:providers.geminiParameters.urlContext.title")}
@@ -406,6 +413,7 @@ export const Gemini = ({
 				</div>
 
 				<Checkbox
+					data-testid="checkbox-grounding-search"
 					checked={!!apiConfiguration.enableGrounding}
 					onChange={(checked: boolean) => setApiConfigurationField("enableGrounding", checked)}>
 					{t("settings:providers.geminiParameters.groundingSearch.title")}
