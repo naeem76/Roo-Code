@@ -318,7 +318,6 @@ async function listFilteredDirectories(
 	ignoreInstance: ReturnType<typeof ignore>,
 ): Promise<string[]> {
 	const absolutePath = path.resolve(dirPath)
-	const targetDirPath = absolutePath // Store the explicitly targeted directory
 	const directories: string[] = []
 
 	async function scanDirectory(currentPath: string, isTargetDir: boolean = false): Promise<void> {
