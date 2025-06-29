@@ -271,16 +271,17 @@ export const Gemini = ({
 										onValueChange={([value]) => setApiConfigurationField("contextLimit", value)}
 									/>
 									<VSCodeTextField
-										value={(
-											apiConfiguration.contextLimit ??
-											modelInfo?.contextWindow ??
-											1048576
-										).toString()}
+										value={(() => {
+											const val =
+												apiConfiguration.contextLimit ?? modelInfo?.contextWindow ?? 1048576
+											return Number.isNaN(val) ? "" : val.toString()
+										})()}
 										type="text"
 										inputMode="numeric"
-										onInput={handleInputChange("contextLimit", (e) =>
-											parseInt((e as any).target.value, 10),
-										)}
+										onInput={handleInputChange("contextLimit", (e) => {
+											const val = parseInt((e as any).target.value, 10)
+											return Number.isNaN(val) ? undefined : val
+										})}
 										className="w-24"
 									/>
 									<span className="text-sm">
