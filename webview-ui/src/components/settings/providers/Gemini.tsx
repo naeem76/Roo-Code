@@ -227,7 +227,7 @@ export const Gemini = ({
 
 			<div className="mt-6 border-t border-vscode-widget-border pt-4">
 				<h3 className="font-semibold text-lg mb-4">
-					{t("settings:providers.geminiSections.geminiContextManagement")}
+					{t("settings:providers.geminiSections.geminiTokentManagement")}
 				</h3>
 				<div>
 					<Checkbox

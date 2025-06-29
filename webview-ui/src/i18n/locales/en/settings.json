@@ -213,7 +213,7 @@
 		"geminiSections": {
 			"modelParameters": "Model Parameters",
 			"advancedFeatures": "Advanced Features",
-			"geminiContextManagement": "Gemini Context Management"
+			"geminiTokentManagement": "Token Management"
 		},
 		"geminiParameters": {
 			"topK": {
