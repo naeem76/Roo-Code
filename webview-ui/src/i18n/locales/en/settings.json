@@ -243,7 +243,7 @@
 		},
 		"geminiContextManagement": {
 			"useCustomContextWindow": "Use custom context window limit",
-			"description": "Override the model's default context window. Roo Code automatically condenses older messages when conversations reach either: (1) your chosen threshold percentage of the context window, or (2) the calculated token limit (which accounts for reserved tokens and safety buffers). The actual trigger uses whichever limit is reached first.",
+			"description": "Override the model's default context window.",
 			"modelDefault": "Model's default context window",
 			"condensingThreshold": {
 				"tokens": "tokens",

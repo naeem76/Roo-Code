@@ -284,9 +284,6 @@ export const Gemini = ({
 										})}
 										className="w-24"
 									/>
-									<span className="text-sm">
-										{t("settings:providers.geminiContextManagement.condensingThreshold.tokens")}
-									</span>
 								</div>
 							</div>
 						</div>
