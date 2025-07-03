@@ -242,16 +242,18 @@
 			"geminiTokentManagement": "Tokenverwaltung"
 		},
 		"geminiTokentManagement": {
-			"useCustomContextWindow": "Benutzerdefiniertes Kontextfensterlimit verwenden",
-			"description": "Überschreiben Sie das Standard-Kontextfenster des Modells.",
-			"modelDefault": "Standard-Kontextfenster des Modells",
+			"useCustomContextWindow": "Use custom context window limit",
+			"description": "Override the model's default context window.",
+			"modelDefault": "Model's default context window",
 			"condensingThreshold": {
-				"tokens": "Tokens",
-				"title": "Schwellwert für Kontextverdichtung",
-				"description": "Kontextverdichtungs-Schwellenwert für dieses Gemini-Profil. Wenn der Kontext diesen Prozentsatz erreicht, wird automatisch verdichtet.",
-				"condensingTriggerAt": "Verdichtung wird ausgelöst bei",
-				"tokenLimitTrigger": "Auslösung bei Token-Grenze",
-				"actualTrigger": "Tatsächliche Auslösung"
+				"tokens": "tokens",
+				"title": "Context Condensing Threshold",
+				"description": "Set the percentage of context window usage that triggers automatic condensing. Note: If the calculated token limit (after reserving space for output and safety buffers) is lower than this percentage, the token limit will trigger condensing instead.",
+				"condensingtriggerAt": "Condensing will trigger at",
+				"tokenLimitTriggered": "due to token limit, not percentage",
+				"availableContext": "Available context window",
+				"tokenLimitTrigger": "Token limit trigger (after reserving output tokens and safety buffer)",
+				"actualTrigger": "Actual trigger (minimum of percentage and token limit)"
 			}
 		},
 		"googleCloudSetup": {
@@ -352,6 +354,21 @@
 			"pathLabel": "Claude-Code-Pfad",
 			"description": "Optionaler Pfad zu Ihrer Claude Code CLI. Standard ist 'claude', wenn nicht festgelegt.",
 			"placeholder": "Standard: claude"
+		},
+		"geminiContextManagement": {
+			"useCustomContextWindow": "Use custom context window limit",
+			"description": "Override the model's default context window.",
+			"modelDefault": "Model's default context window",
+			"condensingThreshold": {
+				"tokens": "tokens",
+				"title": "Context Condensing Threshold",
+				"description": "Set the percentage of context window usage that triggers automatic condensing. Note: If the calculated token limit (after reserving space for output and safety buffers) is lower than this percentage, the token limit will trigger condensing instead.",
+				"condensingtriggerAt": "Condensing will trigger at",
+				"tokenLimitTriggered": "due to token limit, not percentage",
+				"availableContext": "Available context window",
+				"tokenLimitTrigger": "Token limit trigger (after reserving output tokens and safety buffer)",
+				"actualTrigger": "Actual trigger (minimum of percentage and token limit)"
+			}
 		}
 	},
 	"browser": {
@@ -560,7 +577,6 @@
 			"name": "Marketplace aktivieren",
 			"description": "Wenn aktiviert, kannst du MCP und benutzerdefinierte Modi aus dem Marketplace installieren und verwalten."
 		},
-
 		"MULTI_FILE_APPLY_DIFF": {
 			"name": "Gleichzeitige Dateibearbeitungen aktivieren",
 			"description": "Wenn aktiviert, kann Roo mehrere Dateien in einer einzigen Anfrage bearbeiten. Wenn deaktiviert, muss Roo Dateien einzeln bearbeiten. Das Deaktivieren kann helfen, wenn du mit weniger fähigen Modellen arbeitest oder mehr Kontrolle über Dateiänderungen haben möchtest."

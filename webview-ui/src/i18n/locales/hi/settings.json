@@ -242,16 +242,18 @@
 			"geminiTokentManagement": "टोकन प्रबंधन"
 		},
 		"geminiTokentManagement": {
-			"useCustomContextWindow": "कस्टम संदर्भ विंडो सीमा का उपयोग करें",
-			"description": "मॉडल की डिफ़ॉल्ट संदर्भ विंडो सीमा को ओवरराइड करें।",
-			"modelDefault": "मॉडल की डिफ़ॉल्ट संदर्भ विंडो",
+			"useCustomContextWindow": "Use custom context window limit",
+			"description": "Override the model's default context window.",
+			"modelDefault": "Model's default context window",
 			"condensingThreshold": {
-				"tokens": "टोकन",
-				"title": "संघनन ट्रिगर सीमा",
-				"description": "इस Gemini प्रोफ़ाइल के लिए संघनन ट्रिगर सीमा। जब संदर्भ इस प्रतिशत तक पहुंचता है, तो इसे स्वचालित रूप से संघनित किया जाएगा।",
-				"condensingTriggerAt": "संघनन इस पर ट्रिगर होगा",
-				"tokenLimitTrigger": "टोकन सीमा ट्रिगर",
-				"actualTrigger": "वास्तविक ट्रिगर"
+				"tokens": "tokens",
+				"title": "Context Condensing Threshold",
+				"description": "Set the percentage of context window usage that triggers automatic condensing. Note: If the calculated token limit (after reserving space for output and safety buffers) is lower than this percentage, the token limit will trigger condensing instead.",
+				"condensingtriggerAt": "Condensing will trigger at",
+				"tokenLimitTriggered": "due to token limit, not percentage",
+				"availableContext": "Available context window",
+				"tokenLimitTrigger": "Token limit trigger (after reserving output tokens and safety buffer)",
+				"actualTrigger": "Actual trigger (minimum of percentage and token limit)"
 			}
 		},
 		"googleCloudSetup": {
@@ -352,6 +354,21 @@
 			"pathLabel": "क्लाउड कोड पथ",
 			"description": "आपके क्लाउड कोड सीएलआई का वैकल्पिक पथ। यदि सेट नहीं है तो डिफ़ॉल्ट 'claude' है।",
 			"placeholder": "डिफ़ॉल्ट: claude"
+		},
+		"geminiContextManagement": {
+			"useCustomContextWindow": "Use custom context window limit",
+			"description": "Override the model's default context window.",
+			"modelDefault": "Model's default context window",
+			"condensingThreshold": {
+				"tokens": "tokens",
+				"title": "Context Condensing Threshold",
+				"description": "Set the percentage of context window usage that triggers automatic condensing. Note: If the calculated token limit (after reserving space for output and safety buffers) is lower than this percentage, the token limit will trigger condensing instead.",
+				"condensingtriggerAt": "Condensing will trigger at",
+				"tokenLimitTriggered": "due to token limit, not percentage",
+				"availableContext": "Available context window",
+				"tokenLimitTrigger": "Token limit trigger (after reserving output tokens and safety buffer)",
+				"actualTrigger": "Actual trigger (minimum of percentage and token limit)"
+			}
 		}
 	},
 	"browser": {

@@ -242,16 +242,18 @@
 			"geminiTokentManagement": "Gemini コンテキスト管理"
 		},
 		"geminiTokentManagement": {
-			"useCustomContextWindow": "カスタムコンテキストウィンドウ制限を使用",
-			"description": "モデルのデフォルトのコンテキストウィンドウを上書きします。この制限に近づくと、Roo Codeは古いメッセージを自動的に要約します。",
-			"modelDefault": "モデルのデフォルトのコンテキストウィンドウ",
+			"useCustomContextWindow": "Use custom context window limit",
+			"description": "Override the model's default context window.",
+			"modelDefault": "Model's default context window",
 			"condensingThreshold": {
-				"tokens": "トークン",
-				"title": "コンテキスト圧縮しきい値",
-				"description": "このGeminiプロファイルのしきい値（パーセンテージ）。到達すると、コンテキストは自動的に圧縮されます。",
-				"condensingTriggerAt": "圧縮がトリガーされる割合",
-				"tokenLimitTrigger": "トークン制限トリガー",
-				"actualTrigger": "実際のトリガー"
+				"tokens": "tokens",
+				"title": "Context Condensing Threshold",
+				"description": "Set the percentage of context window usage that triggers automatic condensing. Note: If the calculated token limit (after reserving space for output and safety buffers) is lower than this percentage, the token limit will trigger condensing instead.",
+				"condensingtriggerAt": "Condensing will trigger at",
+				"tokenLimitTriggered": "due to token limit, not percentage",
+				"availableContext": "Available context window",
+				"tokenLimitTrigger": "Token limit trigger (after reserving output tokens and safety buffer)",
+				"actualTrigger": "Actual trigger (minimum of percentage and token limit)"
 			}
 		},
 		"googleCloudSetup": {
@@ -352,6 +354,21 @@
 			"pathLabel": "クロードコードパス",
 			"description": "Claude Code CLIへのオプションパス。設定されていない場合、デフォルトは「claude」です。",
 			"placeholder": "デフォルト：claude"
+		},
+		"geminiContextManagement": {
+			"useCustomContextWindow": "Use custom context window limit",
+			"description": "Override the model's default context window.",
+			"modelDefault": "Model's default context window",
+			"condensingThreshold": {
+				"tokens": "tokens",
+				"title": "Context Condensing Threshold",
+				"description": "Set the percentage of context window usage that triggers automatic condensing. Note: If the calculated token limit (after reserving space for output and safety buffers) is lower than this percentage, the token limit will trigger condensing instead.",
+				"condensingtriggerAt": "Condensing will trigger at",
+				"tokenLimitTriggered": "due to token limit, not percentage",
+				"availableContext": "Available context window",
+				"tokenLimitTrigger": "Token limit trigger (after reserving output tokens and safety buffer)",
+				"actualTrigger": "Actual trigger (minimum of percentage and token limit)"
+			}
 		}
 	},
 	"browser": {

@@ -242,16 +242,18 @@
 			"geminiTokentManagement": "Jeton Yönetimi"
 		},
 		"geminiTokentManagement": {
-			"useCustomContextWindow": "Özel bağlam penceresi sınırı kullan",
-			"description": "Modelin varsayılan bağlam penceresini geçersiz kılar.",
-			"modelDefault": "Modelin varsayılan bağlam penceresi",
+			"useCustomContextWindow": "Use custom context window limit",
+			"description": "Override the model's default context window.",
+			"modelDefault": "Model's default context window",
 			"condensingThreshold": {
-				"tokens": "jetonlar",
-				"title": "Bağlam Yoğunlaştırma Eşiği",
-				"description": "Otomatik yoğunlaştırmayı tetikleyen bağlam penceresi kullanım yüzdesini ayarlar. Not: Hesaplanan token limiti (çıkış tokenları ve güvenlik tamponu ayrıldıktan sonra) bu yüzde değerinin altındaysa, yoğunlaştırma token limiti nedeniyle tetiklenecektir.",
-				"condensingTriggerAt": "Yoğunlaştırma şu seviyede tetiklenecek",
-				"tokenLimitTrigger": "Token limiti tetikleyicisi (çıkış tokenları ve güvenlik tamponu ayrıldıktan sonra)",
-				"actualTrigger": "Gerçek tetikleyici (yüzde ve token limiti arasından düşük olan)"
+				"tokens": "tokens",
+				"title": "Context Condensing Threshold",
+				"description": "Set the percentage of context window usage that triggers automatic condensing. Note: If the calculated token limit (after reserving space for output and safety buffers) is lower than this percentage, the token limit will trigger condensing instead.",
+				"condensingtriggerAt": "Condensing will trigger at",
+				"tokenLimitTriggered": "due to token limit, not percentage",
+				"availableContext": "Available context window",
+				"tokenLimitTrigger": "Token limit trigger (after reserving output tokens and safety buffer)",
+				"actualTrigger": "Actual trigger (minimum of percentage and token limit)"
 			}
 		},
 		"googleCloudSetup": {
@@ -352,6 +354,21 @@
 			"pathLabel": "Claude Code Yolu",
 			"description": "Claude Code CLI'nize isteğe bağlı yol. Ayarlanmazsa varsayılan olarak 'claude' kullanılır.",
 			"placeholder": "Varsayılan: claude"
+		},
+		"geminiContextManagement": {
+			"useCustomContextWindow": "Use custom context window limit",
+			"description": "Override the model's default context window.",
+			"modelDefault": "Model's default context window",
+			"condensingThreshold": {
+				"tokens": "tokens",
+				"title": "Context Condensing Threshold",
+				"description": "Set the percentage of context window usage that triggers automatic condensing. Note: If the calculated token limit (after reserving space for output and safety buffers) is lower than this percentage, the token limit will trigger condensing instead.",
+				"condensingtriggerAt": "Condensing will trigger at",
+				"tokenLimitTriggered": "due to token limit, not percentage",
+				"availableContext": "Available context window",
+				"tokenLimitTrigger": "Token limit trigger (after reserving output tokens and safety buffer)",
+				"actualTrigger": "Actual trigger (minimum of percentage and token limit)"
+			}
 		}
 	},
 	"browser": {

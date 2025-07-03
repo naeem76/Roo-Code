@@ -242,16 +242,18 @@
 			"geminiTokentManagement": "Gestione del contesto Gemini"
 		},
 		"geminiTokentManagement": {
-			"useCustomContextWindow": "Usa limite di finestra di contesto personalizzato",
-			"description": "Sovrascrive l'intervallo di contesto predefinito del modello. Quando le conversazioni raggiungono questo limite, Roo Code condenserà automaticamente i messaggi meno recenti.",
-			"modelDefault": "Intervallo di contesto predefinito del modello",
+			"useCustomContextWindow": "Use custom context window limit",
+			"description": "Override the model's default context window.",
+			"modelDefault": "Model's default context window",
 			"condensingThreshold": {
-				"tokens": "token",
-				"title": "Soglia di condensazione del contesto",
-				"description": "La soglia (percentuale) alla quale questo profilo Gemini comprime il contesto. Quando viene raggiunta, il contesto viene automaticamente compresso.",
-				"condensingTriggerAt": "Percentuale alla quale viene avviata la condensazione",
-				"tokenLimitTrigger": "Attivazione limite di token",
-				"actualTrigger": "Attivazione effettiva"
+				"tokens": "tokens",
+				"title": "Context Condensing Threshold",
+				"description": "Set the percentage of context window usage that triggers automatic condensing. Note: If the calculated token limit (after reserving space for output and safety buffers) is lower than this percentage, the token limit will trigger condensing instead.",
+				"condensingtriggerAt": "Condensing will trigger at",
+				"tokenLimitTriggered": "due to token limit, not percentage",
+				"availableContext": "Available context window",
+				"tokenLimitTrigger": "Token limit trigger (after reserving output tokens and safety buffer)",
+				"actualTrigger": "Actual trigger (minimum of percentage and token limit)"
 			}
 		},
 		"googleCloudSetup": {
@@ -352,6 +354,21 @@
 			"pathLabel": "Percorso Claude Code",
 			"description": "Percorso facoltativo per la tua CLI Claude Code. Predefinito 'claude' se non impostato.",
 			"placeholder": "Predefinito: claude"
+		},
+		"geminiContextManagement": {
+			"useCustomContextWindow": "Use custom context window limit",
+			"description": "Override the model's default context window.",
+			"modelDefault": "Model's default context window",
+			"condensingThreshold": {
+				"tokens": "tokens",
+				"title": "Context Condensing Threshold",
+				"description": "Set the percentage of context window usage that triggers automatic condensing. Note: If the calculated token limit (after reserving space for output and safety buffers) is lower than this percentage, the token limit will trigger condensing instead.",
+				"condensingtriggerAt": "Condensing will trigger at",
+				"tokenLimitTriggered": "due to token limit, not percentage",
+				"availableContext": "Available context window",
+				"tokenLimitTrigger": "Token limit trigger (after reserving output tokens and safety buffer)",
+				"actualTrigger": "Actual trigger (minimum of percentage and token limit)"
+			}
 		}
 	},
 	"browser": {
