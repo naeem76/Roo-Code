@@ -239,7 +239,7 @@
 		"geminiSections": {
 			"modelParameters": "モデルパラメータ",
 			"advancedFeatures": "高度な機能",
-			"geminiContextManagement": "Gemini コンテキスト管理"
+			"geminiTokentManagement": "Gemini コンテキスト管理"
 		},
 		"geminiContextManagement": {
 			"useCustomContextWindow": "カスタムコンテキストウィンドウ制限を使用",
@@ -248,10 +248,8 @@
 			"condensingThreshold": {
 				"tokens": "トークン",
 				"title": "コンテキスト圧縮しきい値",
-				"description": "このGeminiプロファイルのコンテキスト圧縮しきい値です。このパーセンテージに達すると、自動的に圧縮されます。",
-				"condensingtriggerAt": "圧縮は次の時にトリガーされます",
-				"tokenLimitTriggered": "トークン制限が原因で、パーセンテージではありません",
-				"availableContext": "利用可能なコンテキストウィンドウ",
+				"description": "このGeminiプロファイルのしきい値（パーセンテージ）。到達すると、コンテキストは自動的に圧縮されます。",
+				"condensingTriggerAt": "圧縮がトリガーされる割合",
 				"tokenLimitTrigger": "トークン制限トリガー",
 				"actualTrigger": "実際のトリガー"
 			}

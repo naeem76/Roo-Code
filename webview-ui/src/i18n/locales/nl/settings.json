@@ -239,19 +239,17 @@
 		"geminiSections": {
 			"modelParameters": "Modelparameters",
 			"advancedFeatures": "Geavanceerde functies",
-			"geminiContextManagement": "Gemini-contextbeheer"
+			"geminiTokentManagement": "Tokenbeheer"
 		},
 		"geminiContextManagement": {
 			"useCustomContextWindow": "Gebruik aangepast contextvensterlimiet",
-			"description": "Dit overschrijft het standaard contextvenster van het model. Wanneer gesprekken dit limiet naderen, zal Roo Code automatisch oudere berichten samenvatten.",
+			"description": "Vervangt de standaardlimiet voor het contextvenster van het model.",
 			"modelDefault": "Standaard contextvenster van het model",
 			"condensingThreshold": {
 				"tokens": "tokens",
-				"title": "Drempel voor contextsamentrekking",
-				"description": "Drempel voor contextsamentrekking voor dit Gemini-profiel. Wanneer de context dit percentage bereikt, wordt het automatisch samengevat.",
-				"condensingtriggerAt": "Samentrekking wordt geactiveerd bij",
-				"tokenLimitTriggered": "vanwege tokenlimiet, niet percentage",
-				"availableContext": "Beschikbaar contextvenster",
+				"title": "Limiet voor activering van condensatie",
+				"description": "Limiet voor activering van condensatie voor dit Gemini-profiel. Wanneer de context dit percentage bereikt, wordt het automatisch gecondenseerd.",
+				"condensingTriggerAt": "Condensatie wordt geactiveerd bij",
 				"tokenLimitTrigger": "Tokenlimiet-trigger",
 				"actualTrigger": "Werkelijke trigger"
 			}

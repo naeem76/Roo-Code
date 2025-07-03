@@ -239,7 +239,7 @@
 		"geminiSections": {
 			"modelParameters": "Parametri del modello",
 			"advancedFeatures": "Funzionalità avanzate",
-			"geminiContextManagement": "Gestione del contesto Gemini"
+			"geminiTokentManagement": "Gestione del contesto Gemini"
 		},
 		"geminiContextManagement": {
 			"useCustomContextWindow": "Usa limite di finestra di contesto personalizzato",
@@ -248,12 +248,10 @@
 			"condensingThreshold": {
 				"tokens": "token",
 				"title": "Soglia di condensazione del contesto",
-				"description": "Soglia di condensazione del contesto per questo profilo Gemini. Quando il contesto raggiunge questa percentuale, verrà automaticamente condensato.",
-				"condensingtriggerAt": "La condensazione si innescherà a",
-				"tokenLimitTriggered": "attivato a causa del limite di token, non della percentuale",
-				"availableContext": "Intervallo di contesto disponibile",
-				"tokenLimitTrigger": "Innesco del limite di token",
-				"actualTrigger": "Innesco effettivo"
+				"description": "La soglia (percentuale) alla quale questo profilo Gemini comprime il contesto. Quando viene raggiunta, il contesto viene automaticamente compresso.",
+				"condensingTriggerAt": "Percentuale alla quale viene avviata la condensazione",
+				"tokenLimitTrigger": "Attivazione limite di token",
+				"actualTrigger": "Attivazione effettiva"
 			}
 		},
 		"googleCloudSetup": {

@@ -239,9 +239,9 @@
 		"geminiSections": {
 			"modelParameters": "Parametry modelu",
 			"advancedFeatures": "Zaawansowane funkcje",
-			"geminiContextManagement": "Zarządzanie kontekstem Gemini"
+			"geminiTokentManagement": "Zarządzanie tokenami"
 		},
-		"geminiContextManagement": {
+		"geminiTokentManagement": {
 			"useCustomContextWindow": "Użyj niestandardowego limitu okna kontekstu",
 			"description": "Nadpisuje domyślne okno kontekstu modelu. Gdy rozmowy zbliżą się do tego limitu, Roo Code automatycznie skróci starsze wiadomości.",
 			"modelDefault": "Domyślne okno kontekstu modelu",
@@ -249,9 +249,7 @@
 				"tokens": "tokeny",
 				"title": "Próg kondensacji kontekstu",
 				"description": "Próg kondensacji kontekstu dla tego profilu Gemini. Gdy kontekst osiągnie ten procent, zostanie automatycznie skrócony.",
-				"condensingtriggerAt": "Kondensacja zostanie wyzwolona przy",
-				"tokenLimitTriggered": "wyzwolone z powodu limitu tokenów, a nie procentu",
-				"availableContext": "Dostępne okno kontekstu",
+				"condensingTriggerAt": "Kondensacja zostanie wyzwolona przy",
 				"tokenLimitTrigger": "Wyzwalacz limitu tokenów",
 				"actualTrigger": "Rzeczywisty wyzwalacz"
 			}

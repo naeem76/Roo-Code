@@ -239,19 +239,17 @@
 		"geminiSections": {
 			"modelParameters": "Paràmetres del model",
 			"advancedFeatures": "Funcions avançades",
-			"geminiContextManagement": "Gestió de context de Gemini"
+			"geminiTokentManagement": "Gestió de tokens"
 		},
 		"geminiContextManagement": {
 			"useCustomContextWindow": "Utilitzar límit de finestra de context personalitzada",
-			"description": "Sobrescriviu la finestra de context predeterminada del model. Quan la conversa s'acosti a aquest límit, Roo Code condensarà automàticament els missatges més antics.",
+			"description": "Sobrescriu el límit de finestra de context predeterminat del model.",
 			"modelDefault": "Finestra de context predeterminada del model",
 			"condensingThreshold": {
 				"tokens": "tokens",
-				"title": "Umbral de condensació de context",
-				"description": "Umbral de condensació de context per a aquest perfil de Gemini. Quan el context arribi a aquest percentatge, es condensarà automàticament.",
-				"condensingtriggerAt": "La condensació s'activarà a",
-				"tokenLimitTriggered": "a causa del límit de tokens, no del percentatge",
-				"availableContext": "Finestra de context disponible",
+				"title": "Llindar d'activació de condensació",
+				"description": "Llindar d'activació de condensació per a aquest perfil de Gemini. Quan el context arribi a aquest percentatge, es condensarà automàticament.",
+				"condensingTriggerAt": "Condensació s'activarà a",
 				"tokenLimitTrigger": "Activació per límit de tokens",
 				"actualTrigger": "Activació real"
 			}

@@ -239,21 +239,21 @@
 		"geminiSections": {
 			"modelParameters": "Parámetros del modelo",
 			"advancedFeatures": "Funciones avanzadas",
-			"geminiContextManagement": "Gestión de contexto de Gemini"
+			"geminiTokentManagement": "Gestión de tokens"
 		},
 		"geminiContextManagement": {
 			"useCustomContextWindow": "Usar límite de ventana de contexto personalizado",
-			"description": "Anular la ventana de contexto predeterminada del modelo. Cuando las conversaciones se acerquen a este límite, Roo Code condensará automáticamente los mensajes más antiguos.",
+			"description": "Anular la ventana de contexto predeterminada del modelo.",
 			"modelDefault": "Ventana de contexto predeterminada del modelo",
 			"condensingThreshold": {
 				"tokens": "tokens",
 				"title": "Umbral de condensación de contexto",
-				"description": "Umbral de condensación de contexto para este perfil de Gemini. Cuando el contexto alcance este porcentaje, se condensará automáticamente.",
+				"description": "Establezca el porcentaje de uso de la ventana de contexto que activa la condensación automática. Nota: si el límite de tokens calculado (después de reservar espacio para la salida y buffers de seguridad) es inferior a este porcentaje, se activará la condensación por límite de tokens.",
 				"condensingtriggerAt": "La condensación se activará a",
 				"tokenLimitTriggered": "debido al límite de tokens, no porcentaje",
 				"availableContext": "Ventana de contexto disponible",
-				"tokenLimitTrigger": "Activador de límite de tokens",
-				"actualTrigger": "Activación real"
+				"tokenLimitTrigger": "Activador de límite de tokens (después de reservar tokens de salida y buffer de seguridad)",
+				"actualTrigger": "Activación real (mínimo de porcentaje y límite de tokens)"
 			}
 		},
 		"googleCloudSetup": {

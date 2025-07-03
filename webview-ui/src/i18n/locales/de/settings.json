@@ -239,11 +239,11 @@
 		"geminiSections": {
 			"modelParameters": "Model Parameter",
 			"advancedFeatures": "Erweiterte Funktionen",
-			"geminiContextManagement": "Gemini-Kontextverwaltung"
+			"geminiTokentManagement": "Tokenverwaltung"
 		},
 		"geminiContextManagement": {
 			"useCustomContextWindow": "Benutzerdefiniertes Kontextfensterlimit verwenden",
-			"description": "Überschreibt das Standard-Kontextfenster des Modells. Wenn Konversationen dieses Limit erreichen, fasst Roo Code ältere Nachrichten automatisch zusammen.",
+			"description": "Überschreiben Sie das Standard-Kontextfenster des Modells.",
 			"modelDefault": "Standard-Kontextfenster des Modells",
 			"condensingThreshold": {
 				"tokens": "Tokens",

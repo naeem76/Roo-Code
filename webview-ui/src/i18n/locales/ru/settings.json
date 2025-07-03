@@ -239,7 +239,7 @@
 		"geminiSections": {
 			"modelParameters": "Параметры модели",
 			"advancedFeatures": "Расширенные функции",
-			"geminiContextManagement": "Управление контекстом Gemini"
+			"geminiTokentManagement": "Управление контекстом Gemini"
 		},
 		"geminiContextManagement": {
 			"useCustomContextWindow": "Использовать ограничение окна контекста",
@@ -248,10 +248,8 @@
 			"condensingThreshold": {
 				"tokens": "токены",
 				"title": "Порог конденсации контекста",
-				"description": "Порог конденсации контекста для этого профиля Gemini. Когда контекст достигает этого процента, он будет автоматически конденсироваться.",
-				"condensingtriggerAt": "Конденсация будет запущена при",
-				"tokenLimitTriggered": "из-за ограничения токенов, а не процента",
-				"availableContext": "Доступное окно контекста",
+				"description": "Порог (процент), при котором этот профиль Gemini сжимает контекст. При достижении порога контекст автоматически сжимается.",
+				"condensingTriggerAt": "Процент, при достижении которого запускается сжатие",
 				"tokenLimitTrigger": "Триггер лимита токенов",
 				"actualTrigger": "Фактический триггер"
 			}

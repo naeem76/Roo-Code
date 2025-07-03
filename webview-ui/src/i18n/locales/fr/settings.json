@@ -239,11 +239,11 @@
 		"geminiSections": {
 			"modelParameters": "Paramètres du modèle",
 			"advancedFeatures": "Fonctionnalités avancées",
-			"geminiContextManagement": "Gestion du contexte Gemini"
+			"geminiTokentManagement": "Gestion des jetons"
 		},
 		"geminiContextManagement": {
 			"useCustomContextWindow": "Utiliser la limite de fenêtre de contexte personnalisée",
-			"description": "Remplace la fenêtre de contexte par défaut du modèle. Lorsque les conversations atteignent cette limite, Roo Code condensera automatiquement les anciens messages.",
+			"description": "Remplacez la fenêtre de contexte par défaut du modèle.",
 			"modelDefault": "Fenêtre de contexte par défaut du modèle",
 			"condensingThreshold": {
 				"tokens": "jetons",

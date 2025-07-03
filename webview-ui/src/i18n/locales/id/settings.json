@@ -243,21 +243,21 @@
 		"geminiSections": {
 			"modelParameters": "Parameter Model",
 			"advancedFeatures": "Fitur Lanjutan",
-			"geminiContextManagement": "Manajemen Konteks Gemini"
+			"geminiTokentManagement": "Manajemen Token"
 		},
 		"geminiContextManagement": {
 			"useCustomContextWindow": "Gunakan batas jendela konteks kustom",
-			"description": "Ganti jendela konteks default model. Ketika percakapan mendekati batas ini, Roo Code akan secara otomatis merangkum pesan yang lebih lama.",
+			"description": "Ganti jendela konteks default model.",
 			"modelDefault": "Jendela konteks default model",
 			"condensingThreshold": {
 				"tokens": "token",
 				"title": "Ambang Pemadatan Konteks",
-				"description": "Ambang pemadatan konteks untuk profil Gemini ini. Ketika konteks mencapai persentase ini, akan dipadatkan secara otomatis.",
-				"condensingtriggerAt": "Pemadatan akan terjadi pada",
+				"description": "Atur persentase penggunaan jendela konteks yang memicu pemadatan otomatis. Catatan: Jika batas token yang dihitung (setelah menyisihkan token keluaran dan buffer keamanan) lebih rendah dari persentase ini, batas token akan memicu pemadatan sebagai gantinya.",
+				"condensingtriggerAt": "Pemadatan akan dipicu pada",
 				"tokenLimitTriggered": "karena batas token, bukan persentase",
 				"availableContext": "Jendela konteks tersedia",
-				"tokenLimitTrigger": "Pemicu batas token",
-				"actualTrigger": "Pemicu aktual"
+				"tokenLimitTrigger": "Pemicu batas token (setelah menyisihkan token keluaran dan buffer keamanan)",
+				"actualTrigger": "Pemicu aktual (nilai minimum antara persentase dan batas token)"
 			}
 		},
 		"googleCloudSetup": {

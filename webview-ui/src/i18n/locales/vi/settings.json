@@ -239,9 +239,9 @@
 		"geminiSections": {
 			"modelParameters": "Tham số mô hình",
 			"advancedFeatures": "Tính năng nâng cao",
-			"geminiContextManagement": "Quản lý ngữ cảnh Gemini"
+			"geminiTokentManagement": "Quản lý token"
 		},
-		"geminiContextManagement": {
+		"geminiTokentManagement": {
 			"useCustomContextWindow": "Sử dụng giới hạn cửa sổ ngữ cảnh tùy chỉnh",
 			"description": "Ghi đè cửa sổ ngữ cảnh mặc định của mô hình. Khi cuộc trò chuyện tiếp cận giới hạn này, Roo Code sẽ tự động cô đọng các tin nhắn cũ hơn.",
 			"modelDefault": "Cửa sổ ngữ cảnh mặc định của mô hình",
@@ -249,9 +249,7 @@
 				"tokens": "token",
 				"title": "Ngưỡng cô đọng ngữ cảnh",
 				"description": "Ngưỡng cô đọng ngữ cảnh cho hồ sơ Gemini này. Khi ngữ cảnh đạt đến tỷ lệ phần trăm này, nó sẽ tự động được cô đọng.",
-				"condensingtriggerAt": "Cô đọng sẽ kích hoạt ở",
-				"tokenLimitTriggered": "do giới hạn token, không phải tỷ lệ phần trăm",
-				"availableContext": "Cửa sổ ngữ cảnh khả dụng",
+				"condensingTriggerAt": "Cô đọng sẽ kích hoạt ở",
 				"tokenLimitTrigger": "Kích hoạt giới hạn token",
 				"actualTrigger": "Kích hoạt thực tế"
 			}

@@ -239,19 +239,17 @@
 		"geminiSections": {
 			"modelParameters": "मॉडल पैरामीटर",
 			"advancedFeatures": "उन्नत सुविधाएँ",
-			"geminiContextManagement": "Gemini संदर्भ प्रबंधन"
+			"geminiTokentManagement": "टोकन प्रबंधन"
 		},
 		"geminiContextManagement": {
 			"useCustomContextWindow": "कस्टम संदर्भ विंडो सीमा का उपयोग करें",
-			"description": "मॉडल की डिफ़ॉल्ट संदर्भ विंडो को ओवरराइड करें। जब वार्तालाप इस सीमा के करीब पहुंचती है, तो Roo Code पुराने संदेशों को स्वचालित रूप से संक्षिप्त करेगा।",
+			"description": "मॉडल की डिफ़ॉल्ट संदर्भ विंडो सीमा को ओवरराइड करें।",
 			"modelDefault": "मॉडल की डिफ़ॉल्ट संदर्भ विंडो",
 			"condensingThreshold": {
 				"tokens": "टोकन",
-				"title": "संदर्भ संक्षेपण थ्रेशोल्ड",
-				"description": "इस Gemini प्रोफ़ाइल के लिए संदर्भ संक्षेपण थ्रेशोल्ड। जब संदर्भ इस प्रतिशत तक पहुंचता है, तो इसे स्वचालित रूप से संक्षेपित किया जाएगा।",
-				"condensingtriggerAt": "संकुचन इस पर ट्रिगर होगा",
-				"tokenLimitTriggered": "टोकन सीमा के कारण, प्रतिशत नहीं",
-				"availableContext": "उपलब्ध संदर्भ विंडो",
+				"title": "संघनन ट्रिगर सीमा",
+				"description": "इस Gemini प्रोफ़ाइल के लिए संघनन ट्रिगर सीमा। जब संदर्भ इस प्रतिशत तक पहुंचता है, तो इसे स्वचालित रूप से संघनित किया जाएगा।",
+				"condensingTriggerAt": "संघनन इस पर ट्रिगर होगा",
 				"tokenLimitTrigger": "टोकन सीमा ट्रिगर",
 				"actualTrigger": "वास्तविक ट्रिगर"
 			}

@@ -239,11 +239,11 @@
 		"geminiSections": {
 			"modelParameters": "模型參數",
 			"advancedFeatures": "進階功能",
-			"geminiContextManagement": "Gemini 上下文管理"
+			"geminiTokentManagement": "令牌管理"
 		},
 		"geminiContextManagement": {
 			"useCustomContextWindow": "使用自訂上下文視窗限制",
-			"description": "覆寫模型的預設上下文視窗限制。當對話接近此限制時，Roo Code 將自動濃縮較舊訊息。",
+			"description": "覆寫模型的預設上下文視窗限制。",
 			"modelDefault": "模型的預設上下文視窗限制",
 			"condensingThreshold": {
 				"tokens": "代幣",

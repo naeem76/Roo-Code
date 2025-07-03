@@ -239,11 +239,11 @@
 		"geminiSections": {
 			"modelParameters": "模型参数",
 			"advancedFeatures": "高级功能",
-			"geminiContextManagement": "Gemini 上下文管理"
+			"geminiTokentManagement": "令牌管理"
 		},
 		"geminiContextManagement": {
 			"useCustomContextWindow": "使用自定义上下文窗口限制",
-			"description": "覆盖模型的默认上下文窗口限制。当对话接近此限制时，Roo Code 会自动压缩较旧的消息。",
+			"description": "覆盖模型的默认上下文窗口限制。",
 			"modelDefault": "模型的默认上下文窗口限制",
 			"condensingThreshold": {
 				"tokens": "令牌",

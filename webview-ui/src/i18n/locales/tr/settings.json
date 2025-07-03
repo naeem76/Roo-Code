@@ -239,21 +239,21 @@
 		"geminiSections": {
 			"modelParameters": "Model Parametreleri",
 			"advancedFeatures": "Gelişmiş Özellikler",
-			"geminiContextManagement": "Gemini Bağlam Yönetimi"
+			"geminiTokentManagement": "Jeton Yönetimi"
 		},
 		"geminiContextManagement": {
 			"useCustomContextWindow": "Özel bağlam penceresi sınırı kullan",
-			"description": "Modelin varsayılan bağlam penceresini geçersiz kılar. Konuşmalar bu sınıra yaklaştığında, Roo Code eski mesajları otomatik olarak yoğunlaştırır.",
+			"description": "Modelin varsayılan bağlam penceresini geçersiz kılar.",
 			"modelDefault": "Modelin varsayılan bağlam penceresi",
 			"condensingThreshold": {
 				"tokens": "jetonlar",
 				"title": "Bağlam Yoğunlaştırma Eşiği",
-				"description": "Bu Gemini profili için bağlam yoğunlaştırma eşiği. Bağlam bu yüzdede olduğunda, otomatik olarak yoğunlaştırılır.",
-				"condensingtriggerAt": "Yoğunlaştırma şu anda tetiklenecek",
-				"tokenLimitTriggered": "yüzde değil jeton sınırı nedeniyle tetiklendi",
+				"description": "Otomatik yoğunlaştırmayı tetikleyen bağlam penceresi kullanım yüzdesini ayarlar. Not: Hesaplanan token limiti (çıkış tokenları ve güvenlik tamponu ayrıldıktan sonra) bu yüzde değerinin altındaysa, yoğunlaştırma token limiti nedeniyle tetiklenecektir.",
+				"condensingtriggerAt": "Yoğunlaştırma şu seviyede tetiklenecek",
+				"tokenLimitTriggered": "Yüzde değil, token limiti nedeniyle",
 				"availableContext": "Kullanılabilir bağlam penceresi",
-				"tokenLimitTrigger": "Jeton sınırı tetikleyicisi",
-				"actualTrigger": "Gerçek tetikleyici"
+				"tokenLimitTrigger": "Token limiti tetikleyicisi (çıkış tokenları ve güvenlik tamponu ayrıldıktan sonra)",
+				"actualTrigger": "Gerçek tetikleyici (yüzde ve token limiti arasından düşük olan)"
 			}
 		},
 		"googleCloudSetup": {

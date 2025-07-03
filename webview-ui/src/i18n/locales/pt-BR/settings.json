@@ -239,19 +239,17 @@
 		"geminiSections": {
 			"modelParameters": "Parâmetros do modelo",
 			"advancedFeatures": "Recursos avançados",
-			"geminiContextManagement": "Gerenciamento de contexto do Gemini"
+			"geminiTokentManagement": "Gerenciamento de Tokens"
 		},
 		"geminiContextManagement": {
 			"useCustomContextWindow": "Usar limite de janela de contexto personalizado",
-			"description": "Substitua a janela de contexto padrão do modelo. Quando as conversas se aproximarem desse limite, o Roo Code irá condensar automaticamente as mensagens mais antigas.",
+			"description": "Substitui o limite de janela de contexto padrão do modelo.",
 			"modelDefault": "Janela de contexto padrão do modelo",
 			"condensingThreshold": {
 				"tokens": "tokens",
-				"title": "Limite de condensação de contexto",
-				"description": "Limite de condensação de contexto para este perfil Gemini. Quando o contexto atingir essa porcentagem, ele será automaticamente condensado.",
-				"condensingtriggerAt": "A condensação será acionada em",
-				"tokenLimitTriggered": "devido ao limite de tokens, não porcentagem",
-				"availableContext": "Janela de contexto disponível",
+				"title": "Limite de ativação de condensação",
+				"description": "Limite de ativação de condensação para este perfil Gemini. Quando o contexto atingir essa porcentagem, ele será condensado automaticamente.",
+				"condensingTriggerAt": "A condensação será acionada em",
 				"tokenLimitTrigger": "Acionador de limite de tokens",
 				"actualTrigger": "Acionador real"
 			}
