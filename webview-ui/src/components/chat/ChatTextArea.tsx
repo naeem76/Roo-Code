@@ -19,7 +19,7 @@ import {
 	SearchResult,
 } from "@src/utils/context-mentions"
 import { convertToMentionPath } from "@/utils/path-mentions"
-import { SelectDropdown, DropdownOptionType, Button } from "@/components/ui"
+import { SelectDropdown, DropdownOptionType, Button, StandardTooltip } from "@/components/ui"
 
 import Thumbnails from "../common/Thumbnails"
 import ModeSelector from "./ModeSelector"
@@ -787,10 +787,10 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					"relative",
 					"flex",
 					"flex-col",
-					"gap-2",
+					"gap-1",
 					"bg-editor-background",
-					"m-2 mt-1",
-					"p-1.5",
+					"px-1.5",
+					"pb-1",
 					"outline-none",
 					"border",
 					"border-none",
@@ -998,7 +998,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					/>
 				)}
 
-				<div className={cn("flex", "justify-between", "items-center", "mt-auto", "pt-0.5")}>
+				<div className={cn("flex", "justify-between", "items-center", "mt-auto")}>
 					<div className={cn("flex", "items-center", "gap-1", "min-w-0")}>
 						<div className="shrink-0">
 							<ModeSelector
@@ -1094,8 +1094,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 											<div
 												className={cn("truncate min-w-0 overflow-hidden", {
 													"font-medium": isCurrentConfig,
-												})}
-												title={label}>
+												})}>
 												{label}
 											</div>
 											<div className="flex justify-end w-10 flex-shrink-0">
@@ -1106,21 +1105,25 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 													})}>
 													<Check className="size-3" />
 												</div>
-												<Button
-													variant="ghost"
-													size="icon"
-													title={pinned ? t("chat:unpin") : t("chat:pin")}
-													onClick={(e) => {
-														e.stopPropagation()
-														togglePinnedApiConfig(value)
-														vscode.postMessage({ type: "toggleApiConfigPin", text: value })
-													}}
-													className={cn("size-5", {
-														"hidden group-hover:flex": !pinned,
-														"bg-accent": pinned,
-													})}>
-													<Pin className="size-3 p-0.5 opacity-50" />
-												</Button>
+												<StandardTooltip content={pinned ? t("chat:unpin") : t("chat:pin")}>
+													<Button
+														variant="ghost"
+														size="icon"
+														onClick={(e) => {
+															e.stopPropagation()
+															togglePinnedApiConfig(value)
+															vscode.postMessage({
+																type: "toggleApiConfigPin",
+																text: value,
+															})
+														}}
+														className={cn("size-5", {
+															"hidden group-hover:flex": !pinned,
+															"bg-accent": pinned,
+														})}>
+														<Pin className="size-3 p-0.5 opacity-50" />
+													</Button>
+												</StandardTooltip>
 											</div>
 										</div>
 									)
