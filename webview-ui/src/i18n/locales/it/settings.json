@@ -241,7 +241,7 @@
 			"advancedFeatures": "Funzionalità avanzate",
 			"geminiTokentManagement": "Gestione del contesto Gemini"
 		},
-		"geminiContextManagement": {
+		"geminiTokentManagement": {
 			"useCustomContextWindow": "Usa limite di finestra di contesto personalizzato",
 			"description": "Sovrascrive l'intervallo di contesto predefinito del modello. Quando le conversazioni raggiungono questo limite, Roo Code condenserà automaticamente i messaggi meno recenti.",
 			"modelDefault": "Intervallo di contesto predefinito del modello",

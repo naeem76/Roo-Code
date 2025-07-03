@@ -241,7 +241,7 @@
 			"advancedFeatures": "Erweiterte Funktionen",
 			"geminiTokentManagement": "Tokenverwaltung"
 		},
-		"geminiContextManagement": {
+		"geminiTokentManagement": {
 			"useCustomContextWindow": "Benutzerdefiniertes Kontextfensterlimit verwenden",
 			"description": "Überschreiben Sie das Standard-Kontextfenster des Modells.",
 			"modelDefault": "Standard-Kontextfenster des Modells",
@@ -249,9 +249,7 @@
 				"tokens": "Tokens",
 				"title": "Schwellwert für Kontextverdichtung",
 				"description": "Kontextverdichtungs-Schwellenwert für dieses Gemini-Profil. Wenn der Kontext diesen Prozentsatz erreicht, wird automatisch verdichtet.",
-				"condensingtriggerAt": "Verdichtung wird ausgelöst bei",
-				"tokenLimitTriggered": "aufgrund der Token-Grenze, nicht des Prozentsatzes",
-				"availableContext": "Verfügbares Kontextfenster",
+				"condensingTriggerAt": "Verdichtung wird ausgelöst bei",
 				"tokenLimitTrigger": "Auslösung bei Token-Grenze",
 				"actualTrigger": "Tatsächliche Auslösung"
 			}

@@ -241,7 +241,7 @@
 			"advancedFeatures": "उन्नत सुविधाएँ",
 			"geminiTokentManagement": "टोकन प्रबंधन"
 		},
-		"geminiContextManagement": {
+		"geminiTokentManagement": {
 			"useCustomContextWindow": "कस्टम संदर्भ विंडो सीमा का उपयोग करें",
 			"description": "मॉडल की डिफ़ॉल्ट संदर्भ विंडो सीमा को ओवरराइड करें।",
 			"modelDefault": "मॉडल की डिफ़ॉल्ट संदर्भ विंडो",

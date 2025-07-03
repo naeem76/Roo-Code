@@ -241,7 +241,7 @@
 			"advancedFeatures": "Gelişmiş Özellikler",
 			"geminiTokentManagement": "Jeton Yönetimi"
 		},
-		"geminiContextManagement": {
+		"geminiTokentManagement": {
 			"useCustomContextWindow": "Özel bağlam penceresi sınırı kullan",
 			"description": "Modelin varsayılan bağlam penceresini geçersiz kılar.",
 			"modelDefault": "Modelin varsayılan bağlam penceresi",
@@ -249,9 +249,7 @@
 				"tokens": "jetonlar",
 				"title": "Bağlam Yoğunlaştırma Eşiği",
 				"description": "Otomatik yoğunlaştırmayı tetikleyen bağlam penceresi kullanım yüzdesini ayarlar. Not: Hesaplanan token limiti (çıkış tokenları ve güvenlik tamponu ayrıldıktan sonra) bu yüzde değerinin altındaysa, yoğunlaştırma token limiti nedeniyle tetiklenecektir.",
-				"condensingtriggerAt": "Yoğunlaştırma şu seviyede tetiklenecek",
-				"tokenLimitTriggered": "Yüzde değil, token limiti nedeniyle",
-				"availableContext": "Kullanılabilir bağlam penceresi",
+				"condensingTriggerAt": "Yoğunlaştırma şu seviyede tetiklenecek",
 				"tokenLimitTrigger": "Token limiti tetikleyicisi (çıkış tokenları ve güvenlik tamponu ayrıldıktan sonra)",
 				"actualTrigger": "Gerçek tetikleyici (yüzde ve token limiti arasından düşük olan)"
 			}

@@ -241,7 +241,7 @@
 			"advancedFeatures": "Geavanceerde functies",
 			"geminiTokentManagement": "Tokenbeheer"
 		},
-		"geminiContextManagement": {
+		"geminiTokentManagement": {
 			"useCustomContextWindow": "Gebruik aangepast contextvensterlimiet",
 			"description": "Vervangt de standaardlimiet voor het contextvenster van het model.",
 			"modelDefault": "Standaard contextvenster van het model",

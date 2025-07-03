@@ -241,7 +241,7 @@
 			"advancedFeatures": "高级功能",
 			"geminiTokentManagement": "令牌管理"
 		},
-		"geminiContextManagement": {
+		"geminiTokentManagement": {
 			"useCustomContextWindow": "使用自定义上下文窗口限制",
 			"description": "覆盖模型的默认上下文窗口限制。",
 			"modelDefault": "模型的默认上下文窗口限制",
@@ -249,9 +249,7 @@
 				"tokens": "令牌",
 				"title": "上下文压缩阈值",
 				"description": "此 Gemini 配置文件的上下文压缩阈值。当上下文达到此百分比时，将自动压缩。",
-				"condensingtriggerAt": "压缩将在达到时触发",
-				"tokenLimitTriggered": "由于令牌限制触发，而非百分比",
-				"availableContext": "可用上下文窗口",
+				"condensingTriggerAt": "压缩将在达到时触发",
 				"tokenLimitTrigger": "令牌限制触发",
 				"actualTrigger": "实际触发"
 			}

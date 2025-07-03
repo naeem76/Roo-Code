@@ -239,9 +239,9 @@
 		"geminiSections": {
 			"modelParameters": "Параметры модели",
 			"advancedFeatures": "Расширенные функции",
-			"geminiTokentManagement": "Управление контекстом Gemini"
+			"geminiTokentManagement": "Управление токенами"
 		},
-		"geminiContextManagement": {
+		"geminiTokentManagement": {
 			"useCustomContextWindow": "Использовать ограничение окна контекста",
 			"description": "Переопределяет окно контекста по умолчанию модели. Когда разговоры приближаются к этому пределу, Roo Code автоматически будет конденсировать старые сообщения.",
 			"modelDefault": "Окно контекста по умолчанию модели",

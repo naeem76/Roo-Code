@@ -241,7 +241,7 @@
 			"advancedFeatures": "進階功能",
 			"geminiTokentManagement": "令牌管理"
 		},
-		"geminiContextManagement": {
+		"geminiTokentManagement": {
 			"useCustomContextWindow": "使用自訂上下文視窗限制",
 			"description": "覆寫模型的預設上下文視窗限制。",
 			"modelDefault": "模型的預設上下文視窗限制",
@@ -249,9 +249,7 @@
 				"tokens": "代幣",
 				"title": "上下文濃縮閾值",
 				"description": "此 Gemini 設定檔的上下文濃縮閾值。當上下文達到此百分比時，將自動濃縮。",
-				"condensingtriggerAt": "濃縮將在以下條件觸發",
-				"tokenLimitTriggered": "因代幣限制而非百分比",
-				"availableContext": "可用上下文視窗",
+				"condensingTriggerAt": "濃縮將在以下條件觸發",
 				"tokenLimitTrigger": "代幣限制觸發",
 				"actualTrigger": "實際觸發"
 			}

@@ -241,7 +241,7 @@
 			"advancedFeatures": "Funcions avançades",
 			"geminiTokentManagement": "Gestió de tokens"
 		},
-		"geminiContextManagement": {
+		"geminiTokentManagement": {
 			"useCustomContextWindow": "Utilitzar límit de finestra de context personalitzada",
 			"description": "Sobrescriu el límit de finestra de context predeterminat del model.",
 			"modelDefault": "Finestra de context predeterminada del model",

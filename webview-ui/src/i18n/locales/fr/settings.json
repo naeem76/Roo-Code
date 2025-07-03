@@ -241,7 +241,7 @@
 			"advancedFeatures": "Fonctionnalités avancées",
 			"geminiTokentManagement": "Gestion des jetons"
 		},
-		"geminiContextManagement": {
+		"geminiTokentManagement": {
 			"useCustomContextWindow": "Utiliser la limite de fenêtre de contexte personnalisée",
 			"description": "Remplacez la fenêtre de contexte par défaut du modèle.",
 			"modelDefault": "Fenêtre de contexte par défaut du modèle",
@@ -249,9 +249,7 @@
 				"tokens": "jetons",
 				"title": "Seuil de condensation du contexte",
 				"description": "Seuil de condensation du contexte pour ce profil Gemini. Lorsque le contexte atteint ce pourcentage, il sera automatiquement condensé.",
-				"condensingtriggerAt": "La condensation se déclenchera à",
-				"tokenLimitTriggered": "en raison de la limite de jetons, non du pourcentage",
-				"availableContext": "Fenêtre de contexte disponible",
+				"condensingTriggerAt": "La condensation se déclenchera à",
 				"tokenLimitTrigger": "Déclencheur de limite de jetons",
 				"actualTrigger": "Déclenchement réel"
 			}

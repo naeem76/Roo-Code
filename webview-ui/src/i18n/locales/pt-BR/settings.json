@@ -241,7 +241,7 @@
 			"advancedFeatures": "Recursos avançados",
 			"geminiTokentManagement": "Gerenciamento de Tokens"
 		},
-		"geminiContextManagement": {
+		"geminiTokentManagement": {
 			"useCustomContextWindow": "Usar limite de janela de contexto personalizado",
 			"description": "Substitui o limite de janela de contexto padrão do modelo.",
 			"modelDefault": "Janela de contexto padrão do modelo",

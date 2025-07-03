@@ -241,7 +241,7 @@
 			"advancedFeatures": "高度な機能",
 			"geminiTokentManagement": "Gemini コンテキスト管理"
 		},
-		"geminiContextManagement": {
+		"geminiTokentManagement": {
 			"useCustomContextWindow": "カスタムコンテキストウィンドウ制限を使用",
 			"description": "モデルのデフォルトのコンテキストウィンドウを上書きします。この制限に近づくと、Roo Codeは古いメッセージを自動的に要約します。",
 			"modelDefault": "モデルのデフォルトのコンテキストウィンドウ",

@@ -241,7 +241,7 @@
 			"advancedFeatures": "고급 기능",
 			"geminiTokentManagement": "토큰 관리"
 		},
-		"geminiContextManagement": {
+		"geminiTokentManagement": {
 			"useCustomContextWindow": "사용자 지정 컨텍스트 창 제한 사용",
 			"description": "모델의 기본 컨텍스트 창을 재정의합니다.",
 			"modelDefault": "모델의 기본 컨텍스트 창",
@@ -249,9 +249,7 @@
 				"tokens": "토큰",
 				"title": "컨텍스트 압축 임계값",
 				"description": "자동 압축을 트리거하는 컨텍스트 창 사용 백분율을 설정합니다. 참고: 계산된 토큰 제한이(출력 토큰 및 안전 버퍼 예약 후) 이 백분율보다 낮으면, 대신 토큰 제한이 압축을 트리거합니다.",
-				"condensingtriggerAt": "압축은 다음 시점에서 트리거됩니다",
-				"tokenLimitTriggered": "퍼센티지가 아닌 토큰 제한으로 인해 트리거됩니다",
-				"availableContext": "사용 가능한 컨텍스트 창",
+				"condensingTriggerAt": "압축은 다음 시점에서 트리거됩니다",
 				"tokenLimitTrigger": "토큰 제한 트리거 (출력 토큰 및 안전 버퍼 예약 후)",
 				"actualTrigger": "실제 트리거 (백분율과 토큰 제한 중 최소값)"
 			}

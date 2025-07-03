@@ -245,7 +245,7 @@
 			"advancedFeatures": "Fitur Lanjutan",
 			"geminiTokentManagement": "Manajemen Token"
 		},
-		"geminiContextManagement": {
+		"geminiTokentManagement": {
 			"useCustomContextWindow": "Gunakan batas jendela konteks kustom",
 			"description": "Ganti jendela konteks default model.",
 			"modelDefault": "Jendela konteks default model",
@@ -253,9 +253,7 @@
 				"tokens": "token",
 				"title": "Ambang Pemadatan Konteks",
 				"description": "Atur persentase penggunaan jendela konteks yang memicu pemadatan otomatis. Catatan: Jika batas token yang dihitung (setelah menyisihkan token keluaran dan buffer keamanan) lebih rendah dari persentase ini, batas token akan memicu pemadatan sebagai gantinya.",
-				"condensingtriggerAt": "Pemadatan akan dipicu pada",
-				"tokenLimitTriggered": "karena batas token, bukan persentase",
-				"availableContext": "Jendela konteks tersedia",
+				"condensingTriggerAt": "Pemadatan akan dipicu pada",
 				"tokenLimitTrigger": "Pemicu batas token (setelah menyisihkan token keluaran dan buffer keamanan)",
 				"actualTrigger": "Pemicu aktual (nilai minimum antara persentase dan batas token)"
 			}
