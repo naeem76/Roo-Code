@@ -242,31 +242,11 @@
 			"groundingSearch": {
 				"title": "啟用使用 Google 搜索進行基礎支持",
 				"description": "在生成期間使用 Google 搜索以獲取最新資訊並將其包含在上下文中。"
-			},
-			"contextLimit": {
-				"title": "上下文限制",
-				"description": "生成期間要包含的最大上下文大小（以代幣為單位）。"
 			}
 		},
 		"geminiSections": {
 			"modelParameters": "模型參數",
-			"advancedFeatures": "進階功能",
-			"geminiTokentManagement": "令牌管理"
-		},
-		"geminiTokentManagement": {
-			"useCustomContextWindow": "Use custom context window limit",
-			"description": "Override the model's default context window.",
-			"modelDefault": "Model's default context window",
-			"condensingThreshold": {
-				"tokens": "tokens",
-				"title": "Context Condensing Threshold",
-				"description": "Set the percentage of context window usage that triggers automatic condensing. Note: If the calculated token limit (after reserving space for output and safety buffers) is lower than this percentage, the token limit will trigger condensing instead.",
-				"condensingtriggerAt": "Condensing will trigger at",
-				"tokenLimitTriggered": "due to token limit, not percentage",
-				"availableContext": "Available context window",
-				"tokenLimitTrigger": "Token limit trigger (after reserving output tokens and safety buffer)",
-				"actualTrigger": "Actual trigger (minimum of percentage and token limit)"
-			}
+			"advancedFeatures": "進階功能"
 		},
 		"googleCloudSetup": {
 			"title": "要使用 Google Cloud Vertex AI，您需要：",
@@ -366,21 +346,6 @@
 			"pathLabel": "Claude Code 路徑",
 			"description": "可選的 Claude Code CLI 路徑。如果未設定，則預設為 'claude'。",
 			"placeholder": "預設：claude"
-		},
-		"geminiContextManagement": {
-			"useCustomContextWindow": "Use custom context window limit",
-			"description": "Override the model's default context window.",
-			"modelDefault": "Model's default context window",
-			"condensingThreshold": {
-				"tokens": "tokens",
-				"title": "Context Condensing Threshold",
-				"description": "Set the percentage of context window usage that triggers automatic condensing. Note: If the calculated token limit (after reserving space for output and safety buffers) is lower than this percentage, the token limit will trigger condensing instead.",
-				"condensingtriggerAt": "Condensing will trigger at",
-				"tokenLimitTriggered": "due to token limit, not percentage",
-				"availableContext": "Available context window",
-				"tokenLimitTrigger": "Token limit trigger (after reserving output tokens and safety buffer)",
-				"actualTrigger": "Actual trigger (minimum of percentage and token limit)"
-			}
 		}
 	},
 	"browser": {

@@ -242,31 +242,11 @@
 			"groundingSearch": {
 				"title": "Google検索でのグラウンディングを有効にする",
 				"description": "GeminiがGoogleを検索して最新情報を取得し、リアルタイムデータに基づいて応答をグラウンディングできるようにします。最新情報が必要なクエリに便利です。"
-			},
-			"contextLimit": {
-				"title": "コンテキスト制限",
-				"description": "コンテキストに含める過去のメッセージの最大数。値を小さくするとトークン使用量とコストが削減されますが、会話の連続性が制限される場合があります。"
 			}
 		},
 		"geminiSections": {
 			"modelParameters": "モデルパラメータ",
-			"advancedFeatures": "高度な機能",
-			"geminiTokentManagement": "Gemini コンテキスト管理"
-		},
-		"geminiTokentManagement": {
-			"useCustomContextWindow": "Use custom context window limit",
-			"description": "Override the model's default context window.",
-			"modelDefault": "Model's default context window",
-			"condensingThreshold": {
-				"tokens": "tokens",
-				"title": "Context Condensing Threshold",
-				"description": "Set the percentage of context window usage that triggers automatic condensing. Note: If the calculated token limit (after reserving space for output and safety buffers) is lower than this percentage, the token limit will trigger condensing instead.",
-				"condensingtriggerAt": "Condensing will trigger at",
-				"tokenLimitTriggered": "due to token limit, not percentage",
-				"availableContext": "Available context window",
-				"tokenLimitTrigger": "Token limit trigger (after reserving output tokens and safety buffer)",
-				"actualTrigger": "Actual trigger (minimum of percentage and token limit)"
-			}
+			"advancedFeatures": "高度な機能"
 		},
 		"googleCloudSetup": {
 			"title": "Google Cloud Vertex AIを使用するには：",
@@ -366,21 +346,6 @@
 			"pathLabel": "クロードコードパス",
 			"description": "Claude Code CLIへのオプションパス。設定されていない場合、デフォルトは「claude」です。",
 			"placeholder": "デフォルト：claude"
-		},
-		"geminiContextManagement": {
-			"useCustomContextWindow": "Use custom context window limit",
-			"description": "Override the model's default context window.",
-			"modelDefault": "Model's default context window",
-			"condensingThreshold": {
-				"tokens": "tokens",
-				"title": "Context Condensing Threshold",
-				"description": "Set the percentage of context window usage that triggers automatic condensing. Note: If the calculated token limit (after reserving space for output and safety buffers) is lower than this percentage, the token limit will trigger condensing instead.",
-				"condensingtriggerAt": "Condensing will trigger at",
-				"tokenLimitTriggered": "due to token limit, not percentage",
-				"availableContext": "Available context window",
-				"tokenLimitTrigger": "Token limit trigger (after reserving output tokens and safety buffer)",
-				"actualTrigger": "Actual trigger (minimum of percentage and token limit)"
-			}
 		}
 	},
 	"browser": {

@@ -242,31 +242,11 @@
 			"groundingSearch": {
 				"title": "Ativar grounding com pesquisa no Google",
 				"description": "Permite que o Gemini pesquise informações atuais no Google e fundamente as respostas em dados em tempo real. Útil para consultas que requerem informações atualizadas."
-			},
-			"contextLimit": {
-				"title": "Limite de contexto",
-				"description": "Número máximo de mensagens anteriores a incluir no contexto. Valores mais baixos reduzem o uso de tokens e os custos, mas podem limitar a continuidade da conversa."
 			}
 		},
 		"geminiSections": {
 			"modelParameters": "Parâmetros do modelo",
-			"advancedFeatures": "Recursos avançados",
-			"geminiTokentManagement": "Gerenciamento de Tokens"
-		},
-		"geminiTokentManagement": {
-			"useCustomContextWindow": "Use custom context window limit",
-			"description": "Override the model's default context window.",
-			"modelDefault": "Model's default context window",
-			"condensingThreshold": {
-				"tokens": "tokens",
-				"title": "Context Condensing Threshold",
-				"description": "Set the percentage of context window usage that triggers automatic condensing. Note: If the calculated token limit (after reserving space for output and safety buffers) is lower than this percentage, the token limit will trigger condensing instead.",
-				"condensingtriggerAt": "Condensing will trigger at",
-				"tokenLimitTriggered": "due to token limit, not percentage",
-				"availableContext": "Available context window",
-				"tokenLimitTrigger": "Token limit trigger (after reserving output tokens and safety buffer)",
-				"actualTrigger": "Actual trigger (minimum of percentage and token limit)"
-			}
+			"advancedFeatures": "Recursos avançados"
 		},
 		"googleCloudSetup": {
 			"title": "Para usar o Google Cloud Vertex AI, você precisa:",
@@ -366,21 +346,6 @@
 			"pathLabel": "Caminho do Claude Code",
 			"description": "Caminho opcional para o seu Claude Code CLI. O padrão é 'claude' se não for definido.",
 			"placeholder": "Padrão: claude"
-		},
-		"geminiContextManagement": {
-			"useCustomContextWindow": "Use custom context window limit",
-			"description": "Override the model's default context window.",
-			"modelDefault": "Model's default context window",
-			"condensingThreshold": {
-				"tokens": "tokens",
-				"title": "Context Condensing Threshold",
-				"description": "Set the percentage of context window usage that triggers automatic condensing. Note: If the calculated token limit (after reserving space for output and safety buffers) is lower than this percentage, the token limit will trigger condensing instead.",
-				"condensingtriggerAt": "Condensing will trigger at",
-				"tokenLimitTriggered": "due to token limit, not percentage",
-				"availableContext": "Available context window",
-				"tokenLimitTrigger": "Token limit trigger (after reserving output tokens and safety buffer)",
-				"actualTrigger": "Actual trigger (minimum of percentage and token limit)"
-			}
 		}
 	},
 	"browser": {

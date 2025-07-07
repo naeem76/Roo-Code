@@ -74,10 +74,6 @@ export interface ApiOptionsProps {
 	fromWelcomeView?: boolean
 	errorMessage: string | undefined
 	setErrorMessage: React.Dispatch<React.SetStateAction<string | undefined>>
-	currentProfileId?: string
-	profileThresholds?: Record<string, number>
-	autoCondenseContextPercent?: number
-	setProfileThreshold?: (profileId: string, threshold: number) => void
 }
 
 const ApiOptions = ({
@@ -87,10 +83,6 @@ const ApiOptions = ({
 	fromWelcomeView,
 	errorMessage,
 	setErrorMessage,
-	currentProfileId,
-	profileThresholds,
-	autoCondenseContextPercent,
-	setProfileThreshold,
 }: ApiOptionsProps) => {
 	const { t } = useAppTranslation()
 	const { organizationAllowList } = useExtensionState()
@@ -423,10 +415,6 @@ const ApiOptions = ({
 					apiConfiguration={apiConfiguration}
 					setApiConfigurationField={setApiConfigurationField}
 					currentModelId={selectedModelId}
-					currentProfileId={currentProfileId}
-					profileThresholds={profileThresholds}
-					autoCondenseContextPercent={autoCondenseContextPercent}
-					setProfileThreshold={setProfileThreshold}
 				/>
 			)}
 

@@ -1714,12 +1714,11 @@ export class Task extends EventEmitter<ClineEvents> {
 				? this.apiConfiguration.modelMaxTokens || DEFAULT_THINKING_MODEL_MAX_TOKENS
 				: modelInfo.maxTokens
 
-			const contextWindow =
-				this.apiConfiguration.apiProvider === "gemini" && this.apiConfiguration.contextLimit
-					? this.apiConfiguration.contextLimit
-					: modelInfo.contextWindow
+			const contextWindow = modelInfo.contextWindow
 
-			const currentProfileId = state?.listApiConfigMeta.find((profile) => profile.name === state?.currentApiConfigName)?.id ?? "default";
+			const currentProfileId =
+				state?.listApiConfigMeta.find((profile) => profile.name === state?.currentApiConfigName)?.id ??
+				"default"
 
 			const truncateResult = await truncateConversationIfNeeded({
 				messages: this.apiConversationHistory,

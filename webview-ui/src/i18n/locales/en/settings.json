@@ -247,25 +247,6 @@
 			"groundingSearch": {
 				"title": "Enable Grounding with Google Search",
 				"description": "Enables Gemini to search Google for current information and ground responses in real-time data. Useful for queries requiring up-to-date information."
-			},
-			"contextLimit": {
-				"title": "Context Limit",
-				"description": "Maximum number of previous messages to include in context. Lower values reduce token usage and costs but may limit conversation continuity."
-			}
-		},
-		"geminiContextManagement": {
-			"useCustomContextWindow": "Use custom context window limit",
-			"description": "Override the model's default context window.",
-			"modelDefault": "Model's default context window",
-			"condensingThreshold": {
-				"tokens": "tokens",
-				"title": "Context Condensing Threshold",
-				"description": "Set the percentage of context window usage that triggers automatic condensing. Note: If the calculated token limit (after reserving space for output and safety buffers) is lower than this percentage, the token limit will trigger condensing instead.",
-				"condensingtriggerAt": "Condensing will trigger at",
-				"tokenLimitTriggered": "due to token limit, not percentage",
-				"availableContext": "Available context window",
-				"tokenLimitTrigger": "Token limit trigger (after reserving output tokens and safety buffer)",
-				"actualTrigger": "Actual trigger (minimum of percentage and token limit)"
 			}
 		},
 		"googleCloudSetup": {

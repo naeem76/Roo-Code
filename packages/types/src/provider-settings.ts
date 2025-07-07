@@ -162,7 +162,6 @@ const geminiSchema = apiModelIdProviderModelSchema.extend({
 	maxOutputTokens: z.number().optional(),
 	enableUrlContext: z.boolean().optional(),
 	enableGrounding: z.boolean().optional(),
-	contextLimit: z.number().optional(),
 })
 
 const geminiCliSchema = apiModelIdProviderModelSchema.extend({

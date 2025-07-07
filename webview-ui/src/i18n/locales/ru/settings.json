@@ -242,31 +242,11 @@
 			"groundingSearch": {
 				"title": "Включить grounding через поиск Google",
 				"description": "Позволяет Gemini искать актуальную информацию в Google и основывать ответы на данных в реальном времени. Полезно для запросов, требующих актуальной информации."
-			},
-			"contextLimit": {
-				"title": "Ограничение контекста",
-				"description": "Максимальное число предыдущих сообщений, включаемых в контекст. Более низкие значения снижают использование токенов и стоимость, но могут ограничить непрерывность разговора."
 			}
 		},
 		"geminiSections": {
 			"modelParameters": "Параметры модели",
-			"advancedFeatures": "Расширенные функции",
-			"geminiTokentManagement": "Управление токенами"
-		},
-		"geminiTokentManagement": {
-			"useCustomContextWindow": "Use custom context window limit",
-			"description": "Override the model's default context window.",
-			"modelDefault": "Model's default context window",
-			"condensingThreshold": {
-				"tokens": "tokens",
-				"title": "Context Condensing Threshold",
-				"description": "Set the percentage of context window usage that triggers automatic condensing. Note: If the calculated token limit (after reserving space for output and safety buffers) is lower than this percentage, the token limit will trigger condensing instead.",
-				"condensingtriggerAt": "Condensing will trigger at",
-				"tokenLimitTriggered": "due to token limit, not percentage",
-				"availableContext": "Available context window",
-				"tokenLimitTrigger": "Token limit trigger (after reserving output tokens and safety buffer)",
-				"actualTrigger": "Actual trigger (minimum of percentage and token limit)"
-			}
+			"advancedFeatures": "Расширенные функции"
 		},
 		"googleCloudSetup": {
 			"title": "Для использования Google Cloud Vertex AI необходимо:",
@@ -366,21 +346,6 @@
 			"pathLabel": "Путь к Claude Code",
 			"description": "Необязательный путь к вашему Claude Code CLI. По умолчанию используется 'claude', если не установлено.",
 			"placeholder": "По умолчанию: claude"
-		},
-		"geminiContextManagement": {
-			"useCustomContextWindow": "Use custom context window limit",
-			"description": "Override the model's default context window.",
-			"modelDefault": "Model's default context window",
-			"condensingThreshold": {
-				"tokens": "tokens",
-				"title": "Context Condensing Threshold",
-				"description": "Set the percentage of context window usage that triggers automatic condensing. Note: If the calculated token limit (after reserving space for output and safety buffers) is lower than this percentage, the token limit will trigger condensing instead.",
-				"condensingtriggerAt": "Condensing will trigger at",
-				"tokenLimitTriggered": "due to token limit, not percentage",
-				"availableContext": "Available context window",
-				"tokenLimitTrigger": "Token limit trigger (after reserving output tokens and safety buffer)",
-				"actualTrigger": "Actual trigger (minimum of percentage and token limit)"
-			}
 		}
 	},
 	"browser": {
