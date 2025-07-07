@@ -250,23 +250,7 @@
 		},
 		"geminiSections": {
 			"modelParameters": "Paràmetres del model",
-			"advancedFeatures": "Funcions avançades",
-			"geminiTokentManagement": "Gestió de tokens"
-		},
-		"geminiTokentManagement": {
-			"useCustomContextWindow": "Use custom context window limit",
-			"description": "Override the model's default context window.",
-			"modelDefault": "Model's default context window",
-			"condensingThreshold": {
-				"tokens": "tokens",
-				"title": "Context Condensing Threshold",
-				"description": "Set the percentage of context window usage that triggers automatic condensing. Note: If the calculated token limit (after reserving space for output and safety buffers) is lower than this percentage, the token limit will trigger condensing instead.",
-				"condensingtriggerAt": "Condensing will trigger at",
-				"tokenLimitTriggered": "due to token limit, not percentage",
-				"availableContext": "Available context window",
-				"tokenLimitTrigger": "Token limit trigger (after reserving output tokens and safety buffer)",
-				"actualTrigger": "Actual trigger (minimum of percentage and token limit)"
-			}
+			"advancedFeatures": "Funcions avançades"
 		},
 		"googleCloudSetup": {
 			"title": "Per utilitzar Google Cloud Vertex AI, necessiteu:",
@@ -366,21 +350,6 @@
 			"pathLabel": "Ruta del Codi Claude",
 			"description": "Ruta opcional al teu CLI de Claude Code. Per defecte, 'claude' si no s'estableix.",
 			"placeholder": "Per defecte: claude"
-		},
-		"geminiContextManagement": {
-			"useCustomContextWindow": "Use custom context window limit",
-			"description": "Override the model's default context window.",
-			"modelDefault": "Model's default context window",
-			"condensingThreshold": {
-				"tokens": "tokens",
-				"title": "Context Condensing Threshold",
-				"description": "Set the percentage of context window usage that triggers automatic condensing. Note: If the calculated token limit (after reserving space for output and safety buffers) is lower than this percentage, the token limit will trigger condensing instead.",
-				"condensingtriggerAt": "Condensing will trigger at",
-				"tokenLimitTriggered": "due to token limit, not percentage",
-				"availableContext": "Available context window",
-				"tokenLimitTrigger": "Token limit trigger (after reserving output tokens and safety buffer)",
-				"actualTrigger": "Actual trigger (minimum of percentage and token limit)"
-			}
 		}
 	},
 	"browser": {

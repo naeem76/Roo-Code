@@ -1,26 +1,8 @@
 import { describe, it, expect, vi } from "vitest"
 import { GeminiHandler } from "../gemini"
 import type { ApiHandlerOptions } from "../../../shared/api"
-import type { Anthropic } from "@anthropic-ai/sdk"
 
 describe("GeminiHandler backend support", () => {
-	it("slices messages when contextLimit is set", async () => {
-		const options = { apiProvider: "gemini", contextLimit: 1 } as ApiHandlerOptions
-		const handler = new GeminiHandler(options)
-		const stub = vi.fn().mockReturnValue((async function* () {})())
-		// @ts-ignore access private client
-		handler["client"].models.generateContentStream = stub
-		const messages = [
-			{ role: "user", content: [{ type: "text", text: "first" }] },
-			{ role: "assistant", content: [{ type: "text", text: "second" }] },
-		] as Anthropic.Messages.MessageParam[]
-		for await (const _ of handler.createMessage("instr", messages)) {
-		}
-		expect(stub).toHaveBeenCalledOnce()
-		const params = stub.mock.calls[0][0]
-		expect(params.contents).toHaveLength(1)
-	})
-
 	it("passes maxOutputTokens, topP, topK, and tools for URL context and grounding in config", async () => {
 		const options = {
 			apiProvider: "gemini",
