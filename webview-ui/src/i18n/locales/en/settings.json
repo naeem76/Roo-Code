@@ -224,7 +224,7 @@
 		"vscodeLmWarning": "Note: This is a very experimental integration and provider support will vary. If you get an error about a model not being supported, that's an issue on the provider's end.",
 		"geminiSections": {
 			"modelParameters": "Model Parameters",
-			"advancedFeatures": "Advanced Features"
+			"tools": "Tools"
 		},
 		"geminiParameters": {
 			"topK": {

@@ -246,7 +246,7 @@
 		},
 		"geminiSections": {
 			"modelParameters": "Parámetros del modelo",
-			"advancedFeatures": "Funciones avanzadas"
+			"tools": "Herramientas"
 		},
 		"googleCloudSetup": {
 			"title": "Para usar Google Cloud Vertex AI, necesita:",

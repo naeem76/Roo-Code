@@ -246,7 +246,7 @@
 		},
 		"geminiSections": {
 			"modelParameters": "모델 매개변수",
-			"advancedFeatures": "고급 기능"
+			"tools": "도구"
 		},
 		"googleCloudSetup": {
 			"title": "Google Cloud Vertex AI를 사용하려면:",

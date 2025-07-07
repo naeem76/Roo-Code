@@ -246,7 +246,7 @@
 		},
 		"geminiSections": {
 			"modelParameters": "Model Parametreleri",
-			"advancedFeatures": "Gelişmiş Özellikler"
+			"tools": "Araçlar"
 		},
 		"googleCloudSetup": {
 			"title": "Google Cloud Vertex AI'yi kullanmak için şunları yapmanız gerekir:",

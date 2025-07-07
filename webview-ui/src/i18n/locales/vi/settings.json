@@ -246,7 +246,7 @@
 		},
 		"geminiSections": {
 			"modelParameters": "Tham số mô hình",
-			"advancedFeatures": "Tính năng nâng cao"
+			"tools": "Công cụ"
 		},
 		"googleCloudSetup": {
 			"title": "Để sử dụng Google Cloud Vertex AI, bạn cần:",

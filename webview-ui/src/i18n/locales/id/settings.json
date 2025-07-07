@@ -250,7 +250,7 @@
 		},
 		"geminiSections": {
 			"modelParameters": "Parameter Model",
-			"advancedFeatures": "Fitur Lanjutan"
+			"tools": "Alat"
 		},
 		"googleCloudSetup": {
 			"title": "Untuk menggunakan Google Cloud Vertex AI, kamu perlu:",

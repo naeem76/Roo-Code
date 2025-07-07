@@ -246,7 +246,7 @@
 		},
 		"geminiSections": {
 			"modelParameters": "Modelparameters",
-			"advancedFeatures": "Geavanceerde functies"
+			"tools": "Gereedschap"
 		},
 		"googleCloudSetup": {
 			"title": "Om Google Cloud Vertex AI te gebruiken, moet je:",

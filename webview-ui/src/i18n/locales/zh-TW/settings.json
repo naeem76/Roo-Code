@@ -246,7 +246,7 @@
 		},
 		"geminiSections": {
 			"modelParameters": "模型參數",
-			"advancedFeatures": "進階功能"
+			"tools": "工具"
 		},
 		"googleCloudSetup": {
 			"title": "要使用 Google Cloud Vertex AI，您需要：",
