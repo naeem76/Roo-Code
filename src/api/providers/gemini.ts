@@ -88,55 +88,63 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 
 		const params: GenerateContentParameters = { model, contents, config }
 
-		const result = await this.client.models.generateContentStream(params)
+		try {
+			const result = await this.client.models.generateContentStream(params)
 
-		let lastUsageMetadata: GenerateContentResponseUsageMetadata | undefined
+			let lastUsageMetadata: GenerateContentResponseUsageMetadata | undefined
 
-		for await (const chunk of result) {
-			// Process candidates and their parts to separate thoughts from content
-			if (chunk.candidates && chunk.candidates.length > 0) {
-				const candidate = chunk.candidates[0]
-				if (candidate.content && candidate.content.parts) {
-					for (const part of candidate.content.parts) {
-						if (part.thought) {
-							// This is a thinking/reasoning part
-							if (part.text) {
-								yield { type: "reasoning", text: part.text }
-							}
-						} else {
-							// This is regular content
-							if (part.text) {
-								yield { type: "text", text: part.text }
+			for await (const chunk of result) {
+				// Process candidates and their parts to separate thoughts from content
+				if (chunk.candidates && chunk.candidates.length > 0) {
+					const candidate = chunk.candidates[0]
+					if (candidate.content && candidate.content.parts) {
+						for (const part of candidate.content.parts) {
+							if (part.thought) {
+								// This is a thinking/reasoning part
+								if (part.text) {
+									yield { type: "reasoning", text: part.text }
+								}
+							} else {
+								// This is regular content
+								if (part.text) {
+									yield { type: "text", text: part.text }
+								}
 							}
 						}
 					}
 				}
+
+				// Fallback to the original text property if no candidates structure
+				else if (chunk.text) {
+					yield { type: "text", text: chunk.text }
+				}
+
+				if (chunk.usageMetadata) {
+					lastUsageMetadata = chunk.usageMetadata
+				}
 			}
 
-			// Fallback to the original text property if no candidates structure
-			else if (chunk.text) {
-				yield { type: "text", text: chunk.text }
+			if (lastUsageMetadata) {
+				const inputTokens = lastUsageMetadata.promptTokenCount ?? 0
+				const outputTokens = lastUsageMetadata.candidatesTokenCount ?? 0
+				const cacheReadTokens = lastUsageMetadata.cachedContentTokenCount
+				const reasoningTokens = lastUsageMetadata.thoughtsTokenCount
+
+				yield {
+					type: "usage",
+					inputTokens,
+					outputTokens,
+					cacheReadTokens,
+					reasoningTokens,
+					totalCost: this.calculateCost({ info, inputTokens, outputTokens, cacheReadTokens }),
+				}
+			}
+		} catch (error) {
+			if (error instanceof Error) {
+				throw new Error(`Gemini Generate Context Stream error: ${error.message}`)
 			}
 
-			if (chunk.usageMetadata) {
-				lastUsageMetadata = chunk.usageMetadata
-			}
-		}
-
-		if (lastUsageMetadata) {
-			const inputTokens = lastUsageMetadata.promptTokenCount ?? 0
-			const outputTokens = lastUsageMetadata.candidatesTokenCount ?? 0
-			const cacheReadTokens = lastUsageMetadata.cachedContentTokenCount
-			const reasoningTokens = lastUsageMetadata.thoughtsTokenCount
-
-			yield {
-				type: "usage",
-				inputTokens,
-				outputTokens,
-				cacheReadTokens,
-				reasoningTokens,
-				totalCost: this.calculateCost({ info, inputTokens, outputTokens, cacheReadTokens }),
-			}
+			throw error
 		}
 	}
 
