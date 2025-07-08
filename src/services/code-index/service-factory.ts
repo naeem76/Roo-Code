@@ -30,7 +30,9 @@ export class CodeIndexServiceFactory {
 		const provider = config.embedderProvider as EmbedderProvider
 
 		if (provider === "openai") {
-			if (!config.openAiOptions?.openAiNativeApiKey) {
+			const apiKey = config.openAiOptions?.openAiNativeApiKey
+
+			if (!apiKey) {
 				throw new Error("OpenAI configuration missing for embedder creation")
 			}
 			return new OpenAiEmbedder({
@@ -62,6 +64,23 @@ export class CodeIndexServiceFactory {
 		}
 
 		throw new Error(`Invalid embedder type configured: ${config.embedderProvider}`)
+	}
+
+	/**
+	 * Validates an embedder instance to ensure it's properly configured.
+	 * @param embedder The embedder instance to validate
+	 * @returns Promise resolving to validation result
+	 */
+	public async validateEmbedder(embedder: IEmbedder): Promise<{ valid: boolean; error?: string }> {
+		try {
+			return await embedder.validateConfiguration()
+		} catch (error) {
+			// If validation throws an exception, preserve the original error message
+			return {
+				valid: false,
+				error: error instanceof Error ? error.message : "embeddings:validation.configurationError",
+			}
+		}
 	}
 
 	/**
