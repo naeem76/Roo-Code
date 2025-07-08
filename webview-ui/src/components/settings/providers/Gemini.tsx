@@ -97,11 +97,11 @@ export const Gemini = ({ apiConfiguration, setApiConfigurationField, currentMode
 							min={0}
 							max={1}
 							step={0.01}
-							value={[apiConfiguration.topP ?? 0]}
+							value={[apiConfiguration.topP ?? 0.95]}
 							onValueChange={(values: number[]) => setApiConfigurationField("topP", values[0])}
 							className="flex-grow"
 						/>
-						<span className="w-10 text-right">{(apiConfiguration.topP ?? 0).toFixed(2)}</span>
+						<span className="w-10 text-right">{(apiConfiguration.topP ?? 0.95).toFixed(2)}</span>
 					</div>
 					<div className="text-sm text-vscode-descriptionForeground">
 						{t("settings:providers.geminiParameters.topP.description")}
@@ -118,11 +118,11 @@ export const Gemini = ({ apiConfiguration, setApiConfigurationField, currentMode
 							min={0}
 							max={100}
 							step={1}
-							value={[apiConfiguration.topK ?? 0]}
+							value={[apiConfiguration.topK ?? 64]}
 							onValueChange={(values: number[]) => setApiConfigurationField("topK", values[0])}
 							className="flex-grow"
 						/>
-						<span className="w-10 text-right">{apiConfiguration.topK ?? 0}</span>
+						<span className="w-10 text-right">{apiConfiguration.topK ?? 64}</span>
 					</div>
 					<div className="text-sm text-vscode-descriptionForeground">
 						{t("settings:providers.geminiParameters.topK.description")}
@@ -139,12 +139,12 @@ export const Gemini = ({ apiConfiguration, setApiConfigurationField, currentMode
 							min={3000}
 							max={modelInfo.maxTokens}
 							step={1}
-							value={[apiConfiguration.maxOutputTokens ?? 0]}
+							value={[apiConfiguration.maxOutputTokens ?? modelInfo.maxTokens]}
 							onValueChange={(values: number[]) => setApiConfigurationField("maxOutputTokens", values[0])}
 							className="flex-grow"
 						/>
 						<VSCodeTextField
-							value={(apiConfiguration.maxOutputTokens ?? 0).toString()}
+							value={(apiConfiguration.maxOutputTokens ?? modelInfo.maxTokens).toString()}
 							type="text"
 							inputMode="numeric"
 							onInput={handleInputChange("maxOutputTokens", (e) => {
