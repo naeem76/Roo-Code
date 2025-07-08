@@ -93,11 +93,19 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 			const result = await this.client.models.generateContentStream(params)
 
 			let lastUsageMetadata: GenerateContentResponseUsageMetadata | undefined
+			let accumulatedText = ""
+			let pendingGroundingMetadata: GroundingMetadata | undefined
+			let hasGroundingEnabled = this.options.enableGrounding
 
 			for await (const chunk of result) {
 				// Process candidates and their parts to separate thoughts from content
 				if (chunk.candidates && chunk.candidates.length > 0) {
 					const candidate = chunk.candidates[0]
+
+					if (candidate.groundingMetadata) {
+						pendingGroundingMetadata = candidate.groundingMetadata
+					}
+
 					if (candidate.content && candidate.content.parts) {
 						for (const part of candidate.content.parts) {
 							if (part.thought) {
@@ -108,7 +116,11 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 							} else {
 								// This is regular content
 								if (part.text) {
-									yield { type: "text", text: part.text }
+									accumulatedText += part.text
+
+									if (!hasGroundingEnabled) {
+										yield { type: "text", text: part.text }
+									}
 								}
 							}
 						}
@@ -117,12 +129,26 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 
 				// Fallback to the original text property if no candidates structure
 				else if (chunk.text) {
-					yield { type: "text", text: chunk.text }
+					accumulatedText += chunk.text
+
+					if (!hasGroundingEnabled) {
+						yield { type: "text", text: chunk.text }
+					}
 				}
 
 				if (chunk.usageMetadata) {
 					lastUsageMetadata = chunk.usageMetadata
 				}
+			}
+
+			if (hasGroundingEnabled && accumulatedText) {
+				let finalText = accumulatedText
+
+				if (pendingGroundingMetadata) {
+					finalText = this.processGroundingCitations(accumulatedText, pendingGroundingMetadata)
+				}
+
+				yield { type: "text", text: finalText }
 			}
 
 			if (lastUsageMetadata) {
