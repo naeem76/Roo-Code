@@ -4,6 +4,7 @@ import {
 	type GenerateContentResponseUsageMetadata,
 	type GenerateContentParameters,
 	type GenerateContentConfig,
+	type GroundingMetadata,
 } from "@google/genai"
 import type { JWTInput } from "google-auth-library"
 
@@ -67,7 +68,7 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 
 		const contents = messages.map(convertAnthropicMessageToGemini)
 
-		const tools: Array<Record<string, object>> = []
+		const tools: GenerateContentConfig["tools"] = []
 		if (this.options.enableUrlContext) {
 			tools.push({ urlContext: {} })
 		}
@@ -161,11 +162,46 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 		return { id: id.endsWith(":thinking") ? id.replace(":thinking", "") : id, info, ...params }
 	}
 
+	private processGroundingCitations(text: string, groundingMetadata?: GroundingMetadata): string {
+		const supports = groundingMetadata?.groundingSupports
+		const chunks = groundingMetadata?.groundingChunks
+
+		if (!supports || !chunks) {
+			return text
+		}
+
+		const sortedSupports = [...supports].sort((a, b) => (b.segment?.endIndex ?? 0) - (a.segment?.endIndex ?? 0))
+
+		for (const support of sortedSupports) {
+			const endIndex = support.segment?.endIndex
+			if (endIndex === undefined || !support.groundingChunkIndices?.length) {
+				continue
+			}
+
+			const citationLinks = support.groundingChunkIndices
+				.map((i) => {
+					const uri = chunks[i]?.web?.uri
+					if (uri) {
+						return `[${i + 1}](${uri})`
+					}
+					return null
+				})
+				.filter(Boolean)
+
+			if (citationLinks.length > 0) {
+				const citationString = citationLinks.join(", ")
+				text = text.slice(0, endIndex) + citationString + text.slice(endIndex)
+			}
+		}
+
+		return text
+	}
+
 	async completePrompt(prompt: string): Promise<string> {
 		try {
 			const { id: model } = this.getModel()
 
-			const tools: Array<Record<string, object>> = []
+			const tools: GenerateContentConfig["tools"] = []
 			if (this.options.enableUrlContext) {
 				tools.push({ urlContext: {} })
 			}
@@ -190,7 +226,14 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 				config: promptConfig,
 			})
 
-			return result.text ?? ""
+			let text = result.text ?? ""
+
+			const candidate = result.candidates?.[0]
+			if (candidate?.groundingMetadata) {
+				text = this.processGroundingCitations(text, candidate.groundingMetadata)
+			}
+
+			return text
 		} catch (error) {
 			if (error instanceof Error) {
 				throw new Error(`Gemini completion error: ${error.message}`)
