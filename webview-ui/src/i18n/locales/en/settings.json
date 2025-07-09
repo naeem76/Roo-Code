@@ -278,10 +278,9 @@
 		"vscodeLmWarning": "Note: This is a very experimental integration and provider support will vary. If you get an error about a model not being supported, that's an issue on the provider's end.",
 		"geminiSections": {
 			"modelParameters": {
-				"title": "Model Parameters",
+				"title": "Advanced Settings",
 				"description": "Fine-tune topP, topK and maxOutputTokens"
-			},
-			"tools": "Tools"
+			}
 		},
 		"geminiParameters": {
 			"topK": {

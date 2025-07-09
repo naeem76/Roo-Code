@@ -300,10 +300,9 @@
 		},
 		"geminiSections": {
 			"modelParameters": {
-				"title": "Tham số mô hình",
+				"title": "Cài đặt nâng cao",
 				"description": "Điều chỉnh nhiệt độ, top-p và các cài đặt nâng cao khác."
-			},
-			"tools": "Công cụ"
+			}
 		},
 		"googleCloudSetup": {
 			"title": "Để sử dụng Google Cloud Vertex AI, bạn cần:",

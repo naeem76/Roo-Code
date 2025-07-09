@@ -300,10 +300,9 @@
 		},
 		"geminiSections": {
 			"modelParameters": {
-				"title": "Paramètres du modèle",
+				"title": "Paramètres avancés",
 				"description": "Ajustez la température, top-p et d'autres paramètres avancés."
-			},
-			"tools": "Outils"
+			}
 		},
 		"googleCloudSetup": {
 			"title": "Pour utiliser Google Cloud Vertex AI, vous devez :",

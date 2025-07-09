@@ -300,10 +300,9 @@
 		},
 		"geminiSections": {
 			"modelParameters": {
-				"title": "Modelparameters",
+				"title": "Geavanceerde instellingen",
 				"description": "Pas de temperatuur, top-p en andere geavanceerde instellingen aan."
-			},
-			"tools": "Gereedschap"
+			}
 		},
 		"googleCloudSetup": {
 			"title": "Om Google Cloud Vertex AI te gebruiken, moet je:",

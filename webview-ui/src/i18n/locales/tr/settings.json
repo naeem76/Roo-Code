@@ -300,10 +300,9 @@
 		},
 		"geminiSections": {
 			"modelParameters": {
-				"title": "Model Parametreleri",
+				"title": "Gelişmiş Ayarlar",
 				"description": "Sıcaklık, top-p ve diğer gelişmiş ayarları yapın."
-			},
-			"tools": "Araçlar"
+			}
 		},
 		"googleCloudSetup": {
 			"title": "Google Cloud Vertex AI'yi kullanmak için şunları yapmanız gerekir:",

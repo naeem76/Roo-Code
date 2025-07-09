@@ -304,10 +304,9 @@
 		},
 		"geminiSections": {
 			"modelParameters": {
-				"title": "Parameter Model",
+				"title": "Pengaturan Lanjutan",
 				"description": "Menyesuaikan suhu, top-p, dan pengaturan lanjutan lainnya."
-			},
-			"tools": "Alat"
+			}
 		},
 		"googleCloudSetup": {
 			"title": "Untuk menggunakan Google Cloud Vertex AI, kamu perlu:",
