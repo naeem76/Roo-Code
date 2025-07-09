@@ -299,7 +299,10 @@
 			}
 		},
 		"geminiSections": {
-			"modelParameters": "Model Parametreleri",
+			"modelParameters": {
+				"title": "Model Parametreleri",
+				"description": "Sıcaklık, top-p ve diğer gelişmiş ayarları yapın."
+			},
 			"tools": "Araçlar"
 		},
 		"googleCloudSetup": {

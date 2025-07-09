@@ -299,7 +299,10 @@
 			}
 		},
 		"geminiSections": {
-			"modelParameters": "Modelparameters",
+			"modelParameters": {
+				"title": "Modelparameters",
+				"description": "Pas de temperatuur, top-p en andere geavanceerde instellingen aan."
+			},
 			"tools": "Gereedschap"
 		},
 		"googleCloudSetup": {

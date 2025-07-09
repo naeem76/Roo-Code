@@ -299,7 +299,10 @@
 			}
 		},
 		"geminiSections": {
-			"modelParameters": "모델 매개변수",
+			"modelParameters": {
+				"title": "모델 매개변수",
+				"description": "온도, top-p 및 기타 고급 설정을 조정합니다."
+			},
 			"tools": "도구"
 		},
 		"googleCloudSetup": {

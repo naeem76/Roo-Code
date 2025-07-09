@@ -303,7 +303,10 @@
 			}
 		},
 		"geminiSections": {
-			"modelParameters": "Parameter Model",
+			"modelParameters": {
+				"title": "Parameter Model",
+				"description": "Menyesuaikan suhu, top-p, dan pengaturan lanjutan lainnya."
+			},
 			"tools": "Alat"
 		},
 		"googleCloudSetup": {

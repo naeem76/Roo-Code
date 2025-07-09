@@ -299,7 +299,10 @@
 			}
 		},
 		"geminiSections": {
-			"modelParameters": "Tham số mô hình",
+			"modelParameters": {
+				"title": "Tham số mô hình",
+				"description": "Điều chỉnh nhiệt độ, top-p và các cài đặt nâng cao khác."
+			},
 			"tools": "Công cụ"
 		},
 		"googleCloudSetup": {

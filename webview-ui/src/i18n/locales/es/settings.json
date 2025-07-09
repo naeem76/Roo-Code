@@ -299,7 +299,10 @@
 			}
 		},
 		"geminiSections": {
-			"modelParameters": "Parámetros del modelo",
+			"modelParameters": {
+				"title": "Parámetros del modelo",
+				"description": "Ajusta la temperatura, top-p y otros parámetros avanzados."
+			},
 			"tools": "Herramientas"
 		},
 		"googleCloudSetup": {

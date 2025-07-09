@@ -299,7 +299,10 @@
 			}
 		},
 		"geminiSections": {
-			"modelParameters": "模型参数",
+			"modelParameters": {
+				"title": "模型参数",
+				"description": "调整温度、top-p 和其他高级设置。"
+			},
 			"tools": "工具"
 		},
 		"googleCloudSetup": {

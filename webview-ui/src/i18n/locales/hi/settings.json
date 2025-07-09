@@ -299,7 +299,10 @@
 			}
 		},
 		"geminiSections": {
-			"modelParameters": "मॉडल पैरामीटर",
+			"modelParameters": {
+				"title": "मॉडल पैरामीटर",
+				"description": "टेम्परेचर, टॉप-पी और अन्य उन्नत सेटिंग्स को फाइन-ट्यून करें।"
+			},
 			"tools": "उपकरण"
 		},
 		"googleCloudSetup": {

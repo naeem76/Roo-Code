@@ -299,7 +299,10 @@
 			}
 		},
 		"geminiSections": {
-			"modelParameters": "Model Parameter",
+			"modelParameters": {
+				"title": "Modellparameter",
+				"description": "Feinabstimmung von Temperatur, Top-P und anderen erweiterten Einstellungen."
+			},
 			"tools": "Werkzeuge"
 		},
 		"googleCloudSetup": {

@@ -303,7 +303,10 @@
 			}
 		},
 		"geminiSections": {
-			"modelParameters": "Paràmetres del model",
+			"modelParameters": {
+				"title": "Paràmetres del model",
+				"description": "Ajusta la temperatura, top-p i altres paràmetres avançats."
+			},
 			"tools": "Eines"
 		},
 		"googleCloudSetup": {
