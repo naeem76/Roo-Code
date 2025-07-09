@@ -776,6 +776,36 @@ export const webviewMessageHandler = async (
 
 			break
 		}
+		case "whitelistCommand": {
+			// Add a command pattern to the allowed commands list
+			if (message.pattern && typeof message.pattern === "string") {
+				const currentCommands = getGlobalState("allowedCommands") ?? []
+				const validCommands = Array.isArray(currentCommands)
+					? currentCommands.filter((cmd) => typeof cmd === "string" && cmd.trim().length > 0)
+					: []
+
+				// Add the new pattern if it's not already in the list
+				if (!validCommands.includes(message.pattern)) {
+					validCommands.push(message.pattern)
+
+					await updateGlobalState("allowedCommands", validCommands)
+
+					// Also update workspace settings
+					await vscode.workspace
+						.getConfiguration(Package.name)
+						.update("allowedCommands", validCommands, vscode.ConfigurationTarget.Global)
+
+					// Show confirmation to the user
+					vscode.window.showInformationMessage(
+						t("common:info.command_whitelisted", { pattern: message.pattern }),
+					)
+
+					// Update the webview state
+					await provider.postStateToWebview()
+				}
+			}
+			break
+		}
 		case "deniedCommands": {
 			// Validate and sanitize the commands array
 			const commands = message.commands ?? []
@@ -790,6 +820,36 @@ export const webviewMessageHandler = async (
 				.getConfiguration(Package.name)
 				.update("deniedCommands", validCommands, vscode.ConfigurationTarget.Global)
 
+			break
+		}
+		case "denyCommand": {
+			// Add a command pattern to the denied commands list
+			if (message.pattern && typeof message.pattern === "string") {
+				const currentCommands = getGlobalState("deniedCommands") ?? []
+				const validCommands = Array.isArray(currentCommands)
+					? currentCommands.filter((cmd) => typeof cmd === "string" && cmd.trim().length > 0)
+					: []
+
+				// Add the new pattern if it's not already in the list
+				if (!validCommands.includes(message.pattern)) {
+					validCommands.push(message.pattern)
+
+					await updateGlobalState("deniedCommands", validCommands)
+
+					// Also update workspace settings
+					await vscode.workspace
+						.getConfiguration(Package.name)
+						.update("deniedCommands", validCommands, vscode.ConfigurationTarget.Global)
+
+					// Show confirmation to the user
+					vscode.window.showInformationMessage(
+						t("common:info.command_denied", { pattern: message.pattern }),
+					)
+
+					// Update the webview state
+					await provider.postStateToWebview()
+				}
+			}
 			break
 		}
 		case "openCustomModesSettings": {
