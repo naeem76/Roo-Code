@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { Gemini } from "../Gemini"
 import type { ProviderSettings } from "@roo-code/types"
 
@@ -43,10 +44,19 @@ vi.mock("@src/components/common/VSCodeButtonLink", () => ({
 }))
 
 describe("Gemini provider settings", () => {
-	it("renders sliders for topP, topK and maxOutputTokens", () => {
+	it("renders sliders for topP, topK and maxOutputTokens after expanding", async () => {
+		const user = userEvent.setup()
 		const setApiField = vi.fn()
 		const config: ProviderSettings = {}
 		render(<Gemini apiConfiguration={config} setApiConfigurationField={setApiField} />)
+
+		expect(screen.queryByTestId("slider-top-p")).not.toBeInTheDocument()
+		expect(screen.queryByTestId("slider-top-k")).not.toBeInTheDocument()
+		expect(screen.queryByTestId("slider-max-output-tokens")).not.toBeInTheDocument()
+
+		const trigger = screen.getByText("settings:providers.geminiSections.modelParameters.title")
+		await user.click(trigger)
+
 		expect(screen.getByTestId("slider-top-p")).toBeInTheDocument()
 		expect(screen.getByTestId("slider-top-k")).toBeInTheDocument()
 		expect(screen.getByTestId("slider-max-output-tokens")).toBeInTheDocument()
