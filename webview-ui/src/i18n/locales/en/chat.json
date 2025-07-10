@@ -120,6 +120,7 @@
 	"enhancePromptDescription": "The 'Enhance Prompt' button helps improve your prompt by providing additional context, clarification, or rephrasing. Try typing a prompt in here and clicking the button again to see how it works.",
 	"addImages": "Add images to message",
 	"sendMessage": "Send message",
+	"stopTts": "Stop text-to-speech",
 	"typeMessage": "Type a message...",
 	"typeTask": "Type your task here...",
 	"addContext": "@ to add context, / to switch modes",
@@ -293,7 +294,7 @@
 		}
 	},
 	"systemPromptWarning": "WARNING: Custom system prompt override active. This can severely break functionality and cause unpredictable behavior.",
-	"profileViolationWarning": "The current profile violates your organization's settings",
+	"profileViolationWarning": "The current profile isn't compatible with your organization's settings",
 	"shellIntegration": {
 		"title": "Command Execution Warning",
 		"description": "Your command is being executed without VSCode terminal shell integration. To suppress this warning you can disable shell integration in the <strong>Terminal</strong> section of the <settingsLink>Roo Code settings</settingsLink> or troubleshoot VSCode terminal integration using the link below.",

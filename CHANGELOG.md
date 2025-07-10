@@ -1,5 +1,23 @@
 # Roo Code Changelog
 
+## [3.23.6] - 2025-07-10
+
+- Grok 4
+
+## [3.23.5] - 2025-07-09
+
+- Fix: use decodeURIComponent in openFile (thanks @vivekfyi!)
+- Fix(embeddings): Translate error messages before sending to UI (thanks @daniel-lxs!)
+- Make account tab visible
+
+## [3.23.4] - 2025-07-09
+
+- Update chat area icons for better discoverability & consistency
+- Fix a bug that allowed `list_files` to return directory results that should be excluded by .gitignore
+- Add an overflow header menu to make the UI a little tidier (thanks @dlab-anton)
+- Fix a bug the issue where null custom modes configuration files cause a 'Cannot read properties of null' error (thanks @daniel-lxs!)
+- Replace native title attributes with StandardTooltip component for consistency (thanks @daniel-lxs!)
+
 ## [3.23.3] - 2025-07-09
 
 - Remove erroneous line from announcement modal
