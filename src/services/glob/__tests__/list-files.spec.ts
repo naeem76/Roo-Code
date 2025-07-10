@@ -336,4 +336,61 @@ describe("hidden directory exclusion", () => {
 		expect(hasTasksDir).toBe(true)
 		expect(hasContextDir).toBe(true)
 	})
+
+	it("should include top-level files when recursively listing a hidden directory that's also in DIRS_TO_IGNORE", async () => {
+		// This test specifically addresses the bug where files at the root level of .roo/temp
+		// were being excluded when using recursive listing
+		const mockSpawn = vi.mocked(childProcess.spawn)
+		const mockProcess = {
+			stdout: {
+				on: vi.fn((event, callback) => {
+					if (event === "data") {
+						// Simulate files that should be found in .roo/temp
+						setTimeout(() => {
+							callback(".roo/temp/teste1.md\n")
+							callback(".roo/temp/22/test2.md\n")
+						}, 10)
+					}
+				}),
+			},
+			stderr: {
+				on: vi.fn(),
+			},
+			on: vi.fn((event, callback) => {
+				if (event === "close") {
+					setTimeout(() => callback(0), 20)
+				}
+			}),
+			kill: vi.fn(),
+		}
+
+		mockSpawn.mockReturnValue(mockProcess as any)
+
+		// Mock directory listing for .roo/temp
+		const mockReaddir = vi.fn()
+		vi.mocked(fs.promises).readdir = mockReaddir
+		mockReaddir.mockResolvedValueOnce([{ name: "22", isDirectory: () => true, isSymbolicLink: () => false }])
+
+		// Call listFiles targeting .roo/temp (which is both hidden and in DIRS_TO_IGNORE)
+		const [files] = await listFiles("/test/.roo/temp", true, 100)
+
+		// Verify ripgrep was called with correct arguments
+		const [rgPath, args] = mockSpawn.mock.calls[0]
+		expect(args).toContain("--no-ignore-vcs")
+		expect(args).toContain("--no-ignore")
+
+		// Check for the inclusion patterns that should be added
+		expect(args).toContain("-g")
+		const gIndex = args.indexOf("-g")
+		expect(args[gIndex + 1]).toBe("*")
+
+		// Verify that both top-level and nested files are included
+		const fileNames = files.map((f) => path.basename(f))
+		expect(fileNames).toContain("teste1.md")
+		expect(fileNames).toContain("test2.md")
+
+		// Ensure the top-level file is actually included
+		const topLevelFile = files.find((f) => f.endsWith("teste1.md"))
+		expect(topLevelFile).toBeTruthy()
+	})
 })

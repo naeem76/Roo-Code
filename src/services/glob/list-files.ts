@@ -208,23 +208,48 @@ function buildRecursiveArgs(dirPath: string): string[] {
 	// (ripgrep does this automatically)
 
 	// Check if we're explicitly targeting a hidden directory
+	// We need to check all parts of the path, not just the basename
+	const pathParts = dirPath.split(path.sep).filter((part) => part !== "")
+	const isTargetingHiddenDir = pathParts.some((part) => part.startsWith("."))
+
+	// Get the target directory name to check if it's in the ignore list
 	const targetDirName = path.basename(dirPath)
-	const isTargetingHiddenDir = targetDirName.startsWith(".")
+	const isTargetInIgnoreList = DIRS_TO_IGNORE.includes(targetDirName)
+
+	// If targeting a hidden directory or a directory in the ignore list,
+	// use special handling to ensure all files are shown
+	if (isTargetingHiddenDir || isTargetInIgnoreList) {
+		args.push("--no-ignore-vcs")
+		args.push("--no-ignore")
+
+		// When targeting an ignored directory, we need to be careful with glob patterns
+		// Add a pattern to explicitly include files at the root level
+		args.push("-g", "*")
+		args.push("-g", "**/*")
+	}
 
 	// Apply directory exclusions for recursive searches
 	for (const dir of DIRS_TO_IGNORE) {
 		// Special handling for hidden directories pattern
 		if (dir === ".*") {
-			// Only exclude hidden directories if we're not explicitly targeting one
-			// This allows explicitly targeted hidden directories to be processed
-			// while excluding them from general recursive searches
+			// If we're explicitly targeting a hidden directory, don't exclude hidden files/dirs
+			// This allows the target hidden directory and all its contents to be listed
 			if (!isTargetingHiddenDir) {
+				// Not targeting hidden dir: exclude all hidden directories
 				args.push("-g", `!**/.*/**`)
 			}
+			// If targeting hidden dir: don't add any exclusion for hidden directories
 			continue
 		}
 
-		args.push("-g", `!**/${dir}/**`)
+		// When targeting a directory that's in the ignore list, modify the exclusion pattern
+		// to only exclude nested directories with the same name, not the root level
+		if (dir === targetDirName && isTargetInIgnoreList) {
+			// Only exclude subdirectories, not files at the root level
+			args.push("-g", `!*/${dir}/**`)
+		} else {
+			args.push("-g", `!**/${dir}/**`)
+		}
 	}
 	return args
 }
