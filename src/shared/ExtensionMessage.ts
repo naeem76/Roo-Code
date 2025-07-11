@@ -161,6 +161,7 @@ export interface ExtensionMessage {
 	settings?: any
 	messageTs?: number
 	hasCheckpoint?: boolean
+	context?: string
 }
 
 export type ExtensionState = Pick<
@@ -186,8 +187,6 @@ export type ExtensionState = Pick<
 	| "alwaysAllowSubtasks"
 	| "alwaysAllowExecute"
 	| "alwaysAllowUpdateTodoList"
-	| "skipEditMessageConfirmation"
-	| "skipDeleteMessageConfirmation"
 	| "allowedCommands"
 	| "allowedMaxRequests"
 	| "browserToolEnabled"

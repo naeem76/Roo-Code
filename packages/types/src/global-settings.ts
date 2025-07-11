@@ -110,10 +110,6 @@ export const globalSettingsSchema = z.object({
 	hasOpenedModeSelector: z.boolean().optional(),
 	lastModeExportPath: z.string().optional(),
 	lastModeImportPath: z.string().optional(),
-
-	// Message modification confirmation preferences
-	skipEditMessageConfirmation: z.boolean().optional(),
-	skipDeleteMessageConfirmation: z.boolean().optional(),
 })
 
 export type GlobalSettings = z.infer<typeof globalSettingsSchema>

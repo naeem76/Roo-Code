@@ -99,55 +99,47 @@ export const webviewMessageHandler = async (
 	 * Handles message deletion operations with user confirmation
 	 */
 	const handleDeleteOperation = async (messageTs: number): Promise<void> => {
-		// Check if user has opted to skip the confirmation
-		const skipDeleteMessageConfirmation = getGlobalState("skipDeleteMessageConfirmation")
+		// Check if the message has a checkpoint
+		const currentCline = provider.getCurrentCline()
+		let hasCheckpoint = false
+		if (currentCline) {
+			// Debug: Log all messages to understand the state
+			console.log("[webviewMessageHandler] Total messages:", currentCline.clineMessages.length)
+			console.log("[webviewMessageHandler] Looking for message with ts:", messageTs)
+			console.log(
+				"[webviewMessageHandler] All messages with timestamps:",
+				currentCline.clineMessages.map((m, idx) => ({
+					index: idx,
+					ts: m.ts,
+					say: m.say,
+					hasCheckpoint: !!m.checkpoint,
+					checkpoint: m.checkpoint,
+				})),
+			)
 
-		if (skipDeleteMessageConfirmation) {
-			// Directly handle the deletion without showing dialog
-			await handleDeleteMessageConfirm(messageTs)
-		} else {
-			// Check if the message has a checkpoint
-			const currentCline = provider.getCurrentCline()
-			let hasCheckpoint = false
-			if (currentCline) {
-				// Debug: Log all messages to understand the state
-				console.log("[webviewMessageHandler] Total messages:", currentCline.clineMessages.length)
-				console.log("[webviewMessageHandler] Looking for message with ts:", messageTs)
-				console.log(
-					"[webviewMessageHandler] All messages with timestamps:",
-					currentCline.clineMessages.map((m, idx) => ({
-						index: idx,
-						ts: m.ts,
-						say: m.say,
-						hasCheckpoint: !!m.checkpoint,
-						checkpoint: m.checkpoint,
-					})),
+			const { messageIndex } = findMessageIndices(messageTs, currentCline)
+			console.log("[webviewMessageHandler] Checking for checkpoint at messageIndex:", messageIndex)
+			if (messageIndex !== -1) {
+				const targetMessage = currentCline.clineMessages[messageIndex]
+				console.log("[webviewMessageHandler] Target message:", JSON.stringify(targetMessage, null, 2))
+				console.log("[webviewMessageHandler] Target message checkpoint:", targetMessage?.checkpoint)
+				hasCheckpoint = !!(
+					targetMessage?.checkpoint &&
+					typeof targetMessage.checkpoint === "object" &&
+					"hash" in targetMessage.checkpoint
 				)
-
-				const { messageIndex } = findMessageIndices(messageTs, currentCline)
-				console.log("[webviewMessageHandler] Checking for checkpoint at messageIndex:", messageIndex)
-				if (messageIndex !== -1) {
-					const targetMessage = currentCline.clineMessages[messageIndex]
-					console.log("[webviewMessageHandler] Target message:", JSON.stringify(targetMessage, null, 2))
-					console.log("[webviewMessageHandler] Target message checkpoint:", targetMessage?.checkpoint)
-					hasCheckpoint = !!(
-						targetMessage?.checkpoint &&
-						typeof targetMessage.checkpoint === "object" &&
-						"hash" in targetMessage.checkpoint
-					)
-					console.log("[webviewMessageHandler] hasCheckpoint:", hasCheckpoint)
-				} else {
-					console.log("[webviewMessageHandler] Message not found! Looking for ts:", messageTs)
-				}
+				console.log("[webviewMessageHandler] hasCheckpoint:", hasCheckpoint)
+			} else {
+				console.log("[webviewMessageHandler] Message not found! Looking for ts:", messageTs)
 			}
-
-			// Send message to webview to show delete confirmation dialog
-			await provider.postMessageToWebview({
-				type: "showDeleteMessageDialog",
-				messageTs,
-				hasCheckpoint,
-			})
 		}
+
+		// Send message to webview to show delete confirmation dialog
+		await provider.postMessageToWebview({
+			type: "showDeleteMessageDialog",
+			messageTs,
+			hasCheckpoint,
+		})
 	}
 
 	/**
@@ -198,9 +190,6 @@ export const webviewMessageHandler = async (
 	 * Handles message editing operations with user confirmation
 	 */
 	const handleEditOperation = async (messageTs: number, editedContent: string): Promise<void> => {
-		// Check if user has opted to skip the confirmation
-		const skipEditMessageConfirmation = getGlobalState("skipEditMessageConfirmation")
-
 		// Always check if the message has a checkpoint first
 		const currentCline = provider.getCurrentCline()
 		let hasCheckpoint = false
@@ -236,20 +225,14 @@ export const webviewMessageHandler = async (
 		} else {
 			console.log("[webviewMessageHandler] Edit - No currentCline available!")
 		}
-
-		if (skipEditMessageConfirmation) {
-			// If there's a checkpoint, show the checkpoint dialog even when skipping confirmation
-			if (hasCheckpoint) {
-				await provider.postMessageToWebview({
-					type: "showEditMessageDialog",
-					messageTs,
-					text: editedContent,
-					hasCheckpoint,
-				})
-			} else {
-				// No checkpoint, directly handle the edit without showing dialog
-				await handleEditMessageConfirm(messageTs, editedContent, false)
-			}
+		// If there's a checkpoint, show the checkpoint dialog even when skipping confirmation
+		if (hasCheckpoint) {
+			await provider.postMessageToWebview({
+				type: "showEditMessageDialog",
+				messageTs,
+				text: editedContent,
+				hasCheckpoint,
+			})
 		} else {
 			// Send message to webview to show edit confirmation dialog
 			await provider.postMessageToWebview({
@@ -268,6 +251,7 @@ export const webviewMessageHandler = async (
 		messageTs: number,
 		editedContent: string,
 		restoreCheckpoint?: boolean,
+		images?: string[],
 	): Promise<void> => {
 		// Only proceed if we have a current cline
 		if (provider.getCurrentCline()) {
@@ -303,6 +287,7 @@ export const webviewMessageHandler = async (
 						type: "askResponse",
 						askResponse: "messageResponse",
 						text: editedContent,
+						images,
 					})
 
 					// Don't initialize with history item for edit operations
@@ -328,11 +313,12 @@ export const webviewMessageHandler = async (
 		messageTs: number,
 		operation: "delete" | "edit",
 		editedContent?: string,
+		images?: string[],
 	): Promise<void> => {
 		if (operation === "delete") {
 			await handleDeleteOperation(messageTs)
 		} else if (operation === "edit" && editedContent) {
-			await handleEditOperation(messageTs, editedContent)
+			await handleEditOperation(messageTs, editedContent, images)
 		}
 	}
 
@@ -502,7 +488,12 @@ export const webviewMessageHandler = async (
 			break
 		case "selectImages":
 			const images = await selectImages()
-			await provider.postMessageToWebview({ type: "selectedImages", images })
+			await provider.postMessageToWebview({
+				type: "selectedImages",
+				images,
+				context: message.context,
+				messageTs: message.messageTs,
+			})
 			break
 		case "exportCurrentTask":
 			const currentTaskId = provider.getCurrentCline()?.taskId
@@ -1279,7 +1270,12 @@ export const webviewMessageHandler = async (
 				message.value &&
 				message.editedMessageContent
 			) {
-				await handleMessageModificationsOperation(message.value, "edit", message.editedMessageContent)
+				await handleMessageModificationsOperation(
+					message.value,
+					"edit",
+					message.editedMessageContent,
+					message.images,
+				)
 			}
 			break
 		}
@@ -1334,14 +1330,6 @@ export const webviewMessageHandler = async (
 		case "setHistoryPreviewCollapsed": // Add the new case handler
 			await updateGlobalState("historyPreviewCollapsed", message.bool ?? false)
 			// No need to call postStateToWebview here as the UI already updated optimistically
-			break
-		case "skipEditMessageConfirmation":
-			await updateGlobalState("skipEditMessageConfirmation", message.bool ?? false)
-			await provider.postStateToWebview()
-			break
-		case "skipDeleteMessageConfirmation":
-			await updateGlobalState("skipDeleteMessageConfirmation", message.bool ?? false)
-			await provider.postStateToWebview()
 			break
 		case "toggleApiConfigPin":
 			if (message.text) {
@@ -1627,7 +1615,12 @@ export const webviewMessageHandler = async (
 			break
 		case "editMessageConfirm":
 			if (message.messageTs && message.text) {
-				await handleEditMessageConfirm(message.messageTs, message.text, message.restoreCheckpoint)
+				await handleEditMessageConfirm(
+					message.messageTs,
+					message.text,
+					message.restoreCheckpoint,
+					message.images,
+				)
 			}
 			break
 		case "getListApiConfiguration":

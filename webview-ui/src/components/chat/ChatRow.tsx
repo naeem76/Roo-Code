@@ -1,4 +1,5 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { appendImages } from "@src/utils/imageUtils"
 import { McpExecution } from "./McpExecution"
 import { useSize } from "react-use"
 import { useTranslation, Trans } from "react-i18next"
@@ -22,6 +23,7 @@ import { getLanguageFromPath } from "@src/utils/getLanguageFromPath"
 import { Button } from "@src/components/ui"
 
 import ChatTextArea from "./ChatTextArea"
+import { MAX_IMAGES_PER_MESSAGE } from "./ChatView"
 
 import { ToolUseBlock, ToolUseBlockHeader } from "../common/ToolUseBlock"
 import UpdateTodoListToolBlock from "./UpdateTodoListToolBlock"
@@ -122,6 +124,19 @@ export const ChatRowContent = ({
 	const [editImages, setEditImages] = useState<string[]>([])
 	const { copyWithFeedback } = useCopyToClipboard()
 
+	// Handle message events for image selection during edit mode
+	useEffect(() => {
+		const handleMessage = (event: MessageEvent) => {
+			const msg = event.data
+			if (msg.type === "selectedImages" && msg.context === "edit" && msg.messageTs === message.ts && isEditing) {
+				setEditImages((prevImages) => appendImages(prevImages, msg.images, MAX_IMAGES_PER_MESSAGE))
+			}
+		}
+
+		window.addEventListener("message", handleMessage)
+		return () => window.removeEventListener("message", handleMessage)
+	}, [isEditing, message.ts])
+
 	// Memoized callback to prevent re-renders caused by inline arrow functions
 	const handleToggleExpand = useCallback(() => {
 		onToggleExpand(message.ts)
@@ -153,13 +168,14 @@ export const ChatRowContent = ({
 			type: "submitEditedMessage",
 			value: message.ts,
 			editedMessageContent: editedContent,
+			images: editImages,
 		})
-	}, [message.ts, editedContent])
+	}, [message.ts, editedContent, editImages])
 
 	// Handle image selection for editing
 	const handleSelectImages = useCallback(() => {
-		vscode.postMessage({ type: "selectImages" })
-	}, [])
+		vscode.postMessage({ type: "selectImages", context: "edit", messageTs: message.ts })
+	}, [message.ts])
 
 	const [cost, apiReqCancelReason, apiReqStreamingFailedMessage] = useMemo(() => {
 		if (message.text !== null && message.text !== undefined && message.say === "api_req_started") {
@@ -1182,9 +1198,9 @@ export const ChatRowContent = ({
 						return <div>Error displaying search results.</div>
 					}
 
-					const { query = "", results = [] } = parsed?.content || {}
+					const { results = [] } = parsed?.content || {}
 
-					return <CodebaseSearchResultsDisplay query={query} results={results} />
+					return <CodebaseSearchResultsDisplay results={results} />
 				case "user_edit_todos":
 					return <UpdateTodoListToolBlock userEdited onChange={() => {}} />
 				default:

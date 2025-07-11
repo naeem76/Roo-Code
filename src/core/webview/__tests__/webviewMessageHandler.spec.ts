@@ -500,75 +500,9 @@ describe("webviewMessageHandler - message dialog preferences", () => {
 		vi.mocked(mockClineProvider.contextProxy.getValue).mockReturnValue(false)
 	})
 
-	describe("skipEditMessageConfirmation", () => {
-		it("should save edit message confirmation preference when set to true", async () => {
-			await webviewMessageHandler(mockClineProvider, {
-				type: "skipEditMessageConfirmation",
-				bool: true,
-			})
-
-			expect(mockClineProvider.contextProxy.setValue).toHaveBeenCalledWith("skipEditMessageConfirmation", true)
-			expect(mockClineProvider.postStateToWebview).toHaveBeenCalled()
-		})
-
-		it("should save edit message confirmation preference when set to false", async () => {
-			await webviewMessageHandler(mockClineProvider, {
-				type: "skipEditMessageConfirmation",
-				bool: false,
-			})
-
-			expect(mockClineProvider.contextProxy.setValue).toHaveBeenCalledWith("skipEditMessageConfirmation", false)
-			expect(mockClineProvider.postStateToWebview).toHaveBeenCalled()
-		})
-
-		it("should default to false when bool is not provided", async () => {
-			await webviewMessageHandler(mockClineProvider, {
-				type: "skipEditMessageConfirmation",
-			})
-
-			expect(mockClineProvider.contextProxy.setValue).toHaveBeenCalledWith("skipEditMessageConfirmation", false)
-			expect(mockClineProvider.postStateToWebview).toHaveBeenCalled()
-		})
-	})
-
-	describe("skipDeleteMessageConfirmation", () => {
-		it("should save delete message confirmation preference when set to true", async () => {
-			await webviewMessageHandler(mockClineProvider, {
-				type: "skipDeleteMessageConfirmation",
-				bool: true,
-			})
-
-			expect(mockClineProvider.contextProxy.setValue).toHaveBeenCalledWith("skipDeleteMessageConfirmation", true)
-			expect(mockClineProvider.postStateToWebview).toHaveBeenCalled()
-		})
-
-		it("should save delete message confirmation preference when set to false", async () => {
-			await webviewMessageHandler(mockClineProvider, {
-				type: "skipDeleteMessageConfirmation",
-				bool: false,
-			})
-
-			expect(mockClineProvider.contextProxy.setValue).toHaveBeenCalledWith("skipDeleteMessageConfirmation", false)
-			expect(mockClineProvider.postStateToWebview).toHaveBeenCalled()
-		})
-
-		it("should default to false when bool is not provided", async () => {
-			await webviewMessageHandler(mockClineProvider, {
-				type: "skipDeleteMessageConfirmation",
-			})
-
-			expect(mockClineProvider.contextProxy.setValue).toHaveBeenCalledWith("skipDeleteMessageConfirmation", false)
-			expect(mockClineProvider.postStateToWebview).toHaveBeenCalled()
-		})
-	})
-
 	describe("deleteMessage", () => {
-		it("should show dialog when skipDeleteMessageConfirmation is false", async () => {
-			vi.mocked(mockClineProvider.contextProxy.getValue).mockReturnValue(false)
-			vi.mocked(mockClineProvider.getCurrentCline).mockReturnValue({
-				clineMessages: [],
-				apiConversationHistory: [],
-			} as any) // Mock current cline with empty arrays
+		it("should always show dialog for delete confirmation", async () => {
+			vi.mocked(mockClineProvider.getCurrentCline).mockReturnValue({} as any) // Mock current cline exists
 
 			await webviewMessageHandler(mockClineProvider, {
 				type: "deleteMessage",
@@ -580,40 +514,11 @@ describe("webviewMessageHandler - message dialog preferences", () => {
 				messageTs: 123456789,
 			})
 		})
-
-		it("should skip dialog and directly delete when skipDeleteMessageConfirmation is true", async () => {
-			vi.mocked(mockClineProvider.contextProxy.getValue).mockReturnValue(true)
-			vi.mocked(mockClineProvider.getCurrentCline).mockReturnValue({
-				clineMessages: [{ ts: 123456789, text: "test message" }],
-				apiConversationHistory: [{ ts: 123456789, text: "test message" }],
-			} as any) // Mock current cline with required properties
-
-			// Mock the necessary functions for deletion
-			vi.mocked(mockClineProvider.getTaskWithId).mockResolvedValue({
-				historyItem: { id: "test-history-id" },
-			} as any)
-
-			await webviewMessageHandler(mockClineProvider, {
-				type: "deleteMessage",
-				value: 123456789, // Changed from messageTs to value
-			})
-
-			// Should not show dialog
-			expect(mockClineProvider.postMessageToWebview).not.toHaveBeenCalledWith(
-				expect.objectContaining({
-					type: "showDeleteMessageDialog",
-				}),
-			)
-		})
 	})
 
 	describe("submitEditedMessage", () => {
-		it("should show dialog when skipEditMessageConfirmation is false", async () => {
-			vi.mocked(mockClineProvider.contextProxy.getValue).mockReturnValue(false)
-			vi.mocked(mockClineProvider.getCurrentCline).mockReturnValue({
-				clineMessages: [],
-				apiConversationHistory: [],
-			} as any) // Mock current cline with empty arrays
+		it("should always show dialog for edit confirmation", async () => {
+			vi.mocked(mockClineProvider.getCurrentCline).mockReturnValue({} as any) // Mock current cline exists
 
 			await webviewMessageHandler(mockClineProvider, {
 				type: "submitEditedMessage",
@@ -626,27 +531,6 @@ describe("webviewMessageHandler - message dialog preferences", () => {
 				messageTs: 123456789,
 				text: "edited content",
 			})
-		})
-
-		it("should skip dialog and directly edit when skipEditMessageConfirmation is true", async () => {
-			vi.mocked(mockClineProvider.contextProxy.getValue).mockReturnValue(true)
-			vi.mocked(mockClineProvider.getCurrentCline).mockReturnValue({
-				clineMessages: [{ ts: 123456789, text: "test message" }],
-				apiConversationHistory: [{ ts: 123456789, text: "test message" }],
-			} as any) // Mock current cline with required properties
-
-			await webviewMessageHandler(mockClineProvider, {
-				type: "submitEditedMessage",
-				value: 123456789, // messageTs as number
-				editedMessageContent: "edited content", // text content in editedMessageContent field
-			})
-
-			// Should not show dialog
-			expect(mockClineProvider.postMessageToWebview).not.toHaveBeenCalledWith(
-				expect.objectContaining({
-					type: "showEditMessageDialog",
-				}),
-			)
 		})
 	})
 })

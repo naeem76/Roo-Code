@@ -131,10 +131,6 @@ export interface ExtensionStateContextType extends ExtensionState {
 	routerModels?: RouterModels
 	alwaysAllowUpdateTodoList?: boolean
 	setAlwaysAllowUpdateTodoList: (value: boolean) => void
-	skipEditMessageConfirmation?: boolean
-	setSkipEditMessageConfirmation: (value: boolean) => void
-	skipDeleteMessageConfirmation?: boolean
-	setSkipDeleteMessageConfirmation: (value: boolean) => void
 }
 
 export const ExtensionStateContext = createContext<ExtensionStateContextType | undefined>(undefined)
@@ -228,8 +224,6 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		},
 		codebaseIndexModels: { ollama: {}, openai: {} },
 		alwaysAllowUpdateTodoList: true,
-		skipEditMessageConfirmation: false,
-		skipDeleteMessageConfirmation: false,
 	})
 
 	const [didHydrateState, setDidHydrateState] = useState(false)
@@ -471,14 +465,6 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		alwaysAllowUpdateTodoList: state.alwaysAllowUpdateTodoList,
 		setAlwaysAllowUpdateTodoList: (value) => {
 			setState((prevState) => ({ ...prevState, alwaysAllowUpdateTodoList: value }))
-		},
-		skipEditMessageConfirmation: state.skipEditMessageConfirmation,
-		setSkipEditMessageConfirmation: (value) => {
-			setState((prevState) => ({ ...prevState, skipEditMessageConfirmation: value }))
-		},
-		skipDeleteMessageConfirmation: state.skipDeleteMessageConfirmation,
-		setSkipDeleteMessageConfirmation: (value) => {
-			setState((prevState) => ({ ...prevState, skipDeleteMessageConfirmation: value }))
 		},
 	}
 

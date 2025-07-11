@@ -1164,11 +1164,6 @@ describe("ClineProvider", () => {
 	describe("deleteMessage", () => {
 		beforeEach(async () => {
 			await provider.resolveWebviewView(mockWebviewView)
-			// Mock that skipDeleteMessageConfirmation is false by default
-			;(mockContext.globalState.get as any).mockImplementation((key: string) => {
-				if (key === "skipDeleteMessageConfirmation") return false
-				return undefined
-			})
 		})
 
 		test("handles deletion with confirmation dialog", async () => {
@@ -1231,63 +1226,6 @@ describe("ClineProvider", () => {
 			expect((provider as any).initClineWithHistoryItem).toHaveBeenCalledWith({ id: "test-task-id" })
 		})
 
-		test("handles deletion with skipDeleteMessageConfirmation enabled", async () => {
-			// Mock that skipDeleteMessageConfirmation is true
-			const contextProxy = (provider as any).contextProxy
-			const getValueSpy = vi.spyOn(contextProxy, "getValue")
-			getValueSpy.mockImplementation((key: any) => {
-				if (key === "skipDeleteMessageConfirmation") return true
-				return undefined
-			})
-
-			// Setup mock messages
-			const mockMessages = [
-				{ ts: 1000, type: "say", say: "user_feedback" },
-				{ ts: 2000, type: "say", say: "text", value: 3000 }, // Message to delete
-				{ ts: 3000, type: "say", say: "user_feedback" },
-				{ ts: 4000, type: "say", say: "user_feedback" },
-			] as ClineMessage[]
-
-			const mockApiHistory = [
-				{ ts: 1000 },
-				{ ts: 2000 },
-				{ ts: 3000 },
-				{ ts: 4000 },
-			] as (Anthropic.MessageParam & {
-				ts?: number
-			})[]
-
-			// Setup Cline instance with auto-mock from the top of the file
-			const mockCline = new Task(defaultTaskOptions) // Create a new mocked instance
-			mockCline.clineMessages = mockMessages
-			mockCline.apiConversationHistory = mockApiHistory
-			await provider.addClineToStack(mockCline)
-
-			// Mock getTaskWithId
-			;(provider as any).getTaskWithId = vi.fn().mockResolvedValue({
-				historyItem: { id: "test-task-id" },
-			})
-
-			// Mock initClineWithHistoryItem
-			;(provider as any).initClineWithHistoryItem = vi.fn()
-
-			// Trigger message deletion
-			const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as any).mock.calls[0][0]
-			await messageHandler({ type: "deleteMessage", value: 3000 })
-
-			// Verify that NO dialog message was sent to webview (skipped)
-			expect(mockPostMessage).not.toHaveBeenCalledWith({
-				type: "showDeleteMessageDialog",
-				messageTs: 3000,
-			})
-
-			// Verify only messages before the deleted message were kept
-			expect(mockCline.overwriteClineMessages).toHaveBeenCalledWith([mockMessages[0]])
-
-			// Verify only API messages before the deleted message were kept
-			expect(mockCline.overwriteApiConversationHistory).toHaveBeenCalledWith([mockApiHistory[0]])
-		})
-
 		test("handles case when no current task exists", async () => {
 			// Clear the cline stack
 			;(provider as any).clineStack = []
@@ -1308,11 +1246,6 @@ describe("ClineProvider", () => {
 	describe("editMessage", () => {
 		beforeEach(async () => {
 			await provider.resolveWebviewView(mockWebviewView)
-			// Mock that skipEditMessageConfirmation is false by default
-			;(mockContext.globalState.get as any).mockImplementation((key: string) => {
-				if (key === "skipEditMessageConfirmation") return false
-				return undefined
-			})
 		})
 
 		test("handles edit with confirmation dialog", async () => {
@@ -1389,56 +1322,6 @@ describe("ClineProvider", () => {
 			// The new flow calls webviewMessageHandler recursively with askResponse
 			// We need to verify the recursive call happened by checking if the handler was called again
 			expect((mockWebviewView.webview.onDidReceiveMessage as any).mock.calls.length).toBeGreaterThanOrEqual(1)
-		})
-
-		test("handles edit with skipEditMessageConfirmation enabled", async () => {
-			// Mock that skipEditMessageConfirmation is true
-			const contextProxy = (provider as any).contextProxy
-			const getValueSpy = vi.spyOn(contextProxy, "getValue")
-			getValueSpy.mockImplementation((key: any) => {
-				if (key === "skipEditMessageConfirmation") return true
-				return undefined
-			})
-
-			// Setup mock messages
-			const mockMessages = [
-				{ ts: 1000, type: "say", say: "user_feedback" },
-				{ ts: 2000, type: "say", say: "text", value: 3000 }, // Message to edit
-				{ ts: 3000, type: "say", say: "user_feedback" },
-			] as ClineMessage[]
-
-			const mockApiHistory = [{ ts: 1000 }, { ts: 2000 }, { ts: 3000 }] as (Anthropic.MessageParam & {
-				ts?: number
-			})[]
-
-			// Setup Task instance
-			const mockCline = new Task(defaultTaskOptions)
-			mockCline.clineMessages = mockMessages
-			mockCline.apiConversationHistory = mockApiHistory
-			mockCline.overwriteClineMessages = vi.fn()
-			mockCline.overwriteApiConversationHistory = vi.fn()
-			mockCline.handleWebviewAskResponse = vi.fn()
-
-			await provider.addClineToStack(mockCline)
-
-			// Trigger message edit
-			const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as any).mock.calls[0][0]
-			await messageHandler({
-				type: "submitEditedMessage",
-				value: 3000,
-				editedMessageContent: "Edited message content",
-			})
-
-			// Verify that NO dialog message was sent to webview (skipped)
-			expect(mockPostMessage).not.toHaveBeenCalledWith({
-				type: "showEditMessageDialog",
-				messageTs: 3000,
-				text: "Edited message content",
-			})
-
-			// Verify messages were edited directly
-			expect(mockCline.overwriteClineMessages).toHaveBeenCalledWith([mockMessages[0]])
-			expect(mockCline.overwriteApiConversationHistory).toHaveBeenCalledWith([mockApiHistory[0]])
 		})
 	})
 
@@ -2784,12 +2667,6 @@ describe("ClineProvider - Comprehensive Edit/Delete Edge Cases", () => {
 	describe("Edit Messages with Images and Attachments", () => {
 		beforeEach(async () => {
 			await provider.resolveWebviewView(mockWebviewView)
-			// Mock that skip confirmations are false by default
-			;(mockContext.globalState.get as any).mockImplementation((key: string) => {
-				if (key === "skipEditMessageConfirmation") return false
-				if (key === "skipDeleteMessageConfirmation") return false
-				return undefined
-			})
 		})
 
 		test("handles editing messages containing images", async () => {

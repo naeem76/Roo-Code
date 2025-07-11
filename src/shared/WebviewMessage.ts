@@ -80,8 +80,6 @@ export interface WebviewMessage {
 		| "allowedMaxRequests"
 		| "alwaysAllowSubtasks"
 		| "alwaysAllowUpdateTodoList"
-		| "skipEditMessageConfirmation"
-		| "skipDeleteMessageConfirmation"
 		| "autoCondenseContext"
 		| "autoCondenseContextPercent"
 		| "condensingApiConfigId"
@@ -201,6 +199,7 @@ export interface WebviewMessage {
 	editedMessageContent?: string
 	tab?: "settings" | "history" | "mcp" | "modes" | "chat" | "marketplace" | "account"
 	disabled?: boolean
+	context?: string
 	dataUri?: string
 	askResponse?: ClineAskResponse
 	apiConfiguration?: ProviderSettings
