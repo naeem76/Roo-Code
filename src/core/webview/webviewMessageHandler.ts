@@ -106,10 +106,46 @@ export const webviewMessageHandler = async (
 			// Directly handle the deletion without showing dialog
 			await handleDeleteMessageConfirm(messageTs)
 		} else {
+			// Check if the message has a checkpoint
+			const currentCline = provider.getCurrentCline()
+			let hasCheckpoint = false
+			if (currentCline) {
+				// Debug: Log all messages to understand the state
+				console.log("[webviewMessageHandler] Total messages:", currentCline.clineMessages.length)
+				console.log("[webviewMessageHandler] Looking for message with ts:", messageTs)
+				console.log(
+					"[webviewMessageHandler] All messages with timestamps:",
+					currentCline.clineMessages.map((m, idx) => ({
+						index: idx,
+						ts: m.ts,
+						say: m.say,
+						hasCheckpoint: !!m.checkpoint,
+						checkpoint: m.checkpoint,
+					})),
+				)
+
+				const { messageIndex } = findMessageIndices(messageTs, currentCline)
+				console.log("[webviewMessageHandler] Checking for checkpoint at messageIndex:", messageIndex)
+				if (messageIndex !== -1) {
+					const targetMessage = currentCline.clineMessages[messageIndex]
+					console.log("[webviewMessageHandler] Target message:", JSON.stringify(targetMessage, null, 2))
+					console.log("[webviewMessageHandler] Target message checkpoint:", targetMessage?.checkpoint)
+					hasCheckpoint = !!(
+						targetMessage?.checkpoint &&
+						typeof targetMessage.checkpoint === "object" &&
+						"hash" in targetMessage.checkpoint
+					)
+					console.log("[webviewMessageHandler] hasCheckpoint:", hasCheckpoint)
+				} else {
+					console.log("[webviewMessageHandler] Message not found! Looking for ts:", messageTs)
+				}
+			}
+
 			// Send message to webview to show delete confirmation dialog
 			await provider.postMessageToWebview({
 				type: "showDeleteMessageDialog",
 				messageTs,
+				hasCheckpoint,
 			})
 		}
 	}
@@ -117,7 +153,7 @@ export const webviewMessageHandler = async (
 	/**
 	 * Handles confirmed message deletion from webview dialog
 	 */
-	const handleDeleteMessageConfirm = async (messageTs: number): Promise<void> => {
+	const handleDeleteMessageConfirm = async (messageTs: number, restoreCheckpoint?: boolean): Promise<void> => {
 		// Only proceed if we have a current cline
 		if (provider.getCurrentCline()) {
 			const currentCline = provider.getCurrentCline()!
@@ -125,6 +161,22 @@ export const webviewMessageHandler = async (
 
 			if (messageIndex !== -1) {
 				try {
+					// If checkpoint restoration is requested, restore to the checkpoint first
+					if (restoreCheckpoint) {
+						const targetMessage = currentCline.clineMessages[messageIndex]
+						if (
+							targetMessage?.checkpoint &&
+							typeof targetMessage.checkpoint === "object" &&
+							"hash" in targetMessage.checkpoint
+						) {
+							await currentCline.checkpointRestore({
+								ts: targetMessage.ts!,
+								commitHash: targetMessage.checkpoint.hash as string,
+								mode: "restore",
+							})
+						}
+					}
+
 					const { historyItem } = await provider.getTaskWithId(currentCline.taskId)
 
 					// Delete this message and all subsequent messages
@@ -149,15 +201,62 @@ export const webviewMessageHandler = async (
 		// Check if user has opted to skip the confirmation
 		const skipEditMessageConfirmation = getGlobalState("skipEditMessageConfirmation")
 
+		// Always check if the message has a checkpoint first
+		const currentCline = provider.getCurrentCline()
+		let hasCheckpoint = false
+		if (currentCline) {
+			console.log(
+				"[webviewMessageHandler] Edit - Total messages in currentCline:",
+				currentCline.clineMessages.length,
+			)
+			console.log("[webviewMessageHandler] Edit - Looking for messageTs:", messageTs)
+
+			// Log all messages with their timestamps and checkpoint status
+			currentCline.clineMessages.forEach((msg, idx) => {
+				console.log(
+					`[webviewMessageHandler] Edit - Message ${idx}: ts=${msg.ts}, type=${msg.type}, say=${msg.say}, hasCheckpoint=${!!msg.checkpoint}, checkpoint=${JSON.stringify(msg.checkpoint)}`,
+				)
+			})
+
+			const { messageIndex } = findMessageIndices(messageTs, currentCline)
+			console.log("[webviewMessageHandler] Edit - Checking for checkpoint at messageIndex:", messageIndex)
+			if (messageIndex !== -1) {
+				const targetMessage = currentCline.clineMessages[messageIndex]
+				console.log("[webviewMessageHandler] Edit - Target message:", JSON.stringify(targetMessage, null, 2))
+				console.log("[webviewMessageHandler] Edit - Target message checkpoint:", targetMessage?.checkpoint)
+				hasCheckpoint = !!(
+					targetMessage?.checkpoint &&
+					typeof targetMessage.checkpoint === "object" &&
+					"hash" in targetMessage.checkpoint
+				)
+				console.log("[webviewMessageHandler] Edit - hasCheckpoint:", hasCheckpoint)
+			} else {
+				console.log("[webviewMessageHandler] Edit - Message not found in clineMessages!")
+			}
+		} else {
+			console.log("[webviewMessageHandler] Edit - No currentCline available!")
+		}
+
 		if (skipEditMessageConfirmation) {
-			// Directly handle the edit without showing dialog
-			await handleEditMessageConfirm(messageTs, editedContent)
+			// If there's a checkpoint, show the checkpoint dialog even when skipping confirmation
+			if (hasCheckpoint) {
+				await provider.postMessageToWebview({
+					type: "showEditMessageDialog",
+					messageTs,
+					text: editedContent,
+					hasCheckpoint,
+				})
+			} else {
+				// No checkpoint, directly handle the edit without showing dialog
+				await handleEditMessageConfirm(messageTs, editedContent, false)
+			}
 		} else {
 			// Send message to webview to show edit confirmation dialog
 			await provider.postMessageToWebview({
 				type: "showEditMessageDialog",
 				messageTs,
 				text: editedContent,
+				hasCheckpoint,
 			})
 		}
 	}
@@ -165,7 +264,11 @@ export const webviewMessageHandler = async (
 	/**
 	 * Handles confirmed message editing from webview dialog
 	 */
-	const handleEditMessageConfirm = async (messageTs: number, editedContent: string): Promise<void> => {
+	const handleEditMessageConfirm = async (
+		messageTs: number,
+		editedContent: string,
+		restoreCheckpoint?: boolean,
+	): Promise<void> => {
 		// Only proceed if we have a current cline
 		if (provider.getCurrentCline()) {
 			const currentCline = provider.getCurrentCline()!
@@ -175,6 +278,22 @@ export const webviewMessageHandler = async (
 
 			if (messageIndex !== -1) {
 				try {
+					// If checkpoint restoration is requested, restore to the checkpoint first
+					if (restoreCheckpoint) {
+						const targetMessage = currentCline.clineMessages[messageIndex]
+						if (
+							targetMessage?.checkpoint &&
+							typeof targetMessage.checkpoint === "object" &&
+							"hash" in targetMessage.checkpoint
+						) {
+							await currentCline.checkpointRestore({
+								ts: targetMessage.ts!,
+								commitHash: targetMessage.checkpoint.hash as string,
+								mode: "restore",
+							})
+						}
+					}
+
 					// Edit this message and delete subsequent
 					await removeMessagesThisAndSubsequent(currentCline, messageIndex, apiConversationHistoryIndex)
 
@@ -1503,12 +1622,12 @@ export const webviewMessageHandler = async (
 			break
 		case "deleteMessageConfirm":
 			if (message.messageTs) {
-				await handleDeleteMessageConfirm(message.messageTs)
+				await handleDeleteMessageConfirm(message.messageTs, message.restoreCheckpoint)
 			}
 			break
 		case "editMessageConfirm":
 			if (message.messageTs && message.text) {
-				await handleEditMessageConfirm(message.messageTs, message.text)
+				await handleEditMessageConfirm(message.messageTs, message.text, message.restoreCheckpoint)
 			}
 			break
 		case "getListApiConfiguration":

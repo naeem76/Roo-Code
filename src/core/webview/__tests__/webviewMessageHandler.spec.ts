@@ -565,7 +565,10 @@ describe("webviewMessageHandler - message dialog preferences", () => {
 	describe("deleteMessage", () => {
 		it("should show dialog when skipDeleteMessageConfirmation is false", async () => {
 			vi.mocked(mockClineProvider.contextProxy.getValue).mockReturnValue(false)
-			vi.mocked(mockClineProvider.getCurrentCline).mockReturnValue({} as any) // Mock current cline exists
+			vi.mocked(mockClineProvider.getCurrentCline).mockReturnValue({
+				clineMessages: [],
+				apiConversationHistory: [],
+			} as any) // Mock current cline with empty arrays
 
 			await webviewMessageHandler(mockClineProvider, {
 				type: "deleteMessage",
@@ -607,7 +610,10 @@ describe("webviewMessageHandler - message dialog preferences", () => {
 	describe("submitEditedMessage", () => {
 		it("should show dialog when skipEditMessageConfirmation is false", async () => {
 			vi.mocked(mockClineProvider.contextProxy.getValue).mockReturnValue(false)
-			vi.mocked(mockClineProvider.getCurrentCline).mockReturnValue({} as any) // Mock current cline exists
+			vi.mocked(mockClineProvider.getCurrentCline).mockReturnValue({
+				clineMessages: [],
+				apiConversationHistory: [],
+			} as any) // Mock current cline with empty arrays
 
 			await webviewMessageHandler(mockClineProvider, {
 				type: "submitEditedMessage",

@@ -18,7 +18,8 @@ import McpView from "./components/mcp/McpView"
 import { MarketplaceView } from "./components/marketplace/MarketplaceView"
 import ModesView from "./components/modes/ModesView"
 import { HumanRelayDialog } from "./components/human-relay/HumanRelayDialog"
-import { DeleteMessageDialog, EditMessageDialog } from "./components/chat/MessageModificationConfirmationDialog"
+import { CheckpointRestoreDialog } from "./components/chat/CheckpointRestoreDialog"
+import { MessageModificationConfirmationDialog } from "./components/chat/MessageModificationConfirmationDialog"
 import { AccountView } from "./components/account/AccountView"
 import { useAddNonInteractiveClickListener } from "./components/ui/hooks/useNonInteractiveClick"
 import { TooltipProvider } from "./components/ui/tooltip"
@@ -74,19 +75,23 @@ const App = () => {
 	const [deleteMessageDialogState, setDeleteMessageDialogState] = useState<{
 		isOpen: boolean
 		messageTs: number
+		hasCheckpoint: boolean
 	}>({
 		isOpen: false,
 		messageTs: 0,
+		hasCheckpoint: false,
 	})
 
 	const [editMessageDialogState, setEditMessageDialogState] = useState<{
 		isOpen: boolean
 		messageTs: number
 		text: string
+		hasCheckpoint: boolean
 	}>({
 		isOpen: false,
 		messageTs: 0,
 		text: "",
+		hasCheckpoint: false,
 	})
 
 	const settingsRef = useRef<SettingsViewRef>(null)
@@ -153,7 +158,11 @@ const App = () => {
 						messageTs: message.messageTs,
 					})
 				} else {
-					setDeleteMessageDialogState({ isOpen: true, messageTs: message.messageTs })
+					setDeleteMessageDialogState({
+						isOpen: true,
+						messageTs: message.messageTs,
+						hasCheckpoint: message.hasCheckpoint || false,
+					})
 				}
 			}
 
@@ -167,7 +176,12 @@ const App = () => {
 						text: message.text,
 					})
 				} else {
-					setEditMessageDialogState({ isOpen: true, messageTs: message.messageTs, text: message.text })
+					setEditMessageDialogState({
+						isOpen: true,
+						messageTs: message.messageTs,
+						text: message.text,
+						hasCheckpoint: message.hasCheckpoint || false,
+					})
 				}
 			}
 
@@ -257,45 +271,84 @@ const App = () => {
 				onSubmit={(requestId, text) => vscode.postMessage({ type: "humanRelayResponse", requestId, text })}
 				onCancel={(requestId) => vscode.postMessage({ type: "humanRelayCancel", requestId })}
 			/>
-			<DeleteMessageDialog
-				open={deleteMessageDialogState.isOpen}
-				onOpenChange={(open) => setDeleteMessageDialogState((prev) => ({ ...prev, isOpen: open }))}
-				onConfirm={(dontShowAgain) => {
-					// Save the preference if checkbox was checked
-					if (dontShowAgain) {
-						setSkipDeleteMessageConfirmation(true)
+			{deleteMessageDialogState.hasCheckpoint ? (
+				<CheckpointRestoreDialog
+					open={deleteMessageDialogState.isOpen}
+					type="delete"
+					hasCheckpoint={deleteMessageDialogState.hasCheckpoint}
+					onOpenChange={(open: boolean) => setDeleteMessageDialogState((prev) => ({ ...prev, isOpen: open }))}
+					onConfirm={(restoreCheckpoint: boolean) => {
 						vscode.postMessage({
-							type: "skipDeleteMessageConfirmation",
-							bool: true,
+							type: "deleteMessageConfirm",
+							messageTs: deleteMessageDialogState.messageTs,
+							restoreCheckpoint,
 						})
-					}
-					vscode.postMessage({
-						type: "deleteMessageConfirm",
-						messageTs: deleteMessageDialogState.messageTs,
-					})
-					setDeleteMessageDialogState((prev) => ({ ...prev, isOpen: false }))
-				}}
-			/>
-			<EditMessageDialog
-				open={editMessageDialogState.isOpen}
-				onOpenChange={(open) => setEditMessageDialogState((prev) => ({ ...prev, isOpen: open }))}
-				onConfirm={(dontShowAgain) => {
-					// Save the preference if checkbox was checked
-					if (dontShowAgain) {
-						setSkipEditMessageConfirmation(true)
+						setDeleteMessageDialogState((prev) => ({ ...prev, isOpen: false }))
+					}}
+				/>
+			) : (
+				<MessageModificationConfirmationDialog
+					open={deleteMessageDialogState.isOpen}
+					type="delete"
+					onOpenChange={(open: boolean) => setDeleteMessageDialogState((prev) => ({ ...prev, isOpen: open }))}
+					onConfirm={(dontShowAgain: boolean) => {
+						// Save the preference if checkbox was checked
+						if (dontShowAgain) {
+							setSkipDeleteMessageConfirmation(true)
+							vscode.postMessage({
+								type: "skipDeleteMessageConfirmation",
+								bool: true,
+							})
+						}
 						vscode.postMessage({
-							type: "skipEditMessageConfirmation",
-							bool: true,
+							type: "deleteMessageConfirm",
+							messageTs: deleteMessageDialogState.messageTs,
+							restoreCheckpoint: false,
 						})
-					}
-					vscode.postMessage({
-						type: "editMessageConfirm",
-						messageTs: editMessageDialogState.messageTs,
-						text: editMessageDialogState.text,
-					})
-					setEditMessageDialogState((prev) => ({ ...prev, isOpen: false }))
-				}}
-			/>
+						setDeleteMessageDialogState((prev) => ({ ...prev, isOpen: false }))
+					}}
+				/>
+			)}
+			{editMessageDialogState.hasCheckpoint ? (
+				<CheckpointRestoreDialog
+					open={editMessageDialogState.isOpen}
+					type="edit"
+					hasCheckpoint={editMessageDialogState.hasCheckpoint}
+					onOpenChange={(open: boolean) => setEditMessageDialogState((prev) => ({ ...prev, isOpen: open }))}
+					onConfirm={(restoreCheckpoint: boolean) => {
+						vscode.postMessage({
+							type: "editMessageConfirm",
+							messageTs: editMessageDialogState.messageTs,
+							text: editMessageDialogState.text,
+							restoreCheckpoint,
+						})
+						setEditMessageDialogState((prev) => ({ ...prev, isOpen: false }))
+					}}
+				/>
+			) : (
+				<MessageModificationConfirmationDialog
+					open={editMessageDialogState.isOpen}
+					type="edit"
+					onOpenChange={(open: boolean) => setEditMessageDialogState((prev) => ({ ...prev, isOpen: open }))}
+					onConfirm={(dontShowAgain: boolean) => {
+						// Save the preference if checkbox was checked
+						if (dontShowAgain) {
+							setSkipEditMessageConfirmation(true)
+							vscode.postMessage({
+								type: "skipEditMessageConfirmation",
+								bool: true,
+							})
+						}
+						vscode.postMessage({
+							type: "editMessageConfirm",
+							messageTs: editMessageDialogState.messageTs,
+							text: editMessageDialogState.text,
+							restoreCheckpoint: false,
+						})
+						setEditMessageDialogState((prev) => ({ ...prev, isOpen: false }))
+					}}
+				/>
+			)}
 		</>
 	)
 }

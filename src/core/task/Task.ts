@@ -177,6 +177,7 @@ export class Task extends EventEmitter<ClineEvents> {
 	// LLM Messages & Chat Messages
 	apiConversationHistory: ApiMessage[] = []
 	clineMessages: ClineMessage[] = []
+	public pendingUserMessageCheckpoint?: Record<string, unknown>
 
 	// Ask
 	private askResponse?: ClineAskResponse
@@ -351,11 +352,30 @@ export class Task extends EventEmitter<ClineEvents> {
 	// Cline Messages
 
 	private async getSavedClineMessages(): Promise<ClineMessage[]> {
-		return readTaskMessages({ taskId: this.taskId, globalStoragePath: this.globalStoragePath })
+		const messages = await readTaskMessages({ taskId: this.taskId, globalStoragePath: this.globalStoragePath })
+		console.log("[Task#getSavedClineMessages] Loaded messages from disk:", messages.length)
+		const messagesWithCheckpoints = messages.filter((m) => m.checkpoint)
+		console.log("[Task#getSavedClineMessages] Messages with checkpoints:", messagesWithCheckpoints.length)
+		if (messagesWithCheckpoints.length > 0) {
+			console.log("[Task#getSavedClineMessages] Sample checkpoint:", messagesWithCheckpoints[0].checkpoint)
+		}
+		return messages
 	}
 
 	private async addToClineMessages(message: ClineMessage) {
+		console.log("[Task#addToClineMessages] Adding message:", JSON.stringify(message, null, 2))
 		this.clineMessages.push(message)
+
+		// Verify the message was added correctly
+		const addedMessage = this.clineMessages[this.clineMessages.length - 1]
+		console.log("[Task#addToClineMessages] Verified added message:", {
+			ts: addedMessage.ts,
+			type: addedMessage.type,
+			say: addedMessage.say,
+			hasCheckpoint: !!addedMessage.checkpoint,
+			checkpoint: addedMessage.checkpoint,
+		})
+
 		const provider = this.providerRef.deref()
 		await provider?.postStateToWebview()
 		this.emit("message", { action: "created", message })
@@ -532,6 +552,39 @@ export class Task extends EventEmitter<ClineEvents> {
 	}
 
 	async handleWebviewAskResponse(askResponse: ClineAskResponse, text?: string, images?: string[]) {
+		// Save checkpoint BEFORE setting the response to ensure it's ready when the user_feedback message is created
+		if (this.enableCheckpoints && askResponse === "messageResponse") {
+			console.log("[Task#handleWebviewAskResponse] Saving checkpoint for user message")
+			try {
+				const checkpointResult = await this.checkpointSave(true) // Force checkpoint save
+				console.log("[Task#handleWebviewAskResponse] Checkpoint result:", checkpointResult)
+				if (checkpointResult?.commit) {
+					// Store checkpoint data temporarily to be used when creating the user_feedback message
+					this.pendingUserMessageCheckpoint = {
+						hash: checkpointResult.commit,
+						timestamp: Date.now(),
+						type: "user_message",
+					}
+					console.log(
+						"[Task#handleWebviewAskResponse] Set pendingUserMessageCheckpoint:",
+						this.pendingUserMessageCheckpoint,
+					)
+				} else {
+					console.log("[Task#handleWebviewAskResponse] No commit in checkpoint result")
+				}
+			} catch (error) {
+				console.error("[Task#handleWebviewAskResponse] Failed to save checkpoint after user message:", error)
+			}
+		} else {
+			console.log(
+				"[Task#handleWebviewAskResponse] Skipping checkpoint save - enableCheckpoints:",
+				this.enableCheckpoints,
+				"askResponse:",
+				askResponse,
+			)
+		}
+
+		// Now set the response, which will trigger the ask promise to resolve
 		this.askResponse = askResponse
 		this.askResponseText = text
 		this.askResponseImages = images
@@ -705,15 +758,49 @@ export class Task extends EventEmitter<ClineEvents> {
 				this.lastMessageTs = sayTs
 			}
 
-			await this.addToClineMessages({
-				ts: sayTs,
-				type: "say",
-				say: type,
-				text,
-				images,
-				checkpoint,
-				contextCondense,
-			})
+			if (type === "user_feedback") {
+				// Automatically use and clear the pending checkpoint for user_feedback messages
+				const feedbackCheckpoint = checkpoint || this.pendingUserMessageCheckpoint
+				this.pendingUserMessageCheckpoint = undefined // Clear it after use
+
+				console.log("[Task#say] Adding user_feedback message with checkpoint:", feedbackCheckpoint)
+				console.log(
+					"[Task#say] Full message object:",
+					JSON.stringify(
+						{
+							ts: sayTs,
+							type: "say",
+							say: type,
+							text,
+							images,
+							checkpoint: feedbackCheckpoint,
+							contextCondense,
+						},
+						null,
+						2,
+					),
+				)
+
+				await this.addToClineMessages({
+					ts: sayTs,
+					type: "say",
+					say: type,
+					text,
+					images,
+					checkpoint: feedbackCheckpoint,
+					contextCondense,
+				})
+			} else {
+				await this.addToClineMessages({
+					ts: sayTs,
+					type: "say",
+					say: type,
+					text,
+					images,
+					checkpoint,
+					contextCondense,
+				})
+			}
 		}
 	}
 
@@ -740,6 +827,7 @@ export class Task extends EventEmitter<ClineEvents> {
 		this.apiConversationHistory = []
 		await this.providerRef.deref()?.postStateToWebview()
 
+		// Checkpoint will be saved in handleWebviewAskResponse before this message is created
 		await this.say("text", task, images)
 		this.isInitialized = true
 
@@ -782,6 +870,18 @@ export class Task extends EventEmitter<ClineEvents> {
 
 	private async resumeTaskFromHistory() {
 		const modifiedClineMessages = await this.getSavedClineMessages()
+
+		// Debug: Check if any messages have checkpoints
+		const messagesWithCheckpoints = modifiedClineMessages.filter((m) => m.checkpoint)
+		console.log("[Task#resumeTaskFromHistory] Total messages loaded:", modifiedClineMessages.length)
+		console.log("[Task#resumeTaskFromHistory] Messages with checkpoints:", messagesWithCheckpoints.length)
+		messagesWithCheckpoints.forEach((msg, idx) => {
+			console.log(`[Task#resumeTaskFromHistory] Message ${idx} with checkpoint:`, {
+				ts: msg.ts,
+				say: msg.say,
+				checkpoint: msg.checkpoint,
+			})
+		})
 
 		// Remove any resume messages that may have been added before
 		const lastRelevantMessageIndex = findLastIndex(
@@ -836,11 +936,23 @@ export class Task extends EventEmitter<ClineEvents> {
 		let responseText: string | undefined
 		let responseImages: string[] | undefined
 		if (response === "messageResponse") {
+			// The checkpoint was already saved in handleWebviewAskResponse and attached to pendingUserMessageCheckpoint
+			// The say method will automatically handle it for user_feedback messages
+			console.log("[Task#resumeTaskFromHistory] Adding user_feedback message")
 			await this.say("user_feedback", text, images)
+
+			// Verify the message was added with checkpoint
+			const lastMessage = this.clineMessages[this.clineMessages.length - 1]
+			console.log("[Task#resumeTaskFromHistory] Last message after say:", {
+				ts: lastMessage?.ts,
+				say: lastMessage?.say,
+				hasCheckpoint: !!lastMessage?.checkpoint,
+				checkpoint: lastMessage?.checkpoint,
+			})
+
 			responseText = text
 			responseImages = images
 		}
-
 		// Make sure that the api conversation history can be resumed by the API,
 		// even if it goes out of sync with cline messages.
 		let existingApiConversationHistory: ApiMessage[] = await this.getSavedApiConversationHistory()
@@ -1171,7 +1283,18 @@ export class Task extends EventEmitter<ClineEvents> {
 					],
 				)
 
+				// The say method will automatically handle the pending checkpoint for user_feedback messages
+				console.log("[Task] Tool approval - About to say user_feedback")
 				await this.say("user_feedback", text, images)
+
+				// Verify the message was added with checkpoint
+				const lastMessage = this.clineMessages[this.clineMessages.length - 1]
+				console.log("[Task] Tool approval - Last message after say:", {
+					ts: lastMessage?.ts,
+					say: lastMessage?.say,
+					hasCheckpoint: !!lastMessage?.checkpoint,
+					checkpoint: lastMessage?.checkpoint,
+				})
 
 				// Track consecutive mistake errors in telemetry.
 				TelemetryService.instance.captureConsecutiveMistakeError(this.taskId)

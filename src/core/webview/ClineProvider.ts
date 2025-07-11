@@ -569,6 +569,10 @@ export class ClineProvider
 			`[subtasks] ${cline.parentTask ? "child" : "parent"} task ${cline.taskId}.${cline.instanceId} instantiated`,
 		)
 
+		// Don't save checkpoint here - it will be saved in handleWebviewAskResponse
+		// when the user message is actually sent. The checkpoint service might not
+		// be initialized yet at this point.
+
 		return cline
 	}
 
@@ -1442,7 +1446,23 @@ export class ClineProvider
 			currentTaskItem: this.getCurrentCline()?.taskId
 				? (taskHistory || []).find((item: HistoryItem) => item.id === this.getCurrentCline()?.taskId)
 				: undefined,
-			clineMessages: this.getCurrentCline()?.clineMessages || [],
+			clineMessages: (() => {
+				const messages = this.getCurrentCline()?.clineMessages || []
+				const messagesWithCheckpoints = messages.filter((m) => m.checkpoint)
+				console.log("[ClineProvider#getStateToPostToWebview] Total messages:", messages.length)
+				console.log(
+					"[ClineProvider#getStateToPostToWebview] Messages with checkpoints:",
+					messagesWithCheckpoints.length,
+				)
+				if (messagesWithCheckpoints.length > 0) {
+					console.log("[ClineProvider#getStateToPostToWebview] Sample message with checkpoint:", {
+						ts: messagesWithCheckpoints[0].ts,
+						say: messagesWithCheckpoints[0].say,
+						checkpoint: messagesWithCheckpoints[0].checkpoint,
+					})
+				}
+				return messages
+			})(),
 			taskHistory: (taskHistory || [])
 				.filter((item: HistoryItem) => item.ts && item.task)
 				.sort((a: HistoryItem, b: HistoryItem) => b.ts - a.ts),

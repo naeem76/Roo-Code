@@ -1073,7 +1073,7 @@ export const ChatRowContent = ({
 										<Button
 											variant="ghost"
 											size="icon"
-											className="shrink-0 hidden"
+											className="shrink-0"
 											disabled={isStreaming}
 											onClick={(e) => {
 												e.stopPropagation()
