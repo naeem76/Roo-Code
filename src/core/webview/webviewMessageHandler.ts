@@ -189,7 +189,7 @@ export const webviewMessageHandler = async (
 	/**
 	 * Handles message editing operations with user confirmation
 	 */
-	const handleEditOperation = async (messageTs: number, editedContent: string): Promise<void> => {
+	const handleEditOperation = async (messageTs: number, editedContent: string, images?: string[]): Promise<void> => {
 		// Always check if the message has a checkpoint first
 		const currentCline = provider.getCurrentCline()
 		let hasCheckpoint = false
@@ -232,6 +232,7 @@ export const webviewMessageHandler = async (
 				messageTs,
 				text: editedContent,
 				hasCheckpoint,
+				images,
 			})
 		} else {
 			// Send message to webview to show edit confirmation dialog
@@ -240,6 +241,7 @@ export const webviewMessageHandler = async (
 				messageTs,
 				text: editedContent,
 				hasCheckpoint,
+				images,
 			})
 		}
 	}
