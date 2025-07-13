@@ -605,6 +605,54 @@ export class ClineProvider
 		this.log(
 			`[subtasks] ${cline.parentTask ? "child" : "parent"} task ${cline.taskId}.${cline.instanceId} instantiated`,
 		)
+
+		// Check if there's a pending edit after checkpoint restoration
+		if ((this as any).pendingEditAfterRestore) {
+			const pendingEdit = (this as any).pendingEditAfterRestore
+			;(this as any).pendingEditAfterRestore = undefined // Clear the pending edit
+
+			this.log(`[initClineWithHistoryItem] Processing pending edit after checkpoint restoration`)
+
+			// Process the pending edit after a short delay to ensure the task is fully initialized
+			setTimeout(async () => {
+				try {
+					// Find the message index in the restored state
+					const { messageIndex, apiConversationHistoryIndex } = (() => {
+						const messageIndex = cline.clineMessages.findIndex((msg) => msg.ts === pendingEdit.messageTs)
+						const apiConversationHistoryIndex = cline.apiConversationHistory.findIndex(
+							(msg) => msg.ts === pendingEdit.messageTs,
+						)
+						return { messageIndex, apiConversationHistoryIndex }
+					})()
+
+					if (messageIndex !== -1) {
+						// Remove the target message and all subsequent messages
+						await cline.overwriteClineMessages(cline.clineMessages.slice(0, messageIndex))
+
+						if (apiConversationHistoryIndex !== -1) {
+							await cline.overwriteApiConversationHistory(
+								cline.apiConversationHistory.slice(0, apiConversationHistoryIndex),
+							)
+						}
+
+						// If there was an original checkpoint, preserve it for the new message
+						if (pendingEdit.originalCheckpoint) {
+							cline.pendingUserMessageCheckpoint = pendingEdit.originalCheckpoint
+						}
+
+						// Process the edited message
+						await cline.handleWebviewAskResponse(
+							"messageResponse",
+							pendingEdit.editedContent,
+							pendingEdit.images,
+						)
+					}
+				} catch (error) {
+					this.log(`[initClineWithHistoryItem] Error processing pending edit: ${error}`)
+				}
+			}, 100) // Small delay to ensure task is fully ready
+		}
+
 		return cline
 	}
 

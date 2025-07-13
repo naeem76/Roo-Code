@@ -552,39 +552,10 @@ export class Task extends EventEmitter<ClineEvents> {
 	}
 
 	async handleWebviewAskResponse(askResponse: ClineAskResponse, text?: string, images?: string[]) {
-		// Save checkpoint BEFORE setting the response to ensure it's ready when the user_feedback message is created
-		if (this.enableCheckpoints && askResponse === "messageResponse") {
-			console.log("[Task#handleWebviewAskResponse] Saving checkpoint for user message")
-			try {
-				const checkpointResult = await this.checkpointSave(true) // Force checkpoint save
-				console.log("[Task#handleWebviewAskResponse] Checkpoint result:", checkpointResult)
-				if (checkpointResult?.commit) {
-					// Store checkpoint data temporarily to be used when creating the user_feedback message
-					this.pendingUserMessageCheckpoint = {
-						hash: checkpointResult.commit,
-						timestamp: Date.now(),
-						type: "user_message",
-					}
-					console.log(
-						"[Task#handleWebviewAskResponse] Set pendingUserMessageCheckpoint:",
-						this.pendingUserMessageCheckpoint,
-					)
-				} else {
-					console.log("[Task#handleWebviewAskResponse] No commit in checkpoint result")
-				}
-			} catch (error) {
-				console.error("[Task#handleWebviewAskResponse] Failed to save checkpoint after user message:", error)
-			}
-		} else {
-			console.log(
-				"[Task#handleWebviewAskResponse] Skipping checkpoint save - enableCheckpoints:",
-				this.enableCheckpoints,
-				"askResponse:",
-				askResponse,
-			)
-		}
+		// Checkpoint saving is now handled in webviewMessageHandler before this method is called
+		console.log("[Task#handleWebviewAskResponse] Processing askResponse:", askResponse)
 
-		// Now set the response, which will trigger the ask promise to resolve
+		// Set the response, which will trigger the ask promise to resolve
 		this.askResponse = askResponse
 		this.askResponseText = text
 		this.askResponseImages = images

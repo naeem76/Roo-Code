@@ -783,7 +783,23 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	)
 
 	const visibleMessages = useMemo(() => {
+		// First, collect all checkpoint hashes that are associated with user_feedback messages
+		const userMessageCheckpointHashes = new Set<string>()
+		modifiedMessages.forEach((message) => {
+			if (message.say === "user_feedback" && message.checkpoint) {
+				const checkpoint = message.checkpoint as any
+				if (checkpoint.type === "user_message" && checkpoint.hash) {
+					userMessageCheckpointHashes.add(checkpoint.hash)
+				}
+			}
+		})
+
 		const newVisibleMessages = modifiedMessages.filter((message) => {
+			// Filter out checkpoint_saved messages that are associated with user messages
+			if (message.say === "checkpoint_saved" && message.text && userMessageCheckpointHashes.has(message.text)) {
+				return false
+			}
+
 			if (everVisibleMessagesTsRef.current.has(message.ts)) {
 				// If it was ever visible, and it's not one of the types that should always be hidden once processed, keep it.
 				// This helps prevent flickering for messages like 'api_req_retry_delayed' if they are no longer the absolute last.

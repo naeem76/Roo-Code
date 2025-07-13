@@ -16,6 +16,7 @@ import {
 import { CloudService } from "@roo-code/cloud"
 import { TelemetryService } from "@roo-code/telemetry"
 import { type ApiMessage } from "../task-persistence/apiMessages"
+import { saveTaskMessages } from "../task-persistence"
 
 import { ClineProvider } from "./ClineProvider"
 import { changeLanguage, t } from "../../i18n"
@@ -69,10 +70,10 @@ export const webviewMessageHandler = async (
 	 * Shared utility to find message indices based on timestamp
 	 */
 	const findMessageIndices = (messageTs: number, currentCline: any) => {
-		const timeCutoff = messageTs - 1000 // 1 second buffer before the message
-		const messageIndex = currentCline.clineMessages.findIndex((msg: ClineMessage) => msg.ts && msg.ts >= timeCutoff)
+		// Find the exact message by timestamp, not the first one after a cutoff
+		const messageIndex = currentCline.clineMessages.findIndex((msg: ClineMessage) => msg.ts === messageTs)
 		const apiConversationHistoryIndex = currentCline.apiConversationHistory.findIndex(
-			(msg: ApiMessage) => msg.ts && msg.ts >= timeCutoff,
+			(msg: ApiMessage) => msg.ts === messageTs,
 		)
 		return { messageIndex, apiConversationHistoryIndex }
 	}
@@ -165,17 +166,53 @@ export const webviewMessageHandler = async (
 								ts: targetMessage.ts!,
 								commitHash: targetMessage.checkpoint.hash as string,
 								mode: "restore",
+								operation: "delete",
+							})
+
+							// Save the updated messages to disk after checkpoint restoration
+							// This ensures the deleted messages are persisted before reinitialization
+							await saveTaskMessages({
+								messages: currentCline.clineMessages,
+								taskId: currentCline.taskId,
+								globalStoragePath: provider.contextProxy.globalStorageUri.fsPath,
 							})
 						}
+					} else {
+						// For non-checkpoint deletes, preserve checkpoint associations for remaining messages
+						// Store checkpoints from messages that will be preserved
+						const preservedCheckpoints = new Map<number, any>()
+						for (let i = 0; i < messageIndex; i++) {
+							const msg = currentCline.clineMessages[i]
+							if (msg?.checkpoint && msg.ts) {
+								preservedCheckpoints.set(msg.ts, msg.checkpoint)
+							}
+						}
+
+						// Delete this message and all subsequent messages
+						await removeMessagesThisAndSubsequent(currentCline, messageIndex, apiConversationHistoryIndex)
+
+						// Restore checkpoint associations for preserved messages
+						for (const [ts, checkpoint] of preservedCheckpoints) {
+							const msgIndex = currentCline.clineMessages.findIndex((msg) => msg.ts === ts)
+							if (msgIndex !== -1) {
+								currentCline.clineMessages[msgIndex].checkpoint = checkpoint
+							}
+						}
+
+						// Save the updated messages with restored checkpoints
+						await saveTaskMessages({
+							messages: currentCline.clineMessages,
+							taskId: currentCline.taskId,
+							globalStoragePath: provider.contextProxy.globalStorageUri.fsPath,
+						})
 					}
 
 					const { historyItem } = await provider.getTaskWithId(currentCline.taskId)
 
-					// Delete this message and all subsequent messages
-					await removeMessagesThisAndSubsequent(currentCline, messageIndex, apiConversationHistoryIndex)
-
-					// Initialize with history item after deletion
-					await provider.initClineWithHistoryItem(historyItem)
+					// Initialize with history item after deletion (only for checkpoint restores)
+					if (restoreCheckpoint) {
+						await provider.initClineWithHistoryItem(historyItem)
+					}
 				} catch (error) {
 					console.error("Error in delete message:", error)
 					vscode.window.showErrorMessage(
@@ -264,27 +301,79 @@ export const webviewMessageHandler = async (
 
 			if (messageIndex !== -1) {
 				try {
+					const targetMessage = currentCline.clineMessages[messageIndex]
+
+					// Preserve the original checkpoint data for the edited message
+					const originalCheckpoint = targetMessage?.checkpoint
+
 					// If checkpoint restoration is requested, restore to the checkpoint first
 					if (restoreCheckpoint) {
-						const targetMessage = currentCline.clineMessages[messageIndex]
 						if (
-							targetMessage?.checkpoint &&
-							typeof targetMessage.checkpoint === "object" &&
-							"hash" in targetMessage.checkpoint
+							originalCheckpoint &&
+							typeof originalCheckpoint === "object" &&
+							"hash" in originalCheckpoint
 						) {
+							// Store the edited content and images for after restoration
+							const editData = { text: editedContent, images }
+
+							// Set a flag on the provider to indicate we need to process an edit after restoration
+							;(provider as any).pendingEditAfterRestore = {
+								messageTs,
+								editedContent,
+								images,
+								messageIndex,
+								apiConversationHistoryIndex,
+								originalCheckpoint, // Preserve the checkpoint for the new message
+							}
+
 							await currentCline.checkpointRestore({
 								ts: targetMessage.ts!,
-								commitHash: targetMessage.checkpoint.hash as string,
+								commitHash: originalCheckpoint.hash as string,
 								mode: "restore",
+								operation: "edit",
 							})
+
+							// The task will be cancelled and reinitialized by checkpointRestore
+							// The pending edit will be processed in the reinitialized task
+							return
+						}
+					}
+
+					// For non-checkpoint edits, preserve checkpoint associations for remaining messages
+					// Store checkpoints from messages that will be preserved
+					const preservedCheckpoints = new Map<number, any>()
+					for (let i = 0; i < messageIndex; i++) {
+						const msg = currentCline.clineMessages[i]
+						if (msg?.checkpoint && msg.ts) {
+							preservedCheckpoints.set(msg.ts, msg.checkpoint)
 						}
 					}
 
 					// Edit this message and delete subsequent
 					await removeMessagesThisAndSubsequent(currentCline, messageIndex, apiConversationHistoryIndex)
 
+					// Restore checkpoint associations for preserved messages
+					for (const [ts, checkpoint] of preservedCheckpoints) {
+						const msgIndex = currentCline.clineMessages.findIndex((msg) => msg.ts === ts)
+						if (msgIndex !== -1) {
+							currentCline.clineMessages[msgIndex].checkpoint = checkpoint
+						}
+					}
+
+					// Save the updated messages with restored checkpoints
+					await saveTaskMessages({
+						messages: currentCline.clineMessages,
+						taskId: currentCline.taskId,
+						globalStoragePath: provider.contextProxy.globalStorageUri.fsPath,
+					})
+
 					// Process the edited message as a regular user message
-					// This will add it to the conversation and trigger an AI response
+					// Preserve the original checkpoint for the new message
+					if (originalCheckpoint) {
+						// Store the checkpoint to be attached to the new message
+						currentCline.pendingUserMessageCheckpoint = originalCheckpoint
+					}
+
 					webviewMessageHandler(provider, {
 						type: "askResponse",
 						askResponse: "messageResponse",
@@ -457,7 +546,33 @@ export const webviewMessageHandler = async (
 			await provider.postStateToWebview()
 			break
 		case "askResponse":
-			provider.getCurrentCline()?.handleWebviewAskResponse(message.askResponse!, message.text, message.images)
+			// Save checkpoint BEFORE processing the user message if checkpoints are enabled
+			const currentCline = provider.getCurrentCline()
+			if (currentCline && currentCline.enableCheckpoints && message.askResponse === "messageResponse") {
+				console.log("[webviewMessageHandler] Saving checkpoint before user message processing")
+				try {
+					const checkpointResult = await currentCline.checkpointSave(true) // Force checkpoint save
+					console.log("[webviewMessageHandler] Checkpoint result:", checkpointResult)
+					if (checkpointResult?.commit) {
+						// Store checkpoint data temporarily to be used when creating the user_feedback message
+						currentCline.pendingUserMessageCheckpoint = {
+							hash: checkpointResult.commit,
+							timestamp: Date.now(),
+							type: "user_message",
+						}
+						console.log(
+							"[webviewMessageHandler] Set pendingUserMessageCheckpoint:",
+							currentCline.pendingUserMessageCheckpoint,
+						)
+					} else {
+						console.log("[webviewMessageHandler] No commit in checkpoint result")
+					}
+				} catch (error) {
+					console.error("[webviewMessageHandler] Failed to save checkpoint before user message:", error)
+				}
+			}
+
+			currentCline?.handleWebviewAskResponse(message.askResponse!, message.text, message.images)
 			break
 		case "autoCondenseContext":
 			await updateGlobalState("autoCondenseContext", message.bool)
