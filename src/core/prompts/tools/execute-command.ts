@@ -15,17 +15,16 @@ Parameters:
 - Include suggestions when executing common development commands (npm, git, ls, cd, etc.)
 - Suggestions use prefix matching: any command that starts with the suggestion will be auto-approved
 - The special pattern "*" allows ALL commands (use with caution)
-- Suggestions are case-insensitive (e.g., "npm " matches "NPM install", "npm test", etc.)
-- Include a trailing space in suggestions to ensure proper prefix matching
+- Suggestions are case-insensitive (e.g., "npm" matches "NPM install", "npm test", etc.)
 - Common patterns to suggest:
-  - "npm " for all npm commands
-  - "git " for all git operations
-  - "ls " for listing files
-  - "cd " for changing directories
-  - "echo " for echo commands
-  - "mkdir " for creating directories
+  - "npm" for all npm commands
+  - "git" for all git operations
+  - "ls" for listing files
+  - "cd" for changing directories
+  - "echo" for echo commands
+  - "mkdir" for creating directories
   - "rm -rf node_modules" for specific cleanup command
-  - Language-specific patterns like "python ", "node ", "go test ", etc.
+  - Language-specific patterns like "python", "node", "go test", etc.
   - "*" to allow all commands (only suggest when explicitly requested by user)
 
 Usage:
@@ -42,8 +41,8 @@ Example: Requesting to execute npm run dev with suggestions
 <execute_command>
 <command>npm run dev</command>
 <suggestions>
-<suggest>npm run </suggest>
-<suggest>npm </suggest>
+<suggest>npm run</suggest>
+<suggest>npm</suggest>
 </suggestions>
 </execute_command>
 
@@ -52,7 +51,7 @@ Example: Requesting to execute git status with suggestions
 <command>git status</command>
 <suggestions>
 <suggest>git status</suggest>
-<suggest>git *</suggest>
+<suggest>git</suggest>
 </suggestions>
 </execute_command>
 
@@ -62,7 +61,7 @@ Example: Requesting to execute ls in a specific directory with suggestions
 <cwd>/home/user/projects</cwd>
 <suggestions>
 <suggest>ls -la</suggest>
-<suggest>ls </suggest>
+<suggest>ls</suggest>
 </suggestions>
 </execute_command>`
 }
