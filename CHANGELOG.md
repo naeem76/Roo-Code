@@ -1,5 +1,54 @@
 # Roo Code Changelog
 
+## [3.23.9] - 2025-07-14
+
+- Enable Claude Code provider to run natively on Windows (thanks @SannidhyaSah!)
+- Add gemini-embedding-001 model to code-index service (thanks @daniel-lxs!)
+- Resolve vector dimension mismatch error when switching embedding models
+- Return the cwd in the exec tool's response so that the model is not lost after subsequent calls (thanks @chris-garrett!)
+- Add configurable timeout for command execution in VS Code settings
+
+## [3.23.8] - 2025-07-13
+
+- Add enable/disable toggle for code indexing (thanks @daniel-lxs!)
+- Add a command auto-deny list to auto-approve settings
+- Add navigation link to history tab in HistoryPreview
+
+## [3.23.7] - 2025-07-11
+
+- Fix Mermaid syntax warning (thanks @MuriloFP!)
+- Expand Vertex AI region config to include all available regions in GCP Vertex AI (thanks @shubhamgupta731!)
+- Handle Qdrant vector dimension mismatch when switching embedding models (thanks @daniel-lxs!)
+- Fix typos in comment & document (thanks @noritaka1166!)
+- Improve the display of codebase search results
+- Correct translation fallback logic for embedding errors (thanks @daniel-lxs!)
+- Clean up MCP tool disabling
+- Link to marketplace from modes and MCP tab
+- Fix TTS button display (thanks @sensei-woo!)
+- Add Devstral Medium model support
+- Add comprehensive error telemetry to code-index service (thanks @daniel-lxs!)
+- Exclude cache tokens from context window calculation (thanks @daniel-lxs!)
+- Enable dynamic tool selection in architect mode for context discovery
+- Add configurable max output tokens setting for claude-code
+
+## [3.23.6] - 2025-07-10
+
+- Grok 4
+
+## [3.23.5] - 2025-07-09
+
+- Fix: use decodeURIComponent in openFile (thanks @vivekfyi!)
+- Fix(embeddings): Translate error messages before sending to UI (thanks @daniel-lxs!)
+- Make account tab visible
+
+## [3.23.4] - 2025-07-09
+
+- Update chat area icons for better discoverability & consistency
+- Fix a bug that allowed `list_files` to return directory results that should be excluded by .gitignore
+- Add an overflow header menu to make the UI a little tidier (thanks @dlab-anton)
+- Fix a bug the issue where null custom modes configuration files cause a 'Cannot read properties of null' error (thanks @daniel-lxs!)
+- Replace native title attributes with StandardTooltip component for consistency (thanks @daniel-lxs!)
+
 ## [3.23.3] - 2025-07-09
 
 - Remove erroneous line from announcement modal
@@ -365,7 +414,7 @@
 - Fix vscode-material-icons in the filer picker
 - Fix global settings export
 - Respect user-configured terminal integration timeout (thanks @KJ7LNW)
-- Contex condensing enhancements (thanks @SannidhyaSah)
+- Context condensing enhancements (thanks @SannidhyaSah)
 
 ## [3.18.1] - 2025-05-22
 
@@ -877,7 +926,7 @@
 
 ## [3.10.1] - 2025-03-20
 
-- Make the suggested responses optional to not break overriden system prompts
+- Make the suggested responses optional to not break overridden system prompts
 
 ## [3.10.0] - 2025-03-20
 
