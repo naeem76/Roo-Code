@@ -3,6 +3,18 @@ import * as path from "path"
 import { listFiles } from "../list-files"
 import * as childProcess from "child_process"
 
+vi.mock("child_process")
+vi.mock("fs")
+vi.mock("vscode", () => ({
+	env: {
+		appRoot: "/mock/vscode/app/root",
+	},
+}))
+
+vi.mock("../../ripgrep", () => ({
+	getBinPath: vi.fn().mockResolvedValue("/mock/path/to/rg"),
+}))
+
 vi.mock("../list-files", async () => {
 	const actual = await vi.importActual("../list-files")
 	return {
