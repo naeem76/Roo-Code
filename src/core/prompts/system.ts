@@ -68,7 +68,7 @@ async function generatePrompt(
 
 	// Get the full mode config to ensure we have the role definition (used for groups, etc.)
 	const modeConfig = getModeBySlug(mode, customModeConfigs) || modes.find((m) => m.slug === mode) || modes[0]
-	const { roleDefinition, baseInstructions } = getModeSelection(mode, promptComponent, customModeConfigs)
+	const { roleDefinition, baseInstructions } = getModeSelection(mode, promptComponent, customModeConfigs, settings)
 
 	const [modesSection, mcpServersSection] = await Promise.all([
 		getModesSection(context),
@@ -163,6 +163,7 @@ export const SYSTEM_PROMPT = async (
 			mode,
 			promptComponent,
 			customModes,
+			settings,
 		)
 
 		const customInstructions = await addCustomInstructions(

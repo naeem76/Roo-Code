@@ -72,7 +72,7 @@ export const modes: readonly ModeConfig[] = [
 		description: "Plan and design before implementation",
 		groups: ["read", ["edit", { fileRegex: "\\.md$", description: "Markdown files only" }], "browser", "mcp"],
 		customInstructions:
-			"1. Do some information gathering (using provided tools) to get more context about the task.\n\n2. You should also ask the user clarifying questions to get a better understanding of the task.\n\n3. Once you've gained more context about the user's request, break down the task into clear, actionable steps. If the `update_todo_list` tool is available, create a todo list using it. Each todo item should be:\n   - Specific and actionable\n   - Listed in logical execution order\n   - Focused on a single, well-defined outcome\n   - Clear enough that another mode could execute it independently\n\n4. As you gather more information or discover new requirements, update your planning to reflect the current understanding of what needs to be accomplished.\n\n5. Ask the user if they are pleased with this plan, or if they would like to make any changes. Think of this as a brainstorming session where you can discuss the task and refine your approach.\n\n6. Include Mermaid diagrams if they help clarify complex workflows or system architecture. Please avoid using double quotes (\"\") and parentheses () inside square brackets ([]) in Mermaid diagrams, as this can cause parsing errors.\n\n7. Use the switch_mode tool to request that the user switch to another mode to implement the solution.\n\n**IMPORTANT: Focus on creating clear, actionable plans rather than lengthy markdown documents. Use structured planning to track and organize the work that needs to be done.**",
+			"1. Do some information gathering (using provided tools) to get more context about the task.\n\n2. You should also ask the user clarifying questions to get a better understanding of the task.\n\n3. Once you've gained more context about the user's request, break down the task into clear, actionable steps. Create a todo list using the update_todo_list tool. Each todo item should be:\n   - Specific and actionable\n   - Listed in logical execution order\n   - Focused on a single, well-defined outcome\n   - Clear enough that another mode could execute it independently\n\n4. As you gather more information or discover new requirements, update your planning to reflect the current understanding of what needs to be accomplished.\n\n5. Ask the user if they are pleased with this plan, or if they would like to make any changes. Think of this as a brainstorming session where you can discuss the task and refine your approach.\n\n6. Include Mermaid diagrams if they help clarify complex workflows or system architecture. Please avoid using double quotes (\"\") and parentheses () inside square brackets ([]) in Mermaid diagrams, as this can cause parsing errors.\n\n7. Use the switch_mode tool to request that the user switch to another mode to implement the solution.\n\n**IMPORTANT: Focus on creating clear, actionable plans rather than lengthy markdown documents. Use structured planning to track and organize the work that needs to be done.**",
 	},
 	{
 		slug: "code",
@@ -186,7 +186,12 @@ export function findModeBySlug(slug: string, modes: readonly ModeConfig[] | unde
  * If no custom mode is found, the built-in mode is used with partial merging from promptComponent.
  * If neither is found, the default mode is used.
  */
-export function getModeSelection(mode: string, promptComponent?: PromptComponent, customModes?: ModeConfig[]) {
+export function getModeSelection(
+	mode: string,
+	promptComponent?: PromptComponent,
+	customModes?: ModeConfig[],
+	settings?: Record<string, any>,
+) {
 	const customMode = findModeBySlug(mode, customModes)
 	const builtInMode = findModeBySlug(mode, modes)
 
@@ -202,11 +207,57 @@ export function getModeSelection(mode: string, promptComponent?: PromptComponent
 	// Otherwise, use built-in mode as base and merge with promptComponent
 	const baseMode = builtInMode || modes[0] // fallback to default mode
 
+	// Get base instructions, applying conditional logic for architect mode
+	let baseInstructions = promptComponent?.customInstructions || baseMode.customInstructions || ""
+
+	// Apply conditional instructions for architect mode based on enableTodoList setting
+	// Only apply this if there's no promptComponent override for customInstructions
+	if (mode === "architect" && !promptComponent?.customInstructions) {
+		baseInstructions = getArchitectModeInstructions(settings?.enableTodoList !== false)
+	}
+
 	return {
 		roleDefinition: promptComponent?.roleDefinition || baseMode.roleDefinition || "",
-		baseInstructions: promptComponent?.customInstructions || baseMode.customInstructions || "",
+		baseInstructions,
 		description: baseMode.description || "",
 	}
+}
+
+/**
+ * Get architect mode instructions based on whether todo list feature is enabled
+ */
+function getArchitectModeInstructions(enableTodoList: boolean): string {
+	const baseInstructions = `1. Do some information gathering (using provided tools) to get more context about the task.
+
+2. You should also ask the user clarifying questions to get a better understanding of the task.
+
+3. Once you've gained more context about the user's request, break down the task into clear, actionable steps.`
+
+	const todoListInstructions = enableTodoList
+		? ` Create a todo list using the update_todo_list tool. Each todo item should be:
+   - Specific and actionable
+   - Listed in logical execution order
+   - Focused on a single, well-defined outcome
+   - Clear enough that another mode could execute it independently`
+		: ` Document your plan in a clear, structured format. Each step should be:
+   - Specific and actionable
+   - Listed in logical execution order
+   - Focused on a single, well-defined outcome
+   - Clear enough that another mode could execute it independently`
+
+	const remainingInstructions = `
+
+4. As you gather more information or discover new requirements, update your planning to reflect the current understanding of what needs to be accomplished.
+
+5. Ask the user if they are pleased with this plan, or if they would like to make any changes. Think of this as a brainstorming session where you can discuss the task and refine your approach.
+
+6. Include Mermaid diagrams if they help clarify complex workflows or system architecture. Please avoid using double quotes ("") and parentheses () inside square brackets ([]) in Mermaid diagrams, as this can cause parsing errors.
+
+7. Use the switch_mode tool to request that the user switch to another mode to implement the solution.
+
+**IMPORTANT: Focus on creating clear, actionable plans rather than lengthy markdown documents. Use structured planning to track and organize the work that needs to be done.**`
+
+	return baseInstructions + todoListInstructions + remainingInstructions
 }
 
 // Edit operation parameters that indicate an actual edit operation
