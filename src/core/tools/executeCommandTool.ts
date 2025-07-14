@@ -84,7 +84,7 @@ export async function executeCommandTool(
 								suggestions = individualSuggestMatches
 									.map((match) => {
 										const content = match.match(/<suggest>(.*?)<\/suggest>/)
-										return content ? content[1] : ""
+										return content ? content[1].trim() : ""
 									})
 									.filter((suggestion) => suggestion.length > 0)
 							}
