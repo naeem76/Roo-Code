@@ -1,0 +1,102 @@
+items:
+  - id: "n8n-mcp"
+    name: "n8n MCP Server"
+    description: "A MCP for Claude Desktop / Claude Code / Windsurf / Cursor to build n8n workflows. Provides comprehensive access to n8n's 525+ nodes for workflow automation."
+    author: "czlonkowski"
+    authorUrl: "https://github.com/czlonkowski"
+    url: "https://github.com/czlonkowski/n8n-mcp"
+    tags:
+      - "workflow"
+      - "automation"
+      - "n8n"
+      - "integration"
+      - "api"
+    prerequisites:
+      - "Node.js 18+ (for npx installation)"
+      - "Docker (for Docker installation)"
+      - "n8n instance (local or cloud)"
+    content:
+      - name: "npx (Recommended)"
+        content: |
+          {
+            "mcpServers": {
+              "n8n-mcp": {
+                "command": "npx",
+                "args": ["n8n-mcp"],
+                "env": {
+                  "N8N_API_KEY": "{{N8N_API_KEY}}",
+                  "N8N_BASE_URL": "{{N8N_BASE_URL}}"
+                }
+              }
+            }
+          }
+        parameters:
+          - name: "n8n API Key"
+            key: "N8N_API_KEY"
+            placeholder: "your-n8n-api-key"
+            optional: false
+          - name: "n8n Base URL"
+            key: "N8N_BASE_URL"
+            placeholder: "https://your-n8n-instance.com"
+            optional: false
+        prerequisites:
+          - "Node.js 18+"
+          - "n8n instance with API access"
+      - name: "Docker"
+        content: |
+          {
+            "mcpServers": {
+              "n8n-mcp": {
+                "command": "docker",
+                "args": [
+                  "run",
+                  "--rm",
+                  "-i",
+                  "--env",
+                  "N8N_API_KEY={{N8N_API_KEY}}",
+                  "--env",
+                  "N8N_BASE_URL={{N8N_BASE_URL}}",
+                  "ghcr.io/czlonkowski/n8n-mcp:latest"
+                ]
+              }
+            }
+          }
+        parameters:
+          - name: "n8n API Key"
+            key: "N8N_API_KEY"
+            placeholder: "your-n8n-api-key"
+            optional: false
+          - name: "n8n Base URL"
+            key: "N8N_BASE_URL"
+            placeholder: "https://your-n8n-instance.com"
+            optional: false
+        prerequisites:
+          - "Docker installed and running"
+          - "n8n instance with API access"
+      - name: "Local Development"
+        content: |
+          {
+            "mcpServers": {
+              "n8n-mcp": {
+                "command": "node",
+                "args": ["path/to/n8n-mcp/dist/index.js"],
+                "env": {
+                  "N8N_API_KEY": "{{N8N_API_KEY}}",
+                  "N8N_BASE_URL": "{{N8N_BASE_URL}}"
+                }
+              }
+            }
+          }
+        parameters:
+          - name: "n8n API Key"
+            key: "N8N_API_KEY"
+            placeholder: "your-n8n-api-key"
+            optional: false
+          - name: "n8n Base URL"
+            key: "N8N_BASE_URL"
+            placeholder: "https://your-n8n-instance.com"
+            optional: false
+        prerequisites:
+          - "Node.js 18+"
+          - "n8n-mcp cloned and built locally"
+          - "n8n instance with API access"
