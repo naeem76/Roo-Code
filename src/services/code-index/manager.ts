@@ -264,6 +264,7 @@ export class CodeIndexManager {
 			this.context,
 			this._cacheManager!,
 			ignoreInstance,
+			this, // Pass this CodeIndexManager instance for auto-indexing
 		)
 
 		// Validate embedder configuration before proceeding

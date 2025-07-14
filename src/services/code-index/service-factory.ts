@@ -158,8 +158,18 @@ export class CodeIndexServiceFactory {
 		vectorStore: IVectorStore,
 		cacheManager: CacheManager,
 		ignoreInstance: Ignore,
+		codeIndexManager?: any, // CodeIndexManager reference for auto-indexing
 	): IFileWatcher {
-		return new FileWatcher(this.workspacePath, context, cacheManager, embedder, vectorStore, ignoreInstance)
+		return new FileWatcher(
+			this.workspacePath,
+			context,
+			cacheManager,
+			embedder,
+			vectorStore,
+			ignoreInstance,
+			undefined,
+			codeIndexManager,
+		)
 	}
 
 	/**
@@ -170,6 +180,7 @@ export class CodeIndexServiceFactory {
 		context: vscode.ExtensionContext,
 		cacheManager: CacheManager,
 		ignoreInstance: Ignore,
+		codeIndexManager?: any, // CodeIndexManager reference for auto-indexing
 	): {
 		embedder: IEmbedder
 		vectorStore: IVectorStore
@@ -185,7 +196,14 @@ export class CodeIndexServiceFactory {
 		const vectorStore = this.createVectorStore()
 		const parser = codeParser
 		const scanner = this.createDirectoryScanner(embedder, vectorStore, parser, ignoreInstance)
-		const fileWatcher = this.createFileWatcher(context, embedder, vectorStore, cacheManager, ignoreInstance)
+		const fileWatcher = this.createFileWatcher(
+			context,
+			embedder,
+			vectorStore,
+			cacheManager,
+			ignoreInstance,
+			codeIndexManager,
+		)
 
 		return {
 			embedder,

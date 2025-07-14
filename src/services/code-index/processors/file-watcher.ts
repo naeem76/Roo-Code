@@ -26,6 +26,7 @@ import { isPathInIgnoredDirectory } from "../../glob/ignore-utils"
 import { TelemetryService } from "@roo-code/telemetry"
 import { TelemetryEventName } from "@roo-code/types"
 import { sanitizeErrorMessage } from "../shared/validation-helpers"
+import { AutoIndexingService } from "../auto-indexing/AutoIndexingService"
 
 /**
  * Implementation of the file watcher interface
@@ -78,6 +79,7 @@ export class FileWatcher implements IFileWatcher {
 		private vectorStore?: IVectorStore,
 		ignoreInstance?: Ignore,
 		ignoreController?: RooIgnoreController,
+		private codeIndexManager?: any, // CodeIndexManager reference for auto-indexing
 	) {
 		this.ignoreController = ignoreController || new RooIgnoreController(workspacePath)
 		if (ignoreInstance) {
@@ -123,6 +125,9 @@ export class FileWatcher implements IFileWatcher {
 	private async handleFileCreated(uri: vscode.Uri): Promise<void> {
 		this.accumulatedEvents.set(uri.fsPath, { uri, type: "create" })
 		this.scheduleBatchProcessing()
+
+		// Check if this file creation should trigger automatic indexing
+		this.checkForBusinessLogicChange(uri.fsPath, "File created")
 	}
 
 	/**
@@ -132,6 +137,9 @@ export class FileWatcher implements IFileWatcher {
 	private async handleFileChanged(uri: vscode.Uri): Promise<void> {
 		this.accumulatedEvents.set(uri.fsPath, { uri, type: "change" })
 		this.scheduleBatchProcessing()
+
+		// Check if this file change should trigger automatic indexing
+		this.checkForBusinessLogicChange(uri.fsPath, "File changed")
 	}
 
 	/**
@@ -141,6 +149,9 @@ export class FileWatcher implements IFileWatcher {
 	private async handleFileDeleted(uri: vscode.Uri): Promise<void> {
 		this.accumulatedEvents.set(uri.fsPath, { uri, type: "delete" })
 		this.scheduleBatchProcessing()
+
+		// Check if this file deletion should trigger automatic indexing
+		this.checkForBusinessLogicChange(uri.fsPath, "File deleted")
 	}
 
 	/**
@@ -573,6 +584,31 @@ export class FileWatcher implements IFileWatcher {
 				status: "local_error" as const,
 				error: error as Error,
 			}
+		}
+	}
+
+	/**
+	 * Checks if a file change represents a business logic change that should trigger automatic indexing
+	 * @param filePath Path to the changed file
+	 * @param reason Reason for the change (for logging)
+	 */
+	private checkForBusinessLogicChange(filePath: string, reason: string): void {
+		if (!this.codeIndexManager) {
+			return
+		}
+
+		try {
+			const autoIndexingService = AutoIndexingService.getInstance(this.codeIndexManager)
+			const shouldTriggerIndexing = autoIndexingService.shouldTriggerIndexingForFileChange(filePath)
+
+			if (shouldTriggerIndexing) {
+				// Trigger indexing asynchronously without blocking file processing
+				autoIndexingService.triggerAutomaticIndexing(`${reason}: ${filePath}`).catch((error) => {
+					console.warn("[FileWatcher] Failed to trigger automatic indexing for business logic change:", error)
+				})
+			}
+		} catch (error) {
+			console.warn("[FileWatcher] Error checking for business logic change:", error)
 		}
 	}
 }

@@ -88,6 +88,7 @@ import { ApiMessage } from "../task-persistence/apiMessages"
 import { getMessagesSinceLastSummary, summarizeConversation } from "../condense"
 import { maybeRemoveImageBlocks } from "../../api/transform/image-cleaning"
 import { restoreTodoListForTask } from "../tools/updateTodoListTool"
+import { AutoIndexingService } from "../../services/code-index/auto-indexing/AutoIndexingService"
 
 // Constants
 const MAX_EXPONENTIAL_BACKOFF_SECONDS = 600 // 10 minutes
@@ -1231,6 +1232,23 @@ export class Task extends EventEmitter<ClineEvents> {
 			rooIgnoreController: this.rooIgnoreController,
 			showRooIgnoredFiles,
 		})
+
+		// Check if automatic indexing should be triggered based on user prompt
+		const taskProvider = this.providerRef.deref()
+		if (taskProvider?.codeIndexManager) {
+			const autoIndexingService = AutoIndexingService.getInstance(taskProvider.codeIndexManager)
+			try {
+				const shouldTriggerIndexing = await autoIndexingService.analyzeUserPromptForIndexing(userContent)
+				if (shouldTriggerIndexing) {
+					// Trigger indexing asynchronously without blocking the task
+					autoIndexingService.triggerAutomaticIndexing("User prompt analysis").catch((error) => {
+						console.warn("[AutoIndexingService] Failed to trigger automatic indexing:", error)
+					})
+				}
+			} catch (error) {
+				console.warn("[AutoIndexingService] Error analyzing user prompt for indexing:", error)
+			}
+		}
 
 		const environmentDetails = await getEnvironmentDetails(this, includeFileDetails)
 
