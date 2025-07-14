@@ -19,6 +19,11 @@ import { type ApiMessage } from "../task-persistence/apiMessages"
 import { saveTaskMessages } from "../task-persistence"
 
 import { ClineProvider } from "./ClineProvider"
+import {
+	handleCheckpointRestoreOperation,
+	hasValidCheckpoint,
+	waitForClineInitialization,
+} from "./checkpointRestoreHandler"
 import { changeLanguage, t } from "../../i18n"
 import { Package } from "../../shared/package"
 import { RouterName, toRouterName, ModelRecord } from "../../shared/api"
@@ -154,29 +159,18 @@ export const webviewMessageHandler = async (
 
 			if (messageIndex !== -1) {
 				try {
-					// If checkpoint restoration is requested, restore to the checkpoint first
-					if (restoreCheckpoint) {
-						const targetMessage = currentCline.clineMessages[messageIndex]
-						if (
-							targetMessage?.checkpoint &&
-							typeof targetMessage.checkpoint === "object" &&
-							"hash" in targetMessage.checkpoint
-						) {
-							await currentCline.checkpointRestore({
-								ts: targetMessage.ts!,
-								commitHash: targetMessage.checkpoint.hash as string,
-								mode: "restore",
-								operation: "delete",
-							})
+					const targetMessage = currentCline.clineMessages[messageIndex]
 
-							// Save the updated messages to disk after checkpoint restoration
-							// This ensures the deleted messages are persisted before reinitialization
-							await saveTaskMessages({
-								messages: currentCline.clineMessages,
-								taskId: currentCline.taskId,
-								globalStoragePath: provider.contextProxy.globalStorageUri.fsPath,
-							})
-						}
+					// If checkpoint restoration is requested, restore to the checkpoint first
+					if (restoreCheckpoint && hasValidCheckpoint(targetMessage)) {
+						await handleCheckpointRestoreOperation({
+							provider,
+							currentCline,
+							messageTs: targetMessage.ts!,
+							messageIndex,
+							checkpoint: targetMessage.checkpoint as { hash: string },
+							operation: "delete",
+						})
 					} else {
 						// For non-checkpoint deletes, preserve checkpoint associations for remaining messages
 						// Store checkpoints from messages that will be preserved
@@ -205,13 +199,6 @@ export const webviewMessageHandler = async (
 							taskId: currentCline.taskId,
 							globalStoragePath: provider.contextProxy.globalStorageUri.fsPath,
 						})
-					}
-
-					const { historyItem } = await provider.getTaskWithId(currentCline.taskId)
-
-					// Initialize with history item after deletion (only for checkpoint restores)
-					if (restoreCheckpoint) {
-						await provider.initClineWithHistoryItem(historyItem)
 					}
 				} catch (error) {
 					console.error("Error in delete message:", error)
@@ -307,36 +294,23 @@ export const webviewMessageHandler = async (
 					const originalCheckpoint = targetMessage?.checkpoint
 
 					// If checkpoint restoration is requested, restore to the checkpoint first
-					if (restoreCheckpoint) {
-						if (
-							originalCheckpoint &&
-							typeof originalCheckpoint === "object" &&
-							"hash" in originalCheckpoint
-						) {
-							// Store the edited content and images for after restoration
-							const editData = { text: editedContent, images }
-
-							// Set a flag on the provider to indicate we need to process an edit after restoration
-							;(provider as any).pendingEditAfterRestore = {
-								messageTs,
+					if (restoreCheckpoint && hasValidCheckpoint(targetMessage)) {
+						await handleCheckpointRestoreOperation({
+							provider,
+							currentCline,
+							messageTs: targetMessage.ts!,
+							messageIndex,
+							checkpoint: targetMessage.checkpoint as { hash: string },
+							operation: "edit",
+							editData: {
 								editedContent,
 								images,
-								messageIndex,
 								apiConversationHistoryIndex,
-								originalCheckpoint, // Preserve the checkpoint for the new message
-							}
-
-							await currentCline.checkpointRestore({
-								ts: targetMessage.ts!,
-								commitHash: originalCheckpoint.hash as string,
-								mode: "restore",
-								operation: "edit",
-							})
-
-							// The task will be cancelled and reinitialized by checkpointRestore
-							// The pending edit will be processed in the reinitialized task
-							return
-						}
+							},
+						})
+						// The task will be cancelled and reinitialized by checkpointRestore
+						// The pending edit will be processed in the reinitialized task
+						return
 					}
 
 					// For non-checkpoint edits, preserve checkpoint associations for remaining messages
