@@ -4,6 +4,8 @@ import { execa } from "execa"
 import { ClaudeCodeMessage } from "./types"
 import readline from "readline"
 import { CLAUDE_CODE_DEFAULT_MAX_OUTPUT_TOKENS } from "@roo-code/types"
+import * as path from "path"
+import * as os from "os"
 
 const cwd = vscode.workspace.workspaceFolders?.map((folder) => folder.uri.fsPath).at(0)
 
@@ -21,10 +23,15 @@ type ProcessState = {
 	exitCode: number | null
 }
 
+type TempFileCleanup = {
+	filePath: string
+	cleanup: () => Promise<void>
+}
+
 export async function* runClaudeCode(
 	options: ClaudeCodeOptions & { maxOutputTokens?: number },
 ): AsyncGenerator<ClaudeCodeMessage | string> {
-	const process = runProcess(options)
+	const { process, tempFileCleanup } = await runProcess(options)
 
 	const rl = readline.createInterface({
 		input: process.stdout,
@@ -84,6 +91,10 @@ export async function* runClaudeCode(
 		if (!process.killed) {
 			process.kill()
 		}
+		// Clean up temporary file if it was created
+		if (tempFileCleanup) {
+			await tempFileCleanup.cleanup()
+		}
 	}
 }
 
@@ -111,25 +122,55 @@ const claudeCodeTools = [
 const CLAUDE_CODE_TIMEOUT = 600000 // 10 minutes
 
 // Windows has a command line length limit of ~8191 characters
-// If the system prompt is too long, we'll use an environment variable instead
+// If the system prompt is too long, we'll write it to a temporary file instead
 const MAX_COMMAND_LINE_LENGTH = 7000 // Conservative limit to account for other arguments
 
-function runProcess({
+async function runProcess({
 	systemPrompt,
 	messages,
-	path,
+	path: claudeCodePath,
 	modelId,
 	maxOutputTokens,
-}: ClaudeCodeOptions & { maxOutputTokens?: number }) {
-	const claudePath = path || "claude"
+}: ClaudeCodeOptions & { maxOutputTokens?: number }): Promise<{
+	process: ReturnType<typeof execa>
+	tempFileCleanup: TempFileCleanup | null
+}> {
+	const claudePath = claudeCodePath || "claude"
 
 	// Check if system prompt is too long for command line
-	const useEnvForSystemPrompt = systemPrompt.length > MAX_COMMAND_LINE_LENGTH
+	const useTempFileForSystemPrompt = systemPrompt.length > MAX_COMMAND_LINE_LENGTH
 
 	const args = ["-p"]
+	let tempFileCleanup: TempFileCleanup | null = null
 
-	// Only add --system-prompt to command line if it's short enough
-	if (!useEnvForSystemPrompt) {
+	// Handle system prompt - use temp file for long prompts, command line for short ones
+	if (useTempFileForSystemPrompt) {
+		// Create temporary file for system prompt
+		const tempFilePath = path.join(
+			os.tmpdir(),
+			`claude-system-prompt-${Date.now()}-${Math.random().toString(36).substring(2)}.txt`,
+		)
+
+		try {
+			await vscode.workspace.fs.writeFile(vscode.Uri.file(tempFilePath), Buffer.from(systemPrompt, "utf8"))
+			args.push("--system-prompt", `@${tempFilePath}`)
+
+			tempFileCleanup = {
+				filePath: tempFilePath,
+				cleanup: async () => {
+					try {
+						await vscode.workspace.fs.delete(vscode.Uri.file(tempFilePath))
+					} catch (error) {
+						// Ignore cleanup errors - temp files will be cleaned up by OS eventually
+						console.warn(`Failed to clean up temporary system prompt file ${tempFilePath}:`, error)
+					}
+				},
+			}
+		} catch (error) {
+			throw new Error(`Failed to create temporary file for system prompt: ${error}`)
+		}
+	} else {
+		// Use command line argument for short system prompts
 		args.push("--system-prompt", systemPrompt)
 	}
 
@@ -157,11 +198,6 @@ function runProcess({
 			CLAUDE_CODE_DEFAULT_MAX_OUTPUT_TOKENS.toString(),
 	}
 
-	// If system prompt is too long, pass it via environment variable
-	if (useEnvForSystemPrompt) {
-		env.CLAUDE_CODE_SYSTEM_PROMPT = systemPrompt
-	}
-
 	const child = execa(claudePath, args, {
 		stdin: "pipe",
 		stdout: "pipe",
@@ -176,7 +212,7 @@ function runProcess({
 	// This avoids the E2BIG error on Linux and ENAMETOOLONG error on Windows when passing large data as command line arguments
 	// Linux has a per-argument limit of ~128KiB for execve() system calls
 	// Windows has a total command line length limit of ~8191 characters
-	// For system prompts, we use environment variables when they exceed the safe limit
+	// For system prompts, we use temporary files when they exceed the safe limit
 	const messagesJson = JSON.stringify(messages)
 
 	// Use setImmediate to ensure the process has been spawned before writing to stdin
@@ -196,7 +232,7 @@ function runProcess({
 		}
 	})
 
-	return child
+	return { process: child, tempFileCleanup }
 }
 
 function parseChunk(data: string, processState: ProcessState) {
