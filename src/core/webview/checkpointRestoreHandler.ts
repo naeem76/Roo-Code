@@ -4,13 +4,14 @@ import { saveTaskMessages } from "../task-persistence"
 import * as vscode from "vscode"
 import pWaitFor from "p-wait-for"
 import { t } from "../../i18n"
+import { ValidCheckpoint } from "../checkpoints/utils"
 
 export interface CheckpointRestoreConfig {
 	provider: ClineProvider
 	currentCline: Task
 	messageTs: number
 	messageIndex: number
-	checkpoint: { hash: string }
+	checkpoint: ValidCheckpoint
 	operation: "delete" | "edit"
 	editData?: {
 		editedContent: string
@@ -29,14 +30,15 @@ export async function handleCheckpointRestoreOperation(config: CheckpointRestore
 	try {
 		// For edit operations, set up pending edit data before restoration
 		if (operation === "edit" && editData) {
-			;(provider as any).pendingEditAfterRestore = {
+			const operationId = `task-${currentCline.taskId}`
+			provider.setPendingEditOperation(operationId, {
 				messageTs,
 				editedContent: editData.editedContent,
 				images: editData.images,
 				messageIndex: config.messageIndex,
 				apiConversationHistoryIndex: editData.apiConversationHistoryIndex,
 				originalCheckpoint: checkpoint,
-			}
+			})
 		}
 
 		// Perform the checkpoint restoration
@@ -71,19 +73,6 @@ export async function handleCheckpointRestoreOperation(config: CheckpointRestore
 		)
 		throw error
 	}
-}
-
-/**
- * Validates if a message has a valid checkpoint for restoration
- */
-export function hasValidCheckpoint(message: any): boolean {
-	return (
-		(message?.checkpoint &&
-			typeof message.checkpoint === "object" &&
-			"hash" in message.checkpoint &&
-			typeof message.checkpoint.hash === "string") ||
-		false
-	)
 }
 
 /**

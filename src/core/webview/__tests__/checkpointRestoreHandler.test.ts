@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { handleCheckpointRestoreOperation, hasValidCheckpoint } from "../checkpointRestoreHandler"
+import { handleCheckpointRestoreOperation } from "../checkpointRestoreHandler"
+import { hasValidCheckpoint } from "../../checkpoints/utils"
 import { saveTaskMessages } from "../../task-persistence"
 import * as vscode from "vscode"
 
@@ -27,13 +28,14 @@ describe("checkpointRestoreHandler", () => {
 				},
 			},
 			getTaskWithId: vi.fn().mockResolvedValue({
-				historyItem: { id: "test-task", messages: [] },
+				historyItem: { id: "task123", messages: [] },
 			}),
 			initClineWithHistoryItem: vi.fn(),
+			setPendingEditOperation: vi.fn(),
 		}
 
 		mockCline = {
-			taskId: "test-task",
+			taskId: "task123",
 			clineMessages: [
 				{ ts: 1, text: "Message 1" },
 				{ ts: 2, text: "Message 2", checkpoint: { hash: "abc123" } },
@@ -58,6 +60,10 @@ describe("checkpointRestoreHandler", () => {
 			expect(hasValidCheckpoint({ checkpoint: "invalid" })).toBe(false)
 			expect(hasValidCheckpoint({ checkpoint: {} })).toBe(false)
 			expect(hasValidCheckpoint({ checkpoint: { hash: 123 } })).toBe(false)
+		})
+
+		it("should return false for empty hash", () => {
+			expect(hasValidCheckpoint({ checkpoint: { hash: "" } })).toBe(false)
 		})
 	})
 
@@ -84,14 +90,14 @@ describe("checkpointRestoreHandler", () => {
 				// Should save messages after restoration
 				expect(saveTaskMessages).toHaveBeenCalledWith({
 					messages: mockCline.clineMessages,
-					taskId: "test-task",
+					taskId: "task123",
 					globalStoragePath: "/test/global/storage",
 				})
 
 				// Should reinitialize the task
-				expect(mockProvider.getTaskWithId).toHaveBeenCalledWith("test-task")
+				expect(mockProvider.getTaskWithId).toHaveBeenCalledWith("task123")
 				expect(mockProvider.initClineWithHistoryItem).toHaveBeenCalledWith({
-					id: "test-task",
+					id: "task123",
 					messages: [],
 				})
 			})
@@ -115,8 +121,8 @@ describe("checkpointRestoreHandler", () => {
 					editData,
 				})
 
-				// Should set pendingEditAfterRestore on provider
-				expect(mockProvider.pendingEditAfterRestore).toEqual({
+				// Should call setPendingEditOperation on provider
+				expect(mockProvider.setPendingEditOperation).toHaveBeenCalledWith("task-task123", {
 					messageTs: 2,
 					editedContent: "Edited content",
 					images: ["image1.png"],

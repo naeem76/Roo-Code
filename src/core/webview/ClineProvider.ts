@@ -79,6 +79,17 @@ export type ClineProviderEvents = {
 	clineCreated: [cline: Task]
 }
 
+interface PendingEditOperation {
+	messageTs: number
+	editedContent: string
+	images?: string[]
+	messageIndex: number
+	apiConversationHistoryIndex: number
+	originalCheckpoint: { hash: string }
+	timeoutId: NodeJS.Timeout
+	createdAt: number
+}
+
 class OrganizationAllowListViolationError extends Error {
 	constructor(message: string) {
 		super(message)
@@ -107,6 +118,8 @@ export class ClineProvider
 	protected mcpHub?: McpHub // Change from private to protected
 	private marketplaceManager: MarketplaceManager
 	private mdmService?: MdmService
+	private pendingOperations: Map<string, PendingEditOperation> = new Map()
+	private static readonly PENDING_OPERATION_TIMEOUT_MS = 30000 // 30 seconds
 
 	public isViewLaunched = false
 	public settingsImportedAt?: number
@@ -240,6 +253,73 @@ export class ClineProvider
 		await this.removeClineFromStack()
 	}
 
+	// Pending Edit Operations Management
+
+	/**
+	 * Sets a pending edit operation with automatic timeout cleanup
+	 */
+	public setPendingEditOperation(
+		operationId: string,
+		editData: {
+			messageTs: number
+			editedContent: string
+			images?: string[]
+			messageIndex: number
+			apiConversationHistoryIndex: number
+			originalCheckpoint: { hash: string }
+		},
+	): void {
+		// Clear any existing operation with the same ID
+		this.clearPendingEditOperation(operationId)
+
+		// Create timeout for automatic cleanup
+		const timeoutId = setTimeout(() => {
+			this.clearPendingEditOperation(operationId)
+			this.log(`[setPendingEditOperation] Automatically cleared stale pending operation: ${operationId}`)
+		}, ClineProvider.PENDING_OPERATION_TIMEOUT_MS)
+
+		// Store the operation
+		this.pendingOperations.set(operationId, {
+			...editData,
+			timeoutId,
+			createdAt: Date.now(),
+		})
+
+		this.log(`[setPendingEditOperation] Set pending operation: ${operationId}`)
+	}
+
+	/**
+	 * Gets a pending edit operation by ID
+	 */
+	private getPendingEditOperation(operationId: string): PendingEditOperation | undefined {
+		return this.pendingOperations.get(operationId)
+	}
+
+	/**
+	 * Clears a specific pending edit operation
+	 */
+	private clearPendingEditOperation(operationId: string): boolean {
+		const operation = this.pendingOperations.get(operationId)
+		if (operation) {
+			clearTimeout(operation.timeoutId)
+			this.pendingOperations.delete(operationId)
+			this.log(`[clearPendingEditOperation] Cleared pending operation: ${operationId}`)
+			return true
+		}
+		return false
+	}
+
+	/**
+	 * Clears all pending edit operations
+	 */
+	private clearAllPendingEditOperations(): void {
+		for (const [operationId, operation] of this.pendingOperations) {
+			clearTimeout(operation.timeoutId)
+		}
+		this.pendingOperations.clear()
+		this.log(`[clearAllPendingEditOperations] Cleared all pending operations`)
+	}
+
 	/*
 	VSCode extensions use the disposable pattern to clean up resources when the sidebar/editor tab is closed by the user or system. This applies to event listening, commands, interacting with the UI, etc.
 	- https://vscode-docs.readthedocs.io/en/stable/extensions/patterns-and-principles/
@@ -258,6 +338,10 @@ export class ClineProvider
 		this.log("Disposing ClineProvider...")
 		await this.removeClineFromStack()
 		this.log("Cleared task")
+
+		// Clear all pending edit operations to prevent memory leaks
+		this.clearAllPendingEditOperations()
+		this.log("Cleared pending operations")
 
 		if (this.view && "dispose" in this.view) {
 			this.view.dispose()
@@ -607,9 +691,10 @@ export class ClineProvider
 		)
 
 		// Check if there's a pending edit after checkpoint restoration
-		if ((this as any).pendingEditAfterRestore) {
-			const pendingEdit = (this as any).pendingEditAfterRestore
-			;(this as any).pendingEditAfterRestore = undefined // Clear the pending edit
+		const operationId = `task-${cline.taskId}`
+		const pendingEdit = this.getPendingEditOperation(operationId)
+		if (pendingEdit) {
+			this.clearPendingEditOperation(operationId) // Clear the pending edit
 
 			this.log(`[initClineWithHistoryItem] Processing pending edit after checkpoint restoration`)
 
@@ -1502,13 +1587,6 @@ export class ClineProvider
 					"[ClineProvider#getStateToPostToWebview] Messages with checkpoints:",
 					messagesWithCheckpoints.length,
 				)
-				if (messagesWithCheckpoints.length > 0) {
-					console.log("[ClineProvider#getStateToPostToWebview] Sample message with checkpoint:", {
-						ts: messagesWithCheckpoints[0].ts,
-						say: messagesWithCheckpoints[0].say,
-						checkpoint: messagesWithCheckpoints[0].checkpoint,
-					})
-				}
 				return messages
 			})(),
 			taskHistory: (taskHistory || [])

@@ -352,14 +352,7 @@ export class Task extends EventEmitter<ClineEvents> {
 	// Cline Messages
 
 	private async getSavedClineMessages(): Promise<ClineMessage[]> {
-		const messages = await readTaskMessages({ taskId: this.taskId, globalStoragePath: this.globalStoragePath })
-		console.log("[Task#getSavedClineMessages] Loaded messages from disk:", messages.length)
-		const messagesWithCheckpoints = messages.filter((m) => m.checkpoint)
-		console.log("[Task#getSavedClineMessages] Messages with checkpoints:", messagesWithCheckpoints.length)
-		if (messagesWithCheckpoints.length > 0) {
-			console.log("[Task#getSavedClineMessages] Sample checkpoint:", messagesWithCheckpoints[0].checkpoint)
-		}
-		return messages
+		return await readTaskMessages({ taskId: this.taskId, globalStoragePath: this.globalStoragePath })
 	}
 
 	private async addToClineMessages(message: ClineMessage) {
@@ -534,7 +527,14 @@ export class Task extends EventEmitter<ClineEvents> {
 			await this.addToClineMessages({ ts: askTs, type: "ask", ask: type, text, isProtected })
 		}
 
-		await pWaitFor(() => this.askResponse !== undefined || this.lastMessageTs !== askTs, { interval: 100 })
+		await pWaitFor(() => this.askResponse !== undefined || this.lastMessageTs !== askTs || this.abort, {
+			interval: 100,
+		})
+
+		if (this.abort) {
+			// Task was aborted, return a default response
+			return { response: "messageResponse", text: undefined, images: undefined }
+		}
 
 		if (this.lastMessageTs !== askTs) {
 			// Could happen if we send multiple asks in a row i.e. with
@@ -734,24 +734,6 @@ export class Task extends EventEmitter<ClineEvents> {
 				const feedbackCheckpoint = checkpoint || this.pendingUserMessageCheckpoint
 				this.pendingUserMessageCheckpoint = undefined // Clear it after use
 
-				console.log("[Task#say] Adding user_feedback message with checkpoint:", feedbackCheckpoint)
-				console.log(
-					"[Task#say] Full message object:",
-					JSON.stringify(
-						{
-							ts: sayTs,
-							type: "say",
-							say: type,
-							text,
-							images,
-							checkpoint: feedbackCheckpoint,
-							contextCondense,
-						},
-						null,
-						2,
-					),
-				)
-
 				await this.addToClineMessages({
 					ts: sayTs,
 					type: "say",
@@ -841,18 +823,6 @@ export class Task extends EventEmitter<ClineEvents> {
 
 	private async resumeTaskFromHistory() {
 		const modifiedClineMessages = await this.getSavedClineMessages()
-
-		// Debug: Check if any messages have checkpoints
-		const messagesWithCheckpoints = modifiedClineMessages.filter((m) => m.checkpoint)
-		console.log("[Task#resumeTaskFromHistory] Total messages loaded:", modifiedClineMessages.length)
-		console.log("[Task#resumeTaskFromHistory] Messages with checkpoints:", messagesWithCheckpoints.length)
-		messagesWithCheckpoints.forEach((msg, idx) => {
-			console.log(`[Task#resumeTaskFromHistory] Message ${idx} with checkpoint:`, {
-				ts: msg.ts,
-				say: msg.say,
-				checkpoint: msg.checkpoint,
-			})
-		})
 
 		// Remove any resume messages that may have been added before
 		const lastRelevantMessageIndex = findLastIndex(
@@ -1159,6 +1129,13 @@ export class Task extends EventEmitter<ClineEvents> {
 		// Will stop any autonomously running promises.
 		if (isAbandoned) {
 			this.abandoned = true
+		}
+
+		// Resolve any pending ask operations to prevent "Current ask promise was ignored" errors
+		if (this.askResponse === undefined) {
+			this.askResponse = "messageResponse"
+			this.askResponseText = undefined
+			this.askResponseImages = undefined
 		}
 
 		this.abort = true
