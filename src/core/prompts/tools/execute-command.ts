@@ -4,14 +4,14 @@ export function getExecuteCommandDescription(args: ToolArgs): string | undefined
 	return `## execute_command
 Description: Request to execute a CLI command on the system. Use this when you need to perform system operations or run specific commands to accomplish any step in the user's task. You must tailor your command to the user's system and provide a clear explanation of what the command does. For command chaining, use the appropriate chaining syntax for the user's shell. Prefer to execute complex CLI commands over creating executable scripts, as they are more flexible and easier to run. Prefer relative commands and paths that avoid location sensitivity for terminal consistency, e.g: \`touch ./testdata/example.file\`, \`dir ./examples/model1/data/yaml\`, or \`go test ./cmd/front --config ./cmd/front/config.yml\`. If directed by the user, you may open a terminal in a different directory by using the \`cwd\` parameter.
 
-**IMPORTANT: When executing commands that match common patterns (like npm, git, ls, etc.), you SHOULD provide suggestions for whitelisting. This allows users to auto-approve similar commands in the future.**
+**IMPORTANT: When executing commands that match common patterns (like npm, git, ls, etc.), you SHOULD provide suggestions for allowing or denying. This enables users to configure which commands can be auto-approved or blocked in the future.**
 
 Parameters:
 - command: (required) The CLI command to execute. This should be valid for the current operating system. Ensure the command is properly formatted and does not contain any harmful instructions.
 - cwd: (optional) The working directory to execute the command in (default: ${args.cwd})
-- suggestions: (optional) An array of safe command patterns that the user can whitelist for automatic approval in the future. Each suggestion should be a pattern that can match similar commands. When the command matches common development patterns, you SHOULD include relevant suggestions. Format each suggestion using <suggest> tags.
+- suggestions: (optional) An array of safe command patterns that the user can allow for automatic approval in the future. Each suggestion should be a pattern that can match similar commands. When the command matches common development patterns, you SHOULD include relevant suggestions. Format each suggestion using <suggest> tags.
 
-**Whitelisting Guidelines:**
+**Command Permission Guidelines:**
 - Include suggestions when executing common development commands (npm, git, ls, cd, etc.)
 - Suggestions use prefix matching: any command that starts with the suggestion will be auto-approved
 - The special pattern "*" allows ALL commands (use with caution)
