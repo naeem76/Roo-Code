@@ -106,20 +106,6 @@ export const webviewMessageHandler = async (
 		const currentCline = provider.getCurrentCline()
 		let hasCheckpoint = false
 		if (currentCline) {
-			// Debug: Log all messages to understand the state
-			console.log("[webviewMessageHandler] Total messages:", currentCline.clineMessages.length)
-			console.log("[webviewMessageHandler] Looking for message with ts:", messageTs)
-			console.log(
-				"[webviewMessageHandler] All messages with timestamps:",
-				currentCline.clineMessages.map((m, idx) => ({
-					index: idx,
-					ts: m.ts,
-					say: m.say,
-					hasCheckpoint: !!m.checkpoint,
-					checkpoint: m.checkpoint,
-				})),
-			)
-
 			const { messageIndex } = findMessageIndices(messageTs, currentCline)
 			if (messageIndex !== -1) {
 				const targetMessage = currentCline.clineMessages[messageIndex]
@@ -128,7 +114,6 @@ export const webviewMessageHandler = async (
 					typeof targetMessage.checkpoint === "object" &&
 					"hash" in targetMessage.checkpoint
 				)
-				console.log("[webviewMessageHandler] hasCheckpoint:", hasCheckpoint)
 			} else {
 				console.log("[webviewMessageHandler] Message not found! Looking for ts:", messageTs)
 			}
@@ -219,19 +204,6 @@ export const webviewMessageHandler = async (
 		const currentCline = provider.getCurrentCline()
 		let hasCheckpoint = false
 		if (currentCline) {
-			console.log(
-				"[webviewMessageHandler] Edit - Total messages in currentCline:",
-				currentCline.clineMessages.length,
-			)
-			console.log("[webviewMessageHandler] Edit - Looking for messageTs:", messageTs)
-
-			// Log all messages with their timestamps and checkpoint status
-			currentCline.clineMessages.forEach((msg, idx) => {
-				console.log(
-					`[webviewMessageHandler] Edit - Message ${idx}: ts=${msg.ts}, type=${msg.type}, say=${msg.say}, hasCheckpoint=${!!msg.checkpoint}, checkpoint=${JSON.stringify(msg.checkpoint)}`,
-				)
-			})
-
 			const { messageIndex } = findMessageIndices(messageTs, currentCline)
 			if (messageIndex !== -1) {
 				const targetMessage = currentCline.clineMessages[messageIndex]
@@ -240,7 +212,6 @@ export const webviewMessageHandler = async (
 					typeof targetMessage.checkpoint === "object" &&
 					"hash" in targetMessage.checkpoint
 				)
-				console.log("[webviewMessageHandler] Edit - hasCheckpoint:", hasCheckpoint)
 			} else {
 				console.log("[webviewMessageHandler] Edit - Message not found in clineMessages!")
 			}

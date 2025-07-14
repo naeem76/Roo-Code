@@ -352,23 +352,11 @@ export class Task extends EventEmitter<ClineEvents> {
 	// Cline Messages
 
 	private async getSavedClineMessages(): Promise<ClineMessage[]> {
-		return await readTaskMessages({ taskId: this.taskId, globalStoragePath: this.globalStoragePath })
+		return readTaskMessages({ taskId: this.taskId, globalStoragePath: this.globalStoragePath })
 	}
 
 	private async addToClineMessages(message: ClineMessage) {
-		console.log("[Task#addToClineMessages] Adding message:", JSON.stringify(message, null, 2))
 		this.clineMessages.push(message)
-
-		// Verify the message was added correctly
-		const addedMessage = this.clineMessages[this.clineMessages.length - 1]
-		console.log("[Task#addToClineMessages] Verified added message:", {
-			ts: addedMessage.ts,
-			type: addedMessage.type,
-			say: addedMessage.say,
-			hasCheckpoint: !!addedMessage.checkpoint,
-			checkpoint: addedMessage.checkpoint,
-		})
-
 		const provider = this.providerRef.deref()
 		await provider?.postStateToWebview()
 		this.emit("message", { action: "created", message })
@@ -552,10 +540,6 @@ export class Task extends EventEmitter<ClineEvents> {
 	}
 
 	async handleWebviewAskResponse(askResponse: ClineAskResponse, text?: string, images?: string[]) {
-		// Checkpoint saving is now handled in webviewMessageHandler before this method is called
-		console.log("[Task#handleWebviewAskResponse] Processing askResponse:", askResponse)
-
-		// Set the response, which will trigger the ask promise to resolve
 		this.askResponse = askResponse
 		this.askResponseText = text
 		this.askResponseImages = images
@@ -877,20 +861,7 @@ export class Task extends EventEmitter<ClineEvents> {
 		let responseText: string | undefined
 		let responseImages: string[] | undefined
 		if (response === "messageResponse") {
-			// The checkpoint was already saved in handleWebviewAskResponse and attached to pendingUserMessageCheckpoint
-			// The say method will automatically handle it for user_feedback messages
-			console.log("[Task#resumeTaskFromHistory] Adding user_feedback message")
 			await this.say("user_feedback", text, images)
-
-			// Verify the message was added with checkpoint
-			const lastMessage = this.clineMessages[this.clineMessages.length - 1]
-			console.log("[Task#resumeTaskFromHistory] Last message after say:", {
-				ts: lastMessage?.ts,
-				say: lastMessage?.say,
-				hasCheckpoint: !!lastMessage?.checkpoint,
-				checkpoint: lastMessage?.checkpoint,
-			})
-
 			responseText = text
 			responseImages = images
 		}
@@ -1231,18 +1202,7 @@ export class Task extends EventEmitter<ClineEvents> {
 					],
 				)
 
-				// The say method will automatically handle the pending checkpoint for user_feedback messages
-				console.log("[Task] Tool approval - About to say user_feedback")
 				await this.say("user_feedback", text, images)
-
-				// Verify the message was added with checkpoint
-				const lastMessage = this.clineMessages[this.clineMessages.length - 1]
-				console.log("[Task] Tool approval - Last message after say:", {
-					ts: lastMessage?.ts,
-					say: lastMessage?.say,
-					hasCheckpoint: !!lastMessage?.checkpoint,
-					checkpoint: lastMessage?.checkpoint,
-				})
 
 				// Track consecutive mistake errors in telemetry.
 				TelemetryService.instance.captureConsecutiveMistakeError(this.taskId)
