@@ -128,6 +128,59 @@ describe("mode-validator", () => {
 				expect(isToolAllowedForMode("apply_diff", codeMode, [], requirements)).toBe(false)
 			})
 		})
+
+		describe("disableTaskLists", () => {
+			it("disallows update_todo_list when disableTaskLists is true", () => {
+				const customModes: ModeConfig[] = [
+					{
+						slug: "no-tasks-mode",
+						name: "No Tasks Mode",
+						roleDefinition: "A mode without task lists",
+						groups: ["read"] as const,
+						disableTaskLists: true,
+					},
+				]
+				// Should not allow update_todo_list tool
+				expect(isToolAllowedForMode("update_todo_list", "no-tasks-mode", customModes)).toBe(false)
+				// Should still allow other always available tools
+				expect(isToolAllowedForMode("ask_followup_question", "no-tasks-mode", customModes)).toBe(true)
+				expect(isToolAllowedForMode("attempt_completion", "no-tasks-mode", customModes)).toBe(true)
+			})
+
+			it("allows update_todo_list when disableTaskLists is false", () => {
+				const customModes: ModeConfig[] = [
+					{
+						slug: "tasks-mode",
+						name: "Tasks Mode",
+						roleDefinition: "A mode with task lists",
+						groups: ["read"] as const,
+						disableTaskLists: false,
+					},
+				]
+				// Should allow update_todo_list tool
+				expect(isToolAllowedForMode("update_todo_list", "tasks-mode", customModes)).toBe(true)
+			})
+
+			it("allows update_todo_list when disableTaskLists is undefined", () => {
+				const customModes: ModeConfig[] = [
+					{
+						slug: "default-mode",
+						name: "Default Mode",
+						roleDefinition: "A mode with default task list behavior",
+						groups: ["read"] as const,
+					},
+				]
+				// Should allow update_todo_list tool by default
+				expect(isToolAllowedForMode("update_todo_list", "default-mode", customModes)).toBe(true)
+			})
+
+			it("allows update_todo_list in built-in modes", () => {
+				// Built-in modes should always allow update_todo_list
+				expect(isToolAllowedForMode("update_todo_list", codeMode, [])).toBe(true)
+				expect(isToolAllowedForMode("update_todo_list", architectMode, [])).toBe(true)
+				expect(isToolAllowedForMode("update_todo_list", askMode, [])).toBe(true)
+			})
+		})
 	})
 
 	describe("validateToolUse", () => {

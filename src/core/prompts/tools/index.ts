@@ -98,8 +98,14 @@ export function getToolDescriptionsForMode(
 		}
 	})
 
-	// Add always available tools
-	ALWAYS_AVAILABLE_TOOLS.forEach((tool) => tools.add(tool))
+	// Add always available tools, but check for mode-specific exclusions
+	ALWAYS_AVAILABLE_TOOLS.forEach((tool) => {
+		// Check if update_todo_list should be excluded for this mode
+		if (tool === "update_todo_list" && config.disableTaskLists) {
+			return // Skip adding this tool
+		}
+		tools.add(tool)
+	})
 
 	// Conditionally exclude codebase_search if feature is disabled or not configured
 	if (

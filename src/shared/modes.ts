@@ -231,8 +231,15 @@ export function isToolAllowedForMode(
 	toolParams?: Record<string, any>, // All tool parameters
 	experiments?: Record<string, boolean>,
 ): boolean {
-	// Always allow these tools
+	// Always allow these tools, but check for mode-specific exclusions
 	if (ALWAYS_AVAILABLE_TOOLS.includes(tool as any)) {
+		// Check if update_todo_list should be excluded for this mode
+		if (tool === "update_todo_list") {
+			const mode = getModeBySlug(modeSlug, customModes)
+			if (mode?.disableTaskLists) {
+				return false
+			}
+		}
 		return true
 	}
 	if (experiments && Object.values(EXPERIMENT_IDS).includes(tool as ExperimentId)) {

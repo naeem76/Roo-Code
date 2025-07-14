@@ -70,6 +70,7 @@ export const modeConfigSchema = z.object({
 	customInstructions: z.string().optional(),
 	groups: groupEntryArraySchema,
 	source: z.enum(["global", "project"]).optional(),
+	disableTaskLists: z.boolean().optional(),
 })
 
 export type ModeConfig = z.infer<typeof modeConfigSchema>
