@@ -213,7 +213,11 @@
 		"exited": "Exited ({{exitCode}})",
 		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
 		"manageCommands": "Manage Command Permissions",
-		"commandManagementDescription": "Click ✓ to allow auto-execution, ✗ to deny execution"
+		"commandManagementDescription": "Manage command permissions: Click ✓ to allow auto-execution, ✗ to deny execution. Patterns can be toggled on/off or removed from lists. <settingsLink>View all settings</settingsLink>",
+		"addToAllowed": "Add to allowed list",
+		"removeFromAllowed": "Remove from allowed list",
+		"addToDenied": "Add to denied list",
+		"removeFromDenied": "Remove from denied list"
 	},
 	"commandOutput": "Command Output",
 	"response": "Response",

@@ -17,12 +17,19 @@ vi.mock("react-i18next", () => ({
 	useTranslation: () => ({
 		t: (key: string) => {
 			// Return the actual translated text for the test
-			if (key === "chat:commandExecution.addToAllowedCommands") {
-				return "Add to Allowed Auto-Execute Patterns"
+			if (key === "chat:commandExecution.manageCommands") {
+				return "Manage Command Permissions"
 			}
 			return key
 		},
 	}),
+	Trans: ({ i18nKey, _components }: any) => {
+		// For the test, just return the key text without the link
+		if (i18nKey === "chat:commandExecution.commandManagementDescription") {
+			return "Manage command permissions: Click ✓ to allow auto-execution, ✗ to deny execution. Patterns can be toggled on/off or removed from lists. View all settings"
+		}
+		return i18nKey
+	},
 	initReactI18next: {
 		type: "3rdParty",
 		init: () => {},
@@ -34,8 +41,8 @@ vi.mock("@src/i18n/TranslationContext", () => ({
 	useAppTranslation: () => ({
 		t: (key: string) => {
 			// Return the actual translated text for the test
-			if (key === "chat:commandExecution.addToAllowedCommands") {
-				return "Add to Allowed Auto-Execute Patterns"
+			if (key === "chat:commandExecution.manageCommands") {
+				return "Manage Command Permissions"
 			}
 			return key
 		},
@@ -46,6 +53,9 @@ vi.mock("@src/i18n/TranslationContext", () => ({
 vi.mock("@src/context/ExtensionStateContext", () => ({
 	useExtensionState: vi.fn(() => ({
 		allowedCommands: [],
+		deniedCommands: [],
+		setAllowedCommands: vi.fn(),
+		setDeniedCommands: vi.fn(),
 	})),
 }))
 
@@ -66,6 +76,9 @@ describe("CommandExecution", () => {
 		// Reset the mock to default state
 		mockUseExtensionState.mockReturnValue({
 			allowedCommands: [],
+			deniedCommands: [],
+			setAllowedCommands: vi.fn(),
+			setDeniedCommands: vi.fn(),
 		} as any)
 	})
 
@@ -80,7 +93,7 @@ describe("CommandExecution", () => {
 		)
 
 		expect(screen.getByText("npm install")).toBeInTheDocument()
-		expect(screen.queryByText("Add to Allowed Auto-Execute Patterns")).not.toBeInTheDocument()
+		expect(screen.queryByText("Manage Command Permissions")).not.toBeInTheDocument()
 	})
 
 	it("should render command with suggestions section collapsed by default", () => {
@@ -97,7 +110,7 @@ describe("CommandExecution", () => {
 		)
 
 		expect(screen.getByText("npm install")).toBeInTheDocument()
-		expect(screen.getByText("Add to Allowed Auto-Execute Patterns")).toBeInTheDocument()
+		expect(screen.getByText("Manage Command Permissions")).toBeInTheDocument()
 
 		// Suggestions should not be visible initially (collapsed)
 		expect(screen.queryByDisplayValue("npm install --save")).not.toBeInTheDocument()
@@ -105,7 +118,7 @@ describe("CommandExecution", () => {
 		expect(screen.queryByDisplayValue("npm install --global")).not.toBeInTheDocument()
 	})
 
-	it("should expand and show checkboxes when section header is clicked", () => {
+	it("should expand and show command patterns with action buttons when section header is clicked", () => {
 		const commandWithSuggestions =
 			'npm install<suggestions>["npm install --save", "npm install --save-dev", "npm install --global"]</suggestions>'
 
@@ -119,20 +132,26 @@ describe("CommandExecution", () => {
 		)
 
 		// Click to expand the section
-		const sectionHeader = screen.getByText("Add to Allowed Auto-Execute Patterns")
+		const sectionHeader = screen.getByText("Manage Command Permissions")
 		fireEvent.click(sectionHeader)
 
-		// Now suggestions should be visible as checkboxes
+		// Now suggestions should be visible
 		expect(screen.getByText("npm install --save")).toBeInTheDocument()
 		expect(screen.getByText("npm install --save-dev")).toBeInTheDocument()
 		expect(screen.getByText("npm install --global")).toBeInTheDocument()
 
-		// Should have checkboxes
-		const checkboxes = screen.getAllByRole("checkbox")
-		expect(checkboxes).toHaveLength(3)
+		// Should have action buttons (2 per pattern - allow and deny)
+		const buttons = screen.getAllByRole("button")
+		// Filter out the section header button
+		const actionButtons = buttons.filter(
+			(btn) =>
+				btn.getAttribute("aria-label")?.includes("to allowed list") ||
+				btn.getAttribute("aria-label")?.includes("to denied list"),
+		)
+		expect(actionButtons).toHaveLength(6) // 3 patterns × 2 buttons each
 	})
 
-	it("should handle checking a suggestion checkbox to add to whitelist", async () => {
+	it("should handle clicking allow button to add to whitelist", async () => {
 		const commandWithSuggestions =
 			'git commit<suggestions>["git commit -m \\"Initial commit\\"", "git commit --amend"]</suggestions>'
 
@@ -146,12 +165,12 @@ describe("CommandExecution", () => {
 		)
 
 		// Expand the section first
-		const sectionHeader = screen.getByText("Add to Allowed Auto-Execute Patterns")
+		const sectionHeader = screen.getByText("Manage Command Permissions")
 		fireEvent.click(sectionHeader)
 
-		// Find and check the checkbox for the first suggestion
-		const checkboxes = screen.getAllByRole("checkbox")
-		fireEvent.click(checkboxes[0])
+		// Find and click the allow button for the first suggestion
+		const allowButton = screen.getByLabelText('Add git commit -m "Initial commit" to allowed list')
+		fireEvent.click(allowButton)
 
 		await waitFor(() => {
 			expect(mockPostMessage).toHaveBeenCalledWith({
@@ -161,13 +180,16 @@ describe("CommandExecution", () => {
 		})
 	})
 
-	it("should handle unchecking a suggestion checkbox to remove from whitelist", async () => {
+	it("should handle clicking allow button to remove from whitelist", async () => {
 		// Clear any previous calls
 		vi.clearAllMocks()
 
 		// Mock that the command is already whitelisted
 		mockUseExtensionState.mockReturnValue({
 			allowedCommands: ['git commit -m "Initial commit"', "git commit --amend"],
+			deniedCommands: [],
+			setAllowedCommands: vi.fn(),
+			setDeniedCommands: vi.fn(),
 		} as any)
 
 		const commandWithSuggestions =
@@ -183,21 +205,12 @@ describe("CommandExecution", () => {
 		)
 
 		// Expand the section first
-		const sectionHeader = screen.getByText("Add to Allowed Auto-Execute Patterns")
+		const sectionHeader = screen.getByText("Manage Command Permissions")
 		fireEvent.click(sectionHeader)
 
-		// Wait for the section to be rendered
-		await waitFor(() => {
-			const checkboxes = screen.getAllByRole("checkbox")
-			expect(checkboxes).toHaveLength(2)
-		})
-
-		// Find the checkbox for the first suggestion
-		const checkboxes = screen.getAllByRole("checkbox")
-
-		// Skip the assertion about initial state and just test the toggle functionality
-		// This works around the test environment issue with VSCodeCheckbox
-		fireEvent.click(checkboxes[0])
+		// Find and click the allow button for the first suggestion (which should remove it since it's already allowed)
+		const removeButton = screen.getByLabelText('Remove git commit -m "Initial commit" from allowed list')
+		fireEvent.click(removeButton)
 
 		await waitFor(() => {
 			expect(mockPostMessage).toHaveBeenCalledWith({
@@ -220,7 +233,7 @@ describe("CommandExecution", () => {
 		)
 
 		expect(screen.getByText("ls -la")).toBeInTheDocument()
-		expect(screen.queryByText("Add to Allowed Auto-Execute Patterns")).not.toBeInTheDocument()
+		expect(screen.queryByText("Manage Command Permissions")).not.toBeInTheDocument()
 	})
 
 	it("should handle suggestions with special characters", () => {
@@ -239,7 +252,7 @@ describe("CommandExecution", () => {
 		expect(screen.getByText('echo "test"')).toBeInTheDocument()
 
 		// Expand the section to see suggestions
-		const sectionHeader = screen.getByText("Add to Allowed Auto-Execute Patterns")
+		const sectionHeader = screen.getByText("Manage Command Permissions")
 		fireEvent.click(sectionHeader)
 
 		expect(screen.getByText('echo "Hello, World!"')).toBeInTheDocument()
@@ -262,7 +275,7 @@ describe("CommandExecution", () => {
 		// Should still render the command
 		expect(screen.getByText("pwd")).toBeInTheDocument()
 		// Suggestions should not be shown when JSON is invalid
-		expect(screen.queryByText("Add to Allowed Auto-Execute Patterns")).not.toBeInTheDocument()
+		expect(screen.queryByText("Manage Command Permissions")).not.toBeInTheDocument()
 	})
 
 	it("should parse suggestions from JSON array and show them when expanded", () => {
@@ -281,7 +294,7 @@ describe("CommandExecution", () => {
 		expect(screen.getByText("docker run")).toBeInTheDocument()
 
 		// Expand the section
-		const sectionHeader = screen.getByText("Add to Allowed Auto-Execute Patterns")
+		const sectionHeader = screen.getByText("Manage Command Permissions")
 		fireEvent.click(sectionHeader)
 
 		expect(screen.getByText("docker run -it ubuntu:latest")).toBeInTheDocument()
@@ -304,14 +317,14 @@ describe("CommandExecution", () => {
 		expect(screen.getByText("npm run start")).toBeInTheDocument()
 
 		// Expand the section
-		const sectionHeader = screen.getByText("Add to Allowed Auto-Execute Patterns")
+		const sectionHeader = screen.getByText("Manage Command Permissions")
 		fireEvent.click(sectionHeader)
 
 		expect(screen.getByText("npm run")).toBeInTheDocument()
 		expect(screen.getByText("npm start")).toBeInTheDocument()
 	})
 
-	it("should handle checking individual suggest tag suggestions", async () => {
+	it("should handle clicking allow button for individual suggest tag suggestions", async () => {
 		const commandWithIndividualSuggests =
 			"git status<suggest>git status --short</suggest><suggest>git status -b</suggest>"
 
@@ -325,12 +338,12 @@ describe("CommandExecution", () => {
 		)
 
 		// Expand the section
-		const sectionHeader = screen.getByText("Add to Allowed Auto-Execute Patterns")
+		const sectionHeader = screen.getByText("Manage Command Permissions")
 		fireEvent.click(sectionHeader)
 
-		// Find and check the checkbox for the first suggestion
-		const checkboxes = screen.getAllByRole("checkbox")
-		fireEvent.click(checkboxes[0])
+		// Find and click the allow button for the first suggestion
+		const allowButton = screen.getByLabelText("Add git status --short to allowed list")
+		fireEvent.click(allowButton)
 
 		await waitFor(() => {
 			expect(mockPostMessage).toHaveBeenCalledWith({
@@ -357,7 +370,7 @@ describe("CommandExecution", () => {
 		expect(screen.getByText("npm install")).toBeInTheDocument()
 
 		// Expand the section
-		const sectionHeader = screen.getByText("Add to Allowed Auto-Execute Patterns")
+		const sectionHeader = screen.getByText("Manage Command Permissions")
 		fireEvent.click(sectionHeader)
 
 		expect(screen.getByText("npm install --save")).toBeInTheDocument()
@@ -379,13 +392,18 @@ describe("CommandExecution", () => {
 		expect(screen.getByText("ls -la")).toBeInTheDocument()
 
 		// Expand the section
-		const sectionHeader = screen.getByText("Add to Allowed Auto-Execute Patterns")
+		const sectionHeader = screen.getByText("Manage Command Permissions")
 		fireEvent.click(sectionHeader)
 
 		// Should only show the non-empty suggestion
 		expect(screen.getByText("ls -la --color")).toBeInTheDocument()
-		// Should have exactly one checkbox (the non-empty one)
-		const checkboxes = screen.getAllByRole("checkbox")
-		expect(checkboxes).toHaveLength(1)
+		// Should have exactly 2 action buttons (allow and deny for the non-empty suggestion)
+		const buttons = screen.getAllByRole("button")
+		const actionButtons = buttons.filter(
+			(btn) =>
+				btn.getAttribute("aria-label")?.includes("to allowed list") ||
+				btn.getAttribute("aria-label")?.includes("to denied list"),
+		)
+		expect(actionButtons).toHaveLength(2)
 	})
 })

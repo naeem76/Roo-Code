@@ -1,8 +1,10 @@
 import { useState } from "react"
 import { ChevronDown, Check, X } from "lucide-react"
+import { Trans } from "react-i18next"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { cn } from "@src/lib/utils"
 import { StandardTooltip } from "@src/components/ui/standard-tooltip"
+import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 
 interface CommandPattern {
 	pattern: string
@@ -62,7 +64,31 @@ export const CommandPatternSelector = ({
 				/>
 				<span className="font-medium">{t("chat:commandExecution.manageCommands")}</span>
 				{isExpanded && (
-					<StandardTooltip content={t("chat:commandExecution.commandManagementDescription")}>
+					<StandardTooltip
+						content={
+							<Trans
+								i18nKey="chat:commandExecution.commandManagementDescription"
+								components={{
+									settingsLink: (
+										<VSCodeLink
+											href="#"
+											onClick={(e) => {
+												e.preventDefault()
+												window.postMessage(
+													{
+														type: "action",
+														action: "settingsButtonClicked",
+														values: { section: "autoApprove" },
+													},
+													"*",
+												)
+											}}
+											className="inline"
+										/>
+									),
+								}}
+							/>
+						}>
 						<i
 							className="codicon codicon-info text-vscode-descriptionForeground ml-1"
 							style={{ fontSize: "12px" }}
@@ -86,7 +112,11 @@ export const CommandPatternSelector = ({
 								</div>
 								<div className="flex items-center gap-1">
 									<StandardTooltip
-										content={status === "allowed" ? "Remove from allowed" : "Add to allowed"}>
+										content={
+											status === "allowed"
+												? t("chat:commandExecution.removeFromAllowed")
+												: t("chat:commandExecution.addToAllowed")
+										}>
 										<button
 											onClick={() => handleAllowClick(item.pattern)}
 											className={cn(
@@ -104,7 +134,11 @@ export const CommandPatternSelector = ({
 										</button>
 									</StandardTooltip>
 									<StandardTooltip
-										content={status === "denied" ? "Remove from denied" : "Add to denied"}>
+										content={
+											status === "denied"
+												? t("chat:commandExecution.removeFromDenied")
+												: t("chat:commandExecution.addToDenied")
+										}>
 										<button
 											onClick={() => handleDenyClick(item.pattern)}
 											className={cn(
