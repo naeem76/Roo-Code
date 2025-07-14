@@ -605,7 +605,7 @@ Mode-specific Instructions:
 
 2. You should also ask the user clarifying questions to get a better understanding of the task.
 
-3. Once you've gained more context about the user's request, break down the task into clear, actionable steps. If the `update_todo_list` tool is available, create a todo list using it. Each todo item should be:
+3. Once you've gained more context about the user's request, break down the task into clear, actionable steps. Create a todo list using the update_todo_list tool. Each todo item should be:
    - Specific and actionable
    - Listed in logical execution order
    - Focused on a single, well-defined outcome
