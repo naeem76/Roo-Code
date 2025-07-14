@@ -93,9 +93,7 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 			const result = await this.client.models.generateContentStream(params)
 
 			let lastUsageMetadata: GenerateContentResponseUsageMetadata | undefined
-			let accumulatedText = ""
 			let pendingGroundingMetadata: GroundingMetadata | undefined
-			let hasGroundingEnabled = this.options.enableGrounding
 
 			for await (const chunk of result) {
 				// Process candidates and their parts to separate thoughts from content
@@ -116,11 +114,7 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 							} else {
 								// This is regular content
 								if (part.text) {
-									accumulatedText += part.text
-
-									if (!hasGroundingEnabled) {
-										yield { type: "text", text: part.text }
-									}
+									yield { type: "text", text: part.text }
 								}
 							}
 						}
@@ -129,11 +123,7 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 
 				// Fallback to the original text property if no candidates structure
 				else if (chunk.text) {
-					accumulatedText += chunk.text
-
-					if (!hasGroundingEnabled) {
-						yield { type: "text", text: chunk.text }
-					}
+					yield { type: "text", text: chunk.text }
 				}
 
 				if (chunk.usageMetadata) {
@@ -141,14 +131,11 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 				}
 			}
 
-			if (hasGroundingEnabled && accumulatedText) {
-				let finalText = accumulatedText
-
-				if (pendingGroundingMetadata) {
-					finalText = this.processGroundingCitations(accumulatedText, pendingGroundingMetadata)
+			if (pendingGroundingMetadata) {
+				const citations = this.extractCitationsOnly(pendingGroundingMetadata)
+				if (citations) {
+					yield { type: "text", text: `\n\nSources: ${citations}` }
 				}
-
-				yield { type: "text", text: finalText }
 			}
 
 			if (lastUsageMetadata) {
@@ -188,39 +175,28 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 		return { id: id.endsWith(":thinking") ? id.replace(":thinking", "") : id, info, ...params }
 	}
 
-	private processGroundingCitations(text: string, groundingMetadata?: GroundingMetadata): string {
-		const supports = groundingMetadata?.groundingSupports
+	private extractCitationsOnly(groundingMetadata?: GroundingMetadata): string | null {
 		const chunks = groundingMetadata?.groundingChunks
 
-		if (!supports || !chunks) {
-			return text
+		if (!chunks) {
+			return null
 		}
 
-		const sortedSupports = [...supports].sort((a, b) => (b.segment?.endIndex ?? 0) - (a.segment?.endIndex ?? 0))
+		const citationLinks = chunks
+			.map((chunk, i) => {
+				const uri = chunk.web?.uri
+				if (uri) {
+					return `[${i + 1}](${uri})`
+				}
+				return null
+			})
+			.filter((link): link is string => link !== null)
 
-		for (const support of sortedSupports) {
-			const endIndex = support.segment?.endIndex
-			if (endIndex === undefined || !support.groundingChunkIndices?.length) {
-				continue
-			}
-
-			const citationLinks = support.groundingChunkIndices
-				.map((i) => {
-					const uri = chunks[i]?.web?.uri
-					if (uri) {
-						return `[${i + 1}](${uri})`
-					}
-					return null
-				})
-				.filter(Boolean)
-
-			if (citationLinks.length > 0) {
-				const citationString = citationLinks.join(", ")
-				text = text.slice(0, endIndex) + citationString + text.slice(endIndex)
-			}
+		if (citationLinks.length > 0) {
+			return citationLinks.join(", ")
 		}
 
-		return text
+		return null
 	}
 
 	async completePrompt(prompt: string): Promise<string> {
@@ -256,7 +232,10 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 
 			const candidate = result.candidates?.[0]
 			if (candidate?.groundingMetadata) {
-				text = this.processGroundingCitations(text, candidate.groundingMetadata)
+				const citations = this.extractCitationsOnly(candidate.groundingMetadata)
+				if (citations) {
+					text += `\n\nSources: ${citations}`
+				}
 			}
 
 			return text
