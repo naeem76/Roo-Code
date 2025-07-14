@@ -26,7 +26,7 @@ interface CommandExecutionProps {
 
 export const CommandExecution = ({ executionId, text, icon, title }: CommandExecutionProps) => {
 	const { t } = useAppTranslation()
-	const { terminalShellIntegrationDisabled = false, allowedCommands = [] } = useExtensionState()
+	const { terminalShellIntegrationDisabled = false, allowedCommands = [], deniedCommands = [] } = useExtensionState()
 
 	const { command, output: parsedOutput, suggestions } = useMemo(() => parseCommandAndOutput(text), [text])
 
@@ -266,6 +266,30 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 		[allowedCommands],
 	)
 
+	const handleDenyPatternChange = useCallback(
+		(pattern: string) => {
+			if (!pattern) return
+
+			const isDenied = deniedCommands.includes(pattern)
+			let updatedDeniedCommands: string[]
+
+			if (isDenied) {
+				// Remove from deny list
+				updatedDeniedCommands = deniedCommands.filter((p) => p !== pattern)
+			} else {
+				// Add to deny list
+				updatedDeniedCommands = [...deniedCommands, pattern]
+			}
+
+			// Send message to update denied commands
+			vscode.postMessage({
+				type: "deniedCommands",
+				commands: updatedDeniedCommands,
+			})
+		},
+		[deniedCommands],
+	)
+
 	return (
 		<div className="w-full">
 			{/* Header section */}
@@ -337,12 +361,14 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 					<CodeBlock source={command} language="shell" />
 				</div>
 
-				{/* Whitelist section */}
+				{/* Command management section */}
 				{showSuggestions && (
 					<CommandPatternSelector
 						patterns={commandPatterns}
 						allowedCommands={allowedCommands}
-						onPatternChange={handleAllowPatternChange}
+						deniedCommands={deniedCommands}
+						onAllowPatternChange={handleAllowPatternChange}
+						onDenyPatternChange={handleDenyPatternChange}
 					/>
 				)}
 
