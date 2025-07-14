@@ -26,7 +26,13 @@ interface CommandExecutionProps {
 
 export const CommandExecution = ({ executionId, text, icon, title }: CommandExecutionProps) => {
 	const { t } = useAppTranslation()
-	const { terminalShellIntegrationDisabled = false, allowedCommands = [], deniedCommands = [] } = useExtensionState()
+	const {
+		terminalShellIntegrationDisabled = false,
+		allowedCommands = [],
+		deniedCommands = [],
+		setAllowedCommands,
+		setDeniedCommands,
+	} = useExtensionState()
 
 	const { command, output: parsedOutput, suggestions } = useMemo(() => parseCommandAndOutput(text), [text])
 
@@ -251,6 +257,7 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 			if (isWhitelisted) {
 				// Remove from whitelist
 				const updatedAllowedCommands = allowedCommands.filter((p) => p !== pattern)
+				setAllowedCommands(updatedAllowedCommands)
 				vscode.postMessage({
 					type: "allowedCommands",
 					commands: updatedAllowedCommands,
@@ -258,6 +265,7 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 			} else {
 				// Add to whitelist
 				const updatedAllowedCommands = [...allowedCommands, pattern]
+				setAllowedCommands(updatedAllowedCommands)
 				vscode.postMessage({
 					type: "allowedCommands",
 					commands: updatedAllowedCommands,
@@ -266,6 +274,7 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 				// If it's in the denied list, remove it
 				if (deniedCommands.includes(pattern)) {
 					const updatedDeniedCommands = deniedCommands.filter((p) => p !== pattern)
+					setDeniedCommands(updatedDeniedCommands)
 					vscode.postMessage({
 						type: "deniedCommands",
 						commands: updatedDeniedCommands,
@@ -273,7 +282,7 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 				}
 			}
 		},
-		[allowedCommands, deniedCommands],
+		[allowedCommands, deniedCommands, setAllowedCommands, setDeniedCommands],
 	)
 
 	const handleDenyPatternChange = useCallback(
@@ -285,6 +294,7 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 			if (isDenied) {
 				// Remove from deny list
 				const updatedDeniedCommands = deniedCommands.filter((p) => p !== pattern)
+				setDeniedCommands(updatedDeniedCommands)
 				vscode.postMessage({
 					type: "deniedCommands",
 					commands: updatedDeniedCommands,
@@ -292,6 +302,7 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 			} else {
 				// Add to deny list
 				const updatedDeniedCommands = [...deniedCommands, pattern]
+				setDeniedCommands(updatedDeniedCommands)
 				vscode.postMessage({
 					type: "deniedCommands",
 					commands: updatedDeniedCommands,
@@ -300,6 +311,7 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 				// If it's in the allowed list, remove it
 				if (allowedCommands.includes(pattern)) {
 					const updatedAllowedCommands = allowedCommands.filter((p) => p !== pattern)
+					setAllowedCommands(updatedAllowedCommands)
 					vscode.postMessage({
 						type: "allowedCommands",
 						commands: updatedAllowedCommands,
@@ -307,7 +319,7 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 				}
 			}
 		},
-		[deniedCommands, allowedCommands],
+		[deniedCommands, allowedCommands, setDeniedCommands, setAllowedCommands],
 	)
 
 	return (
