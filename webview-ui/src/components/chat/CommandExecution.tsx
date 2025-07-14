@@ -110,40 +110,13 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 						// Found an operator, process the current command
 						const trimmedCommand = currentCommand.trim()
 						if (trimmedCommand) {
-							// For npm commands, generate multiple pattern options
-							if (trimmedCommand.startsWith("npm ")) {
-								// Add the specific pattern
-								const specificPattern = extractCommandPattern(trimmedCommand)
-								if (specificPattern) {
-									patterns.push({
-										pattern: specificPattern,
-										description: getPatternDescription(specificPattern),
-									})
-								}
-
-								// Add broader npm patterns
-								if (trimmedCommand.startsWith("npm run ")) {
-									// Add "npm run" pattern
-									patterns.push({
-										pattern: "npm run",
-										description: t("chat:commandExecution.allowAllNpmRun"),
-									})
-								}
-
-								// Add "npm" pattern
+							// Extract pattern for the command
+							const pattern = extractCommandPattern(trimmedCommand)
+							if (pattern) {
 								patterns.push({
-									pattern: "npm",
-									description: t("chat:commandExecution.allowAllNpm"),
+									pattern,
+									description: getPatternDescription(pattern),
 								})
-							} else {
-								// For non-npm commands, just add the extracted pattern
-								const pattern = extractCommandPattern(trimmedCommand)
-								if (pattern) {
-									patterns.push({
-										pattern,
-										description: getPatternDescription(pattern),
-									})
-								}
 							}
 						}
 						currentCommand = ""
@@ -162,40 +135,13 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 		// Process the last command
 		const trimmedCommand = currentCommand.trim()
 		if (trimmedCommand) {
-			// For npm commands, generate multiple pattern options
-			if (trimmedCommand.startsWith("npm ")) {
-				// Add the specific pattern
-				const specificPattern = extractCommandPattern(trimmedCommand)
-				if (specificPattern) {
-					patterns.push({
-						pattern: specificPattern,
-						description: getPatternDescription(specificPattern),
-					})
-				}
-
-				// Add broader npm patterns
-				if (trimmedCommand.startsWith("npm run ")) {
-					// Add "npm run" pattern
-					patterns.push({
-						pattern: "npm run",
-						description: t("chat:commandExecution.allowAllNpmRun"),
-					})
-				}
-
-				// Add "npm" pattern
+			// Extract pattern for the command
+			const pattern = extractCommandPattern(trimmedCommand)
+			if (pattern) {
 				patterns.push({
-					pattern: "npm",
-					description: t("chat:commandExecution.allowAllNpm"),
+					pattern,
+					description: getPatternDescription(pattern),
 				})
-			} else {
-				// For non-npm commands, just add the extracted pattern
-				const pattern = extractCommandPattern(trimmedCommand)
-				if (pattern) {
-					patterns.push({
-						pattern,
-						description: getPatternDescription(pattern),
-					})
-				}
 			}
 		}
 
@@ -205,7 +151,7 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 		)
 
 		return uniquePatterns
-	}, [command, suggestions, showSuggestions, t])
+	}, [command, suggestions, showSuggestions])
 
 	// The command's output can either come from the text associated with the
 	// task message (this is the case for completed commands) or from the

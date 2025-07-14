@@ -212,8 +212,6 @@
 		"pid": "PID: {{pid}}",
 		"exited": "Exited ({{exitCode}})",
 		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
-		"allowAllNpmRun": "Allow all npm run commands",
-		"allowAllNpm": "Allow all npm commands",
 		"manageCommands": "Manage Command Permissions",
 		"commandManagementDescription": "Click ✓ to allow auto-execution, ✗ to deny execution"
 	},
