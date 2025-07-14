@@ -37,22 +37,12 @@ export const CommandPatternSelector = ({
 	}
 
 	const handleAllowClick = (pattern: string) => {
-		const status = getPatternStatus(pattern)
-		if (status === "denied") {
-			// Remove from denied list first
-			onDenyPatternChange(pattern)
-		}
-		// Toggle allow status
+		// The handler in CommandExecution will take care of mutual exclusivity
 		onAllowPatternChange(pattern)
 	}
 
 	const handleDenyClick = (pattern: string) => {
-		const status = getPatternStatus(pattern)
-		if (status === "allowed") {
-			// Remove from allowed list first
-			onAllowPatternChange(pattern)
-		}
-		// Toggle deny status
+		// The handler in CommandExecution will take care of mutual exclusivity
 		onDenyPatternChange(pattern)
 	}
 

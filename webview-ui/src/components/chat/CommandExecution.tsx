@@ -247,23 +247,33 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 			if (!pattern) return
 
 			const isWhitelisted = allowedCommands.includes(pattern)
-			let updatedAllowedCommands: string[]
 
 			if (isWhitelisted) {
 				// Remove from whitelist
-				updatedAllowedCommands = allowedCommands.filter((p) => p !== pattern)
+				const updatedAllowedCommands = allowedCommands.filter((p) => p !== pattern)
+				vscode.postMessage({
+					type: "allowedCommands",
+					commands: updatedAllowedCommands,
+				})
 			} else {
 				// Add to whitelist
-				updatedAllowedCommands = [...allowedCommands, pattern]
-			}
+				const updatedAllowedCommands = [...allowedCommands, pattern]
+				vscode.postMessage({
+					type: "allowedCommands",
+					commands: updatedAllowedCommands,
+				})
 
-			// Use consistent message type for both add and remove operations
-			vscode.postMessage({
-				type: "allowedCommands",
-				commands: updatedAllowedCommands,
-			})
+				// If it's in the denied list, remove it
+				if (deniedCommands.includes(pattern)) {
+					const updatedDeniedCommands = deniedCommands.filter((p) => p !== pattern)
+					vscode.postMessage({
+						type: "deniedCommands",
+						commands: updatedDeniedCommands,
+					})
+				}
+			}
 		},
-		[allowedCommands],
+		[allowedCommands, deniedCommands],
 	)
 
 	const handleDenyPatternChange = useCallback(
@@ -271,23 +281,33 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 			if (!pattern) return
 
 			const isDenied = deniedCommands.includes(pattern)
-			let updatedDeniedCommands: string[]
 
 			if (isDenied) {
 				// Remove from deny list
-				updatedDeniedCommands = deniedCommands.filter((p) => p !== pattern)
+				const updatedDeniedCommands = deniedCommands.filter((p) => p !== pattern)
+				vscode.postMessage({
+					type: "deniedCommands",
+					commands: updatedDeniedCommands,
+				})
 			} else {
 				// Add to deny list
-				updatedDeniedCommands = [...deniedCommands, pattern]
-			}
+				const updatedDeniedCommands = [...deniedCommands, pattern]
+				vscode.postMessage({
+					type: "deniedCommands",
+					commands: updatedDeniedCommands,
+				})
 
-			// Send message to update denied commands
-			vscode.postMessage({
-				type: "deniedCommands",
-				commands: updatedDeniedCommands,
-			})
+				// If it's in the allowed list, remove it
+				if (allowedCommands.includes(pattern)) {
+					const updatedAllowedCommands = allowedCommands.filter((p) => p !== pattern)
+					vscode.postMessage({
+						type: "allowedCommands",
+						commands: updatedAllowedCommands,
+					})
+				}
+			}
 		},
-		[deniedCommands],
+		[deniedCommands, allowedCommands],
 	)
 
 	return (
