@@ -34,7 +34,7 @@ export async function* runClaudeCode(
 	const { process, tempFileCleanup } = await runProcess(options)
 
 	const rl = readline.createInterface({
-		input: process.stdout,
+		input: process.stdout!,
 	})
 
 	try {
@@ -45,7 +45,7 @@ export async function* runClaudeCode(
 			partialData: null,
 		}
 
-		process.stderr.on("data", (data) => {
+		process.stderr?.on("data", (data) => {
 			processState.stderrLogs += data.toString()
 		})
 
