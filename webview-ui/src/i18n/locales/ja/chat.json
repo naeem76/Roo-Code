@@ -190,10 +190,18 @@
 		"wantsToViewDefinitionsOutsideWorkspace": "Rooはこのディレクトリ（ワークスペース外）で使用されているソースコード定義名を表示したい:",
 		"didViewDefinitionsOutsideWorkspace": "Rooはこのディレクトリ（ワークスペース外）で使用されているソースコード定義名を表示しました:"
 	},
-	"command": {
-		"addToWhitelist": "許可された自動実行コマンドに追加",
-		"whitelistDescription": "今後自動的に承認するコマンドパターンを選択してください:",
-		"addSelected": "選択したパターンを追加"
+	"commandExecution": {
+		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
+		"running": "Running",
+		"pid": "PID: {{pid}}",
+		"exited": "Exited ({{exitCode}})",
+		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
+		"manageCommands": "コマンド権限の管理",
+		"commandManagementDescription": "コマンド権限の管理: ✓ をクリックして自動実行を許可、✗ をクリックして実行を拒否します。パターンはリストでオン/オフを切り替えたり、リストから削除したりできます。<settingsLink>すべての設定を表示</settingsLink>",
+		"addToAllowed": "許可リストに追加",
+		"removeFromAllowed": "許可リストから削除",
+		"addToDenied": "拒否リストに追加",
+		"removeFromDenied": "拒否リストから削除"
 	},
 	"commandOutput": "コマンド出力",
 	"response": "応答",
@@ -330,7 +338,11 @@
 		"pid": "PID: {{pid}}",
 		"exited": "Exited ({{exitCode}})",
 		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
-		"allowAllNpmRun": "Allow all npm run commands",
-		"allowAllNpm": "Allow all npm commands"
+		"manageCommands": "コマンド権限の管理",
+		"commandManagementDescription": "コマンド権限の管理: ✓ をクリックして自動実行を許可、✗ をクリックして実行を拒否します。パターンはリストでオン/オフを切り替えたり、リストから削除したりできます。<settingsLink>すべての設定を表示</settingsLink>",
+		"addToAllowed": "許可リストに追加",
+		"removeFromAllowed": "許可リストから削除",
+		"addToDenied": "拒否リストに追加",
+		"removeFromDenied": "拒否リストから削除"
 	}
 }

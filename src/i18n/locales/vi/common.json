@@ -103,7 +103,8 @@
 		"public_share_link_copied": "Liên kết chia sẻ công khai đã được sao chép vào clipboard!",
 		"mode_exported": "Chế độ '{{mode}}' đã được xuất thành công",
 		"mode_imported": "Chế độ đã được nhập thành công",
-		"command_whitelisted": "Mẫu lệnh '{{pattern}}' đã được thêm vào danh sách lệnh được phép"
+		"command_whitelisted": "Mẫu lệnh '{{pattern}}' đã được thêm vào danh sách lệnh được phép",
+		"command_denied": "Mẫu lệnh '{{pattern}}' đã được thêm vào danh sách lệnh bị từ chối"
 	},
 	"answers": {
 		"yes": "Có",

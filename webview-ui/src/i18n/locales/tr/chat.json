@@ -190,10 +190,18 @@
 		"wantsToViewDefinitionsOutsideWorkspace": "Roo bu dizinde (çalışma alanı dışında) kullanılan kaynak kod tanımlama isimlerini görüntülemek istiyor:",
 		"didViewDefinitionsOutsideWorkspace": "Roo bu dizinde (çalışma alanı dışında) kullanılan kaynak kod tanımlama isimlerini görüntüledi:"
 	},
-	"command": {
-		"addToWhitelist": "İzin Verilen Otomatik Yürütme Komutlarına Ekle",
-		"whitelistDescription": "Gelecekte otomatik olarak onaylanacak komut desenlerini seçin:",
-		"addSelected": "Seçili Desenleri Ekle"
+	"commandExecution": {
+		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
+		"running": "Running",
+		"pid": "PID: {{pid}}",
+		"exited": "Exited ({{exitCode}})",
+		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
+		"manageCommands": "Komut İzinlerini Yönet",
+		"commandManagementDescription": "Komut izinlerini yönetin: Otomatik yürütmeye izin vermek için ✓'e, yürütmeyi reddetmek için ✗'e tıklayın. Desenler listelerden açılıp kapatılabilir veya kaldırılabilir. <settingsLink>Tüm ayarları görüntüle</settingsLink>",
+		"addToAllowed": "İzin verilenler listesine ekle",
+		"removeFromAllowed": "İzin verilenler listesinden kaldır",
+		"addToDenied": "Reddedilenler listesine ekle",
+		"removeFromDenied": "Reddedilenler listesinden kaldır"
 	},
 	"commandOutput": "Komut Çıktısı",
 	"response": "Yanıt",
@@ -330,7 +338,11 @@
 		"pid": "PID: {{pid}}",
 		"exited": "Exited ({{exitCode}})",
 		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
-		"allowAllNpmRun": "Allow all npm run commands",
-		"allowAllNpm": "Allow all npm commands"
+		"manageCommands": "Komut İzinlerini Yönet",
+		"commandManagementDescription": "Komut izinlerini yönetin: Otomatik yürütmeye izin vermek için ✓'e, yürütmeyi reddetmek için ✗'e tıklayın. Desenler listelerden açılıp kapatılabilir veya kaldırılabilir. <settingsLink>Tüm ayarları görüntüle</settingsLink>",
+		"addToAllowed": "İzin verilenler listesine ekle",
+		"removeFromAllowed": "İzin verilenler listesinden kaldır",
+		"addToDenied": "Reddedilenler listesine ekle",
+		"removeFromDenied": "Reddedilenler listesinden kaldır"
 	}
 }

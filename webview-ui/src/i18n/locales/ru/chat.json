@@ -185,10 +185,18 @@
 		"wantsToViewDefinitionsOutsideWorkspace": "Roo хочет просмотреть имена определений исходного кода в этой директории (вне рабочего пространства):",
 		"didViewDefinitionsOutsideWorkspace": "Roo просмотрел имена определений исходного кода в этой директории (вне рабочего пространства):"
 	},
-	"command": {
-		"addToWhitelist": "Добавить в разрешенные для автоматического выполнения команды",
-		"whitelistDescription": "Выберите шаблоны команд для автоматического утверждения в будущем:",
-		"addSelected": "Добавить выбранные шаблоны"
+	"commandExecution": {
+		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
+		"running": "Running",
+		"pid": "PID: {{pid}}",
+		"exited": "Exited ({{exitCode}})",
+		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
+		"manageCommands": "Управление разрешениями команд",
+		"commandManagementDescription": "Управление разрешениями команд: Нажмите ✓, чтобы разрешить автоматическое выполнение, ✗, чтобы запретить выполнение. Шаблоны можно включать/выключать или удалять из списков. <settingsLink>Просмотреть все настройки</settingsLink>",
+		"addToAllowed": "Добавить в разрешенный список",
+		"removeFromAllowed": "Удалить из разрешенного списка",
+		"addToDenied": "Добавить в запрещенный список",
+		"removeFromDenied": "Удалить из запрещенного списка"
 	},
 	"commandOutput": "Вывод команды",
 	"response": "Ответ",
@@ -330,7 +338,11 @@
 		"pid": "PID: {{pid}}",
 		"exited": "Exited ({{exitCode}})",
 		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
-		"allowAllNpmRun": "Allow all npm run commands",
-		"allowAllNpm": "Allow all npm commands"
+		"manageCommands": "Управление разрешениями команд",
+		"commandManagementDescription": "Управление разрешениями команд: Нажмите ✓, чтобы разрешить автоматическое выполнение, ✗, чтобы запретить выполнение. Шаблоны можно включать/выключать или удалять из списков. <settingsLink>Просмотреть все настройки</settingsLink>",
+		"addToAllowed": "Добавить в разрешенный список",
+		"removeFromAllowed": "Удалить из разрешенного списка",
+		"addToDenied": "Добавить в запрещенный список",
+		"removeFromDenied": "Удалить из запрещенного списка"
 	}
 }

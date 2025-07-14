@@ -190,10 +190,18 @@
 		"wantsToViewDefinitionsOutsideWorkspace": "Roo想查看此目录中使用的源代码定义名称（工作区外）:",
 		"didViewDefinitionsOutsideWorkspace": "Roo已查看此目录中使用的源代码定义名称（工作区外）:"
 	},
-	"command": {
-		"addToWhitelist": "添加到允许的自动执行命令",
-		"whitelistDescription": "选择将来要自动批准的命令模式：",
-		"addSelected": "添加选定的模式"
+	"commandExecution": {
+		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
+		"running": "运行中",
+		"pid": "PID: {{pid}}",
+		"exited": "已退出 ({{exitCode}})",
+		"addToAllowedCommands": "添加到允许的自动执行命令",
+		"manageCommands": "管理命令权限",
+		"commandManagementDescription": "管理命令权限：点击 ✓ 以允许自动执行，点击 ✗ 以拒绝执行。可以在列表中切换模式或将其从列表中删除。 <settingsLink>查看所有设置</settingsLink>",
+		"addToAllowed": "添加到允许列表",
+		"removeFromAllowed": "从允许列表中删除",
+		"addToDenied": "添加到拒绝列表",
+		"removeFromDenied": "从拒绝列表中删除"
 	},
 	"commandOutput": "命令输出",
 	"response": "响应",
@@ -330,7 +338,11 @@
 		"pid": "PID: {{pid}}",
 		"exited": "已退出 ({{exitCode}})",
 		"addToAllowedCommands": "添加到允许的自动执行命令",
-		"allowAllNpmRun": "允许所有 npm run 命令",
-		"allowAllNpm": "允许所有 npm 命令"
+		"manageCommands": "管理命令权限",
+		"commandManagementDescription": "管理命令权限：点击 ✓ 以允许自动执行，点击 ✗ 以拒绝执行。可以在列表中切换模式或将其从列表中删除。 <settingsLink>查看所有设置</settingsLink>",
+		"addToAllowed": "添加到允许列表",
+		"removeFromAllowed": "从允许列表中删除",
+		"addToDenied": "添加到拒绝列表",
+		"removeFromDenied": "从拒绝列表中删除"
 	}
 }

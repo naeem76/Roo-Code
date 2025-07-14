@@ -103,7 +103,8 @@
 		"public_share_link_copied": "Openbare deel-link gekopieerd naar klembord!",
 		"mode_exported": "Modus '{{mode}}' succesvol geëxporteerd",
 		"mode_imported": "Modus succesvol geïmporteerd",
-		"command_whitelisted": "Commandopatroon '{{pattern}}' is toegevoegd aan de lijst met toegestane commando's"
+		"command_whitelisted": "Commandopatroon '{{pattern}}' is toegevoegd aan de lijst met toegestane commando's",
+		"command_denied": "Commandopatroon '{{pattern}}' is toegevoegd aan de lijst met geweigerde commando's"
 	},
 	"answers": {
 		"yes": "Ja",

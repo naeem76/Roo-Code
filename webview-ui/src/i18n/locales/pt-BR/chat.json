@@ -190,10 +190,18 @@
 		"wantsToViewDefinitionsOutsideWorkspace": "Roo quer visualizar nomes de definição de código-fonte usados neste diretório (fora do espaço de trabalho):",
 		"didViewDefinitionsOutsideWorkspace": "Roo visualizou nomes de definição de código-fonte usados neste diretório (fora do espaço de trabalho):"
 	},
-	"command": {
-		"addToWhitelist": "Adicionar aos Comandos de Execução Automática Permitidos",
-		"whitelistDescription": "Selecione padrões de comando para aprovar automaticamente no futuro:",
-		"addSelected": "Adicionar Padrões Selecionados"
+	"commandExecution": {
+		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
+		"running": "Running",
+		"pid": "PID: {{pid}}",
+		"exited": "Exited ({{exitCode}})",
+		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
+		"manageCommands": "Gerenciar Permissões de Comando",
+		"commandManagementDescription": "Gerencie as permissões de comando: Clique em ✓ para permitir a execução automática, ✗ para negar a execução. Os padrões possono ser ativados/desativados ou removidos das listas. <settingsLink>Ver todas as configurações</settingsLink>",
+		"addToAllowed": "Adicionar à lista de permitidos",
+		"removeFromAllowed": "Remover da lista de permitidos",
+		"addToDenied": "Adicionar à lista de negados",
+		"removeFromDenied": "Remover da lista de negados"
 	},
 	"commandOutput": "Saída do comando",
 	"response": "Resposta",
@@ -330,7 +338,11 @@
 		"pid": "PID: {{pid}}",
 		"exited": "Exited ({{exitCode}})",
 		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
-		"allowAllNpmRun": "Allow all npm run commands",
-		"allowAllNpm": "Allow all npm commands"
+		"manageCommands": "Gerenciar Permissões de Comando",
+		"commandManagementDescription": "Gerencie as permissões de comando: Clique em ✓ para permitir a execução automática, ✗ para negar a execução. Os padrões possono ser ativados/desativados ou removidos das listas. <settingsLink>Ver todas as configurações</settingsLink>",
+		"addToAllowed": "Adicionar à lista de permitidos",
+		"removeFromAllowed": "Remover da lista de permitidos",
+		"addToDenied": "Adicionar à lista de negados",
+		"removeFromDenied": "Remover da lista de negados"
 	}
 }

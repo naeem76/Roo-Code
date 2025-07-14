@@ -103,7 +103,8 @@
 		"public_share_link_copied": "Herkese açık paylaşım bağlantısı panoya kopyalandı!",
 		"mode_exported": "'{{mode}}' modu başarıyla dışa aktarıldı",
 		"mode_imported": "Mod başarıyla içe aktarıldı",
-		"command_whitelisted": "'{{pattern}}' komut deseni izin verilen komutlar listesine eklendi"
+		"command_whitelisted": "'{{pattern}}' komut deseni izin verilen komutlar listesine eklendi",
+		"command_denied": "'{{pattern}}' komut deseni reddedilen komutlar listesine eklendi"
 	},
 	"answers": {
 		"yes": "Evet",

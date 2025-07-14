@@ -185,10 +185,18 @@
 		"wantsToViewDefinitionsOutsideWorkspace": "Roo wil broncode-definitienamen bekijken die in deze map (buiten werkruimte) worden gebruikt:",
 		"didViewDefinitionsOutsideWorkspace": "Roo heeft broncode-definitienamen bekeken die in deze map (buiten werkruimte) worden gebruikt:"
 	},
-	"command": {
-		"addToWhitelist": "Toevoegen aan toegestane automatisch uit te voeren commando's",
-		"whitelistDescription": "Selecteer commandopatronen om in de toekomst automatisch goed te keuren:",
-		"addSelected": "Geselecteerde patronen toevoegen"
+	"commandExecution": {
+		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
+		"running": "Running",
+		"pid": "PID: {{pid}}",
+		"exited": "Exited ({{exitCode}})",
+		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
+		"manageCommands": "Beheer Commando Permissies",
+		"commandManagementDescription": "Beheer commando permissies: Klik ✓ om automatisch uitvoeren toe te staan, ✗ om uitvoeren te weigeren. Patronen kunnen aan/uit worden gezet of uit lijsten worden verwijderd. <settingsLink>Bekijk alle instellingen</settingsLink>",
+		"addToAllowed": "Toevoegen aan toegestane lijst",
+		"removeFromAllowed": "Verwijderen van toegestane lijst",
+		"addToDenied": "Toevoegen aan geweigerde lijst",
+		"removeFromDenied": "Verwijderen van geweigerde lijst"
 	},
 	"commandOutput": "Commando-uitvoer",
 	"response": "Antwoord",
@@ -330,7 +338,11 @@
 		"pid": "PID: {{pid}}",
 		"exited": "Exited ({{exitCode}})",
 		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
-		"allowAllNpmRun": "Allow all npm run commands",
-		"allowAllNpm": "Allow all npm commands"
+		"manageCommands": "Beheer Commando Permissies",
+		"commandManagementDescription": "Beheer commando permissies: Klik ✓ om automatisch uitvoeren toe te staan, ✗ om uitvoeren te weigeren. Patronen kunnen aan/uit worden gezet of uit lijsten worden verwijderd. <settingsLink>Bekijk alle instellingen</settingsLink>",
+		"addToAllowed": "Toevoegen aan toegestane lijst",
+		"removeFromAllowed": "Verwijderen van toegestane lijst",
+		"addToDenied": "Toevoegen aan geweigerde lijst",
+		"removeFromDenied": "Verwijderen van geweigerde lijst"
 	}
 }

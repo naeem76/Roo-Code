@@ -190,10 +190,18 @@
 		"wantsToViewDefinitionsOutsideWorkspace": "Roo chce zobaczyć nazwy definicji kodu źródłowego używane w tym katalogu (poza obszarem roboczym):",
 		"didViewDefinitionsOutsideWorkspace": "Roo zobaczył nazwy definicji kodu źródłowego używane w tym katalogu (poza obszarem roboczym):"
 	},
-	"command": {
-		"addToWhitelist": "Dodaj do dozwolonych poleceń automatycznego wykonywania",
-		"whitelistDescription": "Wybierz wzorce poleceń do automatycznego zatwierdzania w przyszłości:",
-		"addSelected": "Dodaj wybrane wzorce"
+	"commandExecution": {
+		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
+		"running": "Running",
+		"pid": "PID: {{pid}}",
+		"exited": "Exited ({{exitCode}})",
+		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
+		"manageCommands": "Zarządzaj uprawnieniami poleceń",
+		"commandManagementDescription": "Zarządzaj uprawnieniami poleceń: Kliknij ✓, aby zezwolić na automatyczne wykonywanie, ✗, aby odmówić wykonania. Wzorce można włączać/wyłączać lub usuwać z list. <settingsLink>Zobacz wszystkie ustawienia</settingsLink>",
+		"addToAllowed": "Dodaj do dozwolonych",
+		"removeFromAllowed": "Usuń z dozwolonych",
+		"addToDenied": "Dodaj do odrzuconych",
+		"removeFromDenied": "Usuń z odrzuconych"
 	},
 	"commandOutput": "Wyjście polecenia",
 	"response": "Odpowiedź",
@@ -330,7 +338,11 @@
 		"pid": "PID: {{pid}}",
 		"exited": "Exited ({{exitCode}})",
 		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
-		"allowAllNpmRun": "Allow all npm run commands",
-		"allowAllNpm": "Allow all npm commands"
+		"manageCommands": "Zarządzaj uprawnieniami poleceń",
+		"commandManagementDescription": "Zarządzaj uprawnieniami poleceń: Kliknij ✓, aby zezwolić na automatyczne wykonywanie, ✗, aby odmówić wykonania. Wzorce można włączać/wyłączać lub usuwać z list. <settingsLink>Zobacz wszystkie ustawienia</settingsLink>",
+		"addToAllowed": "Dodaj do dozwolonych",
+		"removeFromAllowed": "Usuń z dozwolonych",
+		"addToDenied": "Dodaj do odrzuconych",
+		"removeFromDenied": "Usuń z odrzuconych"
 	}
 }

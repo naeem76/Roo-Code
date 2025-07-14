@@ -190,10 +190,18 @@
 		"wantsToViewDefinitionsOutsideWorkspace": "Roo vuole visualizzare i nomi delle definizioni di codice sorgente utilizzate in questa directory (fuori dall'area di lavoro):",
 		"didViewDefinitionsOutsideWorkspace": "Roo ha visualizzato i nomi delle definizioni di codice sorgente utilizzate in questa directory (fuori dall'area di lavoro):"
 	},
-	"command": {
-		"addToWhitelist": "Aggiungi ai comandi ad esecuzione automatica consentiti",
-		"whitelistDescription": "Seleziona i modelli di comando da approvare automaticamente in futuro:",
-		"addSelected": "Aggiungi modelli selezionati"
+	"commandExecution": {
+		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
+		"running": "Running",
+		"pid": "PID: {{pid}}",
+		"exited": "Exited ({{exitCode}})",
+		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
+		"manageCommands": "Gestisci autorizzazioni comandi",
+		"commandManagementDescription": "Gestisci autorizzazioni comandi: Clicca ✓ per consentire l'esecuzione automatica, ✗ per negarla. I pattern possono essere attivati/disattivati o rimossi dagli elenchi. <settingsLink>Visualizza tutte le impostazioni</settingsLink>",
+		"addToAllowed": "Aggiungi alla lista consentiti",
+		"removeFromAllowed": "Rimuovi dalla lista consentiti",
+		"addToDenied": "Aggiungi alla lista negati",
+		"removeFromDenied": "Rimuovi dalla lista negati"
 	},
 	"commandOutput": "Output del comando",
 	"response": "Risposta",
@@ -330,7 +338,11 @@
 		"pid": "PID: {{pid}}",
 		"exited": "Exited ({{exitCode}})",
 		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
-		"allowAllNpmRun": "Allow all npm run commands",
-		"allowAllNpm": "Allow all npm commands"
+		"manageCommands": "Gestisci autorizzazioni comandi",
+		"commandManagementDescription": "Gestisci autorizzazioni comandi: Clicca ✓ per consentire l'esecuzione automatica, ✗ per negarla. I pattern possono essere attivati/disattivati o rimossi dagli elenchi. <settingsLink>Visualizza tutte le impostazioni</settingsLink>",
+		"addToAllowed": "Aggiungi alla lista consentiti",
+		"removeFromAllowed": "Rimuovi dalla lista consentiti",
+		"addToDenied": "Aggiungi alla lista negati",
+		"removeFromDenied": "Rimuovi dalla lista negati"
 	}
 }

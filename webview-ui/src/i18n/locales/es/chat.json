@@ -190,10 +190,18 @@
 		"wantsToViewDefinitionsOutsideWorkspace": "Roo quiere ver nombres de definiciones de código fuente utilizados en este directorio (fuera del espacio de trabajo):",
 		"didViewDefinitionsOutsideWorkspace": "Roo vio nombres de definiciones de código fuente utilizados en este directorio (fuera del espacio de trabajo):"
 	},
-	"command": {
-		"addToWhitelist": "Añadir a los comandos de ejecución automática permitidos",
-		"whitelistDescription": "Selecciona patrones de comandos para aprobar automáticamente en el futuro:",
-		"addSelected": "Añadir patrones seleccionados"
+	"commandExecution": {
+		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
+		"running": "Running",
+		"pid": "PID: {{pid}}",
+		"exited": "Exited ({{exitCode}})",
+		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
+		"manageCommands": "Administrar permisos de comandos",
+		"commandManagementDescription": "Administrar permisos de comandos: Haz clic en ✓ para permitir la ejecución automática, ✗ para denegar la ejecución. Los patrones se pueden activar/desactivar o eliminar de las listas. <settingsLink>Ver todos los ajustes</settingsLink>",
+		"addToAllowed": "Añadir a la lista de permitidos",
+		"removeFromAllowed": "Eliminar de la lista de permitidos",
+		"addToDenied": "Añadir a la lista de denegados",
+		"removeFromDenied": "Eliminar de la lista de denegados"
 	},
 	"commandOutput": "Salida del comando",
 	"response": "Respuesta",
@@ -330,7 +338,11 @@
 		"pid": "PID: {{pid}}",
 		"exited": "Exited ({{exitCode}})",
 		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
-		"allowAllNpmRun": "Allow all npm run commands",
-		"allowAllNpm": "Allow all npm commands"
+		"manageCommands": "Administrar permisos de comandos",
+		"commandManagementDescription": "Administrar permisos de comandos: Haz clic en ✓ para permitir la ejecución automática, ✗ para denegar la ejecución. Los patrones se pueden activar/desactivar o eliminar de las listas. <settingsLink>Ver todos los ajustes</settingsLink>",
+		"addToAllowed": "Añadir a la lista de permitidos",
+		"removeFromAllowed": "Eliminar de la lista de permitidos",
+		"addToDenied": "Añadir a la lista de denegados",
+		"removeFromDenied": "Eliminar de la lista de denegados"
 	}
 }

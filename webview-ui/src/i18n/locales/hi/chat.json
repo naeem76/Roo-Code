@@ -190,10 +190,18 @@
 		"wantsToViewDefinitionsOutsideWorkspace": "Roo इस निर्देशिका (कार्यक्षेत्र के बाहर) में उपयोग किए गए सोर्स कोड परिभाषा नामों को देखना चाहता है:",
 		"didViewDefinitionsOutsideWorkspace": "Roo ने इस निर्देशिका (कार्यक्षेत्र के बाहर) में उपयोग किए गए सोर्स कोड परिभाषा नामों को देखा:"
 	},
-	"command": {
-		"addToWhitelist": "अनुमत ऑटो-एक्ज़ीक्यूट कमांड में जोड़ें",
-		"whitelistDescription": "भविष्य में स्वचालित रूप से स्वीकृत करने के लिए कमांड पैटर्न चुनें:",
-		"addSelected": "चयनित पैटर्न जोड़ें"
+	"commandExecution": {
+		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
+		"running": "Running",
+		"pid": "PID: {{pid}}",
+		"exited": "Exited ({{exitCode}})",
+		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
+		"manageCommands": "कमांड अनुमतियाँ प्रबंधित करें",
+		"commandManagementDescription": "कमांड अनुमतियाँ प्रबंधित करें: ऑटो-निष्पादन की अनुमति देने के लिए ✓ पर क्लिक करें, निष्पादन से इनकार करने के लिए ✗ पर क्लिक करें। पैटर्न को सूचियों से चालू/बंद या हटाया जा सकता है। <settingsLink>सभी सेटिंग्स देखें</settingsLink>",
+		"addToAllowed": "अनुमत सूची में जोड़ें",
+		"removeFromAllowed": "अनुमत सूची से हटाएं",
+		"addToDenied": "अस्वीकृत सूची में जोड़ें",
+		"removeFromDenied": "अस्वीकृत सूची से हटाएं"
 	},
 	"commandOutput": "कमांड आउटपुट",
 	"response": "प्रतिक्रिया",
@@ -330,7 +338,11 @@
 		"pid": "PID: {{pid}}",
 		"exited": "Exited ({{exitCode}})",
 		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
-		"allowAllNpmRun": "Allow all npm run commands",
-		"allowAllNpm": "Allow all npm commands"
+		"manageCommands": "कमांड अनुमतियाँ प्रबंधित करें",
+		"commandManagementDescription": "कमांड अनुमतियाँ प्रबंधित करें: ऑटो-निष्पादन की अनुमति देने के लिए ✓ पर क्लिक करें, निष्पादन से इनकार करने के लिए ✗ पर क्लिक करें। पैटर्न को सूचियों से चालू/बंद या हटाया जा सकता है। <settingsLink>सभी सेटिंग्स देखें</settingsLink>",
+		"addToAllowed": "अनुमत सूची में जोड़ें",
+		"removeFromAllowed": "अनुमत सूची से हटाएं",
+		"addToDenied": "अस्वीकृत सूची में जोड़ें",
+		"removeFromDenied": "अस्वीकृत सूची से हटाएं"
 	}
 }

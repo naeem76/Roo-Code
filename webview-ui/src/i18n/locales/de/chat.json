@@ -190,10 +190,18 @@
 		"wantsToViewDefinitionsOutsideWorkspace": "Roo möchte Quellcode-Definitionsnamen in diesem Verzeichnis (außerhalb des Arbeitsbereichs) anzeigen:",
 		"didViewDefinitionsOutsideWorkspace": "Roo hat Quellcode-Definitionsnamen in diesem Verzeichnis (außerhalb des Arbeitsbereichs) angezeigt:"
 	},
-	"command": {
-		"addToWhitelist": "Zu den erlaubten automatisch auszuführenden Befehlen hinzufügen",
-		"whitelistDescription": "Wähle Befehlsmuster aus, die in Zukunft automatisch genehmigt werden sollen:",
-		"addSelected": "Ausgewählte Muster hinzufügen"
+	"commandExecution": {
+		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
+		"running": "Running",
+		"pid": "PID: {{pid}}",
+		"exited": "Exited ({{exitCode}})",
+		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
+		"manageCommands": "Befehlsberechtigungen verwalten",
+		"commandManagementDescription": "Befehlsberechtigungen verwalten: Klicke auf ✓, um die automatische Ausführung zu erlauben, ✗, um die Ausführung zu verweigern. Muster können in Listen ein- und ausgeschaltet oder entfernt werden. <settingsLink>Alle Einstellungen anzeigen</settingsLink>",
+		"addToAllowed": "Zur erlaubten Liste hinzufügen",
+		"removeFromAllowed": "Von erlaubter Liste entfernen",
+		"addToDenied": "Zur verweigerten Liste hinzufügen",
+		"removeFromDenied": "Von verweigerter Liste entfernen"
 	},
 	"commandOutput": "Befehlsausgabe",
 	"response": "Antwort",
@@ -330,7 +338,11 @@
 		"pid": "PID: {{pid}}",
 		"exited": "Exited ({{exitCode}})",
 		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
-		"allowAllNpmRun": "Allow all npm run commands",
-		"allowAllNpm": "Allow all npm commands"
+		"manageCommands": "Befehlsberechtigungen verwalten",
+		"commandManagementDescription": "Befehlsberechtigungen verwalten: Klicke auf ✓, um die automatische Ausführung zu erlauben, ✗, um die Ausführung zu verweigern. Muster können in Listen ein- und ausgeschaltet oder entfernt werden. <settingsLink>Alle Einstellungen anzeigen</settingsLink>",
+		"addToAllowed": "Zur erlaubten Liste hinzufügen",
+		"removeFromAllowed": "Von erlaubter Liste entfernen",
+		"addToDenied": "Zur verweigerten Liste hinzufügen",
+		"removeFromDenied": "Von verweigerter Liste entfernen"
 	}
 }
