@@ -57,6 +57,11 @@
 		"delete_warning": "刪除此訊息將刪除對話中的所有後續訊息。是否繼續？",
 		"edit_message": "編輯訊息",
 		"edit_warning": "編輯此訊息將刪除對話中的所有後續訊息。是否繼續？",
+		"edit_question_with_checkpoint": "編輯此訊息將刪除對話中的所有後續訊息。是否同時將程式碼變更撤銷到此存檔點？",
+		"delete_question_with_checkpoint": "刪除此訊息將刪除對話中的所有後續訊息。是否同時將程式碼變更撤銷到此存檔點？",
+		"edit_only": "否，僅編輯訊息",
+		"delete_only": "否，僅刪除訊息",
+		"restore_to_checkpoint": "是，恢復程式碼到存檔點",
 		"proceed": "繼續",
 		"dont_show_again": "不再顯示"
 	}

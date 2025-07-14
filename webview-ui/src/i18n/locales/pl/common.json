@@ -57,6 +57,11 @@
 		"delete_warning": "Usunięcie tej wiadomości spowoduje usunięcie wszystkich kolejnych wiadomości w rozmowie. Czy chcesz kontynuować?",
 		"edit_message": "Edytuj Wiadomość",
 		"edit_warning": "Edycja tej wiadomości spowoduje usunięcie wszystkich kolejnych wiadomości w rozmowie. Czy chcesz kontynuować?",
+		"edit_question_with_checkpoint": "Edycja tej wiadomości spowoduje usunięcie wszystkich późniejszych wiadomości w rozmowie. Czy chcesz również cofnąć wszystkie zmiany w kodzie do tego punktu kontrolnego?",
+		"delete_question_with_checkpoint": "Usunięcie tej wiadomości spowoduje usunięcie wszystkich późniejszych wiadomości w rozmowie. Czy chcesz również cofnąć wszystkie zmiany w kodzie do tego punktu kontrolnego?",
+		"edit_only": "Nie, tylko edytuj wiadomość",
+		"delete_only": "Nie, tylko usuń wiadomość",
+		"restore_to_checkpoint": "Tak, przywróć kod do punktu kontrolnego",
 		"proceed": "Kontynuuj",
 		"dont_show_again": "Nie pokazuj ponownie"
 	}

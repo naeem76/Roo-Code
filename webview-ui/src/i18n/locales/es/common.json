@@ -57,6 +57,11 @@
 		"delete_warning": "Eliminar este mensaje eliminará todos los mensajes posteriores en la conversación. ¿Deseas continuar?",
 		"edit_message": "Editar mensaje",
 		"edit_warning": "Editar este mensaje eliminará todos los mensajes posteriores en la conversación. ¿Deseas continuar?",
+		"edit_question_with_checkpoint": "Editar este mensaje eliminará todos los mensajes posteriores en la conversación. ¿También deseas deshacer todos los cambios de código hasta este punto de control?",
+		"delete_question_with_checkpoint": "Eliminar este mensaje eliminará todos los mensajes posteriores en la conversación. ¿También deseas deshacer todos los cambios de código hasta este punto de control?",
+		"edit_only": "No, solo editar el mensaje",
+		"delete_only": "No, solo eliminar el mensaje",
+		"restore_to_checkpoint": "Sí, restaurar código al punto de control",
 		"proceed": "Continuar",
 		"dont_show_again": "No mostrar esto de nuevo"
 	}

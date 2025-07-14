@@ -57,6 +57,11 @@
 		"delete_warning": "이 메시지를 삭제하면 대화의 모든 후속 메시지가 삭제됩니다. 계속하시겠습니까?",
 		"edit_message": "메시지 편집",
 		"edit_warning": "이 메시지를 편집하면 대화의 모든 후속 메시지가 삭제됩니다. 계속하시겠습니까?",
+		"edit_question_with_checkpoint": "이 메시지를 편집하면 대화의 모든 후속 메시지가 삭제됩니다. 이 체크포인트까지의 모든 코드 변경사항도 되돌리시겠습니까?",
+		"delete_question_with_checkpoint": "이 메시지를 삭제하면 대화의 모든 후속 메시지가 삭제됩니다. 이 체크포인트까지의 모든 코드 변경사항도 되돌리시겠습니까?",
+		"edit_only": "아니요, 메시지만 편집",
+		"delete_only": "아니요, 메시지만 삭제",
+		"restore_to_checkpoint": "예, 코드를 체크포인트로 복원",
 		"proceed": "계속",
 		"dont_show_again": "다시 표시하지 않음"
 	}
