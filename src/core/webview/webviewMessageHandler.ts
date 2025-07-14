@@ -842,9 +842,7 @@ export const webviewMessageHandler = async (
 						.update("deniedCommands", validCommands, vscode.ConfigurationTarget.Global)
 
 					// Show confirmation to the user
-					vscode.window.showInformationMessage(
-						t("common:info.command_denied", { pattern: message.pattern }),
-					)
+					vscode.window.showInformationMessage(t("common:info.command_denied", { pattern: message.pattern }))
 
 					// Update the webview state
 					await provider.postStateToWebview()
