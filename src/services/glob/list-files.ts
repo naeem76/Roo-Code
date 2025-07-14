@@ -181,6 +181,7 @@ async function listFilesWithRipgrep(
 ): Promise<string[]> {
 	const absolutePath = path.resolve(dirPath)
 	const rgArgs = buildRipgrepArgs(absolutePath, recursive)
+
 	return execRipgrep(rgPath, rgArgs, limit)
 }
 
@@ -242,15 +243,21 @@ function buildRecursiveArgs(dirPath: string): string[] {
 			continue
 		}
 
-		// When targeting a directory that's in the ignore list, modify the exclusion pattern
-		// to only exclude nested directories with the same name, not the root level
+		// When explicitly targeting a directory that's in the ignore list (e.g., "temp"),
+		// we need special handling:
+		// - Don't add any exclusion pattern for the target directory itself
+		// - Only exclude nested subdirectories with the same name
+		// This ensures all files in the target directory are listed, while still
+		// preventing recursion into nested directories with the same ignored name
 		if (dir === targetDirName && isTargetInIgnoreList) {
-			// Only exclude subdirectories, not files at the root level
-			args.push("-g", `!*/${dir}/**`)
-		} else {
-			args.push("-g", `!**/${dir}/**`)
+			// Skip adding any exclusion pattern - we want to see everything in the target directory
+			continue
 		}
+
+		// For all other cases, exclude the directory pattern globally
+		args.push("-g", `!**/${dir}/**`)
 	}
+
 	return args
 }
 
@@ -373,6 +380,7 @@ async function listFilteredDirectories(
 					// Subdirectories found during scanning are never target directories themselves
 					if (shouldIncludeDirectory(dirName, fullDirPath, dirPath, ignoreInstance, false, insideExplicitHiddenTarget)) {
 						// Add the directory to our results (with trailing slash)
+						// fullDirPath is already absolute since it's built with path.join from absolutePath
 						const formattedPath = fullDirPath.endsWith("/") ? fullDirPath : `${fullDirPath}/`
 						directories.push(formattedPath)
 					}
@@ -543,6 +551,9 @@ function formatAndCombineResults(files: string[], directories: string[], limit: 
  */
 async function execRipgrep(rgPath: string, args: string[], limit: number): Promise<string[]> {
 	return new Promise((resolve, reject) => {
+		// Extract the directory path from args (it's the last argument)
+		const searchDir = args[args.length - 1]
+
 		const rgProcess = childProcess.spawn(rgPath, args)
 		let output = ""
 		let results: string[] = []
@@ -608,7 +619,9 @@ async function execRipgrep(rgPath: string, args: string[], limit: number): Promi
 			// Process each complete line
 			for (const line of lines) {
 				if (line.trim() && results.length < limit) {
-					results.push(line)
+					// Convert relative path from ripgrep to absolute path
+					const absolutePath = path.resolve(searchDir, line)
+					results.push(absolutePath)
 				} else if (results.length >= limit) {
 					break
 				}
