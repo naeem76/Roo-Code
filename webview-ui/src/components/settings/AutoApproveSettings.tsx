@@ -136,25 +136,30 @@ export const AutoApproveSettings = ({
 		<div {...props}>
 			<SectionHeader description={t("settings:autoApprove.description")}>
 				<div className="flex items-center gap-2">
-					<StandardTooltip content={!hasEnabledOptions ? t("settings:autoApprove.selectOptionsFirst") : ""}>
+					{!hasEnabledOptions ? (
+						<StandardTooltip content={t("settings:autoApprove.selectOptionsFirst")}>
+							<VSCodeCheckbox
+								checked={effectiveAutoApprovalEnabled}
+								disabled={!hasEnabledOptions}
+								aria-label={t("settings:autoApprove.disabledAriaLabel")}
+								onChange={() => {
+									// Do nothing when no options are enabled
+									return
+								}}
+							/>
+						</StandardTooltip>
+					) : (
 						<VSCodeCheckbox
 							checked={effectiveAutoApprovalEnabled}
 							disabled={!hasEnabledOptions}
-							aria-label={
-								hasEnabledOptions
-									? t("settings:autoApprove.toggleAriaLabel")
-									: t("settings:autoApprove.disabledAriaLabel")
-							}
+							aria-label={t("settings:autoApprove.toggleAriaLabel")}
 							onChange={() => {
-								if (!hasEnabledOptions) {
-									return
-								}
 								const newValue = !(autoApprovalEnabled ?? false)
 								setAutoApprovalEnabled(newValue)
 								vscode.postMessage({ type: "autoApprovalEnabled", bool: newValue })
 							}}
 						/>
-					</StandardTooltip>
+					)}
 					<span className="codicon codicon-check w-4" />
 					<div>{t("settings:sections.autoApprove")}</div>
 				</div>

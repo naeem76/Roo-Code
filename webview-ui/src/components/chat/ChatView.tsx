@@ -38,6 +38,7 @@ import { useSelectedModel } from "@src/components/ui/hooks/useSelectedModel"
 import RooHero from "@src/components/welcome/RooHero"
 import RooTips from "@src/components/welcome/RooTips"
 import { StandardTooltip } from "@src/components/ui"
+import { useAutoApprovalState } from "@src/hooks/useAutoApprovalState"
 
 import TelemetryBanner from "../common/TelemetryBanner"
 import VersionIndicator from "../common/VersionIndicator"
@@ -959,6 +960,34 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		[deniedCommands],
 	)
 
+	// Create toggles object for useAutoApprovalState hook
+	const autoApprovalToggles = useMemo(
+		() => ({
+			alwaysAllowReadOnly,
+			alwaysAllowWrite,
+			alwaysAllowExecute,
+			alwaysAllowBrowser,
+			alwaysAllowMcp,
+			alwaysAllowModeSwitch,
+			alwaysAllowSubtasks,
+			alwaysAllowFollowupQuestions,
+			alwaysAllowUpdateTodoList,
+		}),
+		[
+			alwaysAllowReadOnly,
+			alwaysAllowWrite,
+			alwaysAllowExecute,
+			alwaysAllowBrowser,
+			alwaysAllowMcp,
+			alwaysAllowModeSwitch,
+			alwaysAllowSubtasks,
+			alwaysAllowFollowupQuestions,
+			alwaysAllowUpdateTodoList,
+		],
+	)
+
+	const { hasEnabledOptions } = useAutoApprovalState(autoApprovalToggles, autoApprovalEnabled)
+
 	const isAutoApproved = useCallback(
 		(message: ClineMessage | undefined) => {
 			// First check if auto-approval is enabled AND we have at least one permission
@@ -966,19 +995,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				return false
 			}
 
-			// Check if ANY auto-approve option is enabled
-			const hasAnyAutoApproveEnabled =
-				alwaysAllowReadOnly ||
-				alwaysAllowWrite ||
-				alwaysAllowBrowser ||
-				alwaysAllowExecute ||
-				alwaysAllowMcp ||
-				alwaysAllowModeSwitch ||
-				alwaysAllowSubtasks ||
-				alwaysAllowFollowupQuestions ||
-				alwaysAllowUpdateTodoList
-
-			if (!hasAnyAutoApproveEnabled) {
+			// Use the hook's result instead of duplicating the logic
+			if (!hasEnabledOptions) {
 				return false
 			}
 
@@ -1055,6 +1073,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		},
 		[
 			autoApprovalEnabled,
+			hasEnabledOptions,
 			alwaysAllowBrowser,
 			alwaysAllowReadOnly,
 			alwaysAllowReadOnlyOutsideWorkspace,

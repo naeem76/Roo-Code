@@ -198,26 +198,30 @@ const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 				}}
 				onClick={toggleExpanded}>
 				<div onClick={(e) => e.stopPropagation()}>
-					<StandardTooltip content={!hasEnabledOptions ? t("chat:autoApprove.selectOptionsFirst") : ""}>
+					{!hasEnabledOptions ? (
+						<StandardTooltip content={t("chat:autoApprove.selectOptionsFirst")}>
+							<VSCodeCheckbox
+								checked={effectiveAutoApprovalEnabled}
+								disabled={isCheckboxDisabled}
+								aria-label={t("chat:autoApprove.disabledAriaLabel")}
+								onChange={() => {
+									// Show a message or do nothing
+									return
+								}}
+							/>
+						</StandardTooltip>
+					) : (
 						<VSCodeCheckbox
 							checked={effectiveAutoApprovalEnabled}
 							disabled={isCheckboxDisabled}
-							aria-label={
-								hasEnabledOptions
-									? t("chat:autoApprove.toggleAriaLabel")
-									: t("chat:autoApprove.disabledAriaLabel")
-							}
+							aria-label={t("chat:autoApprove.toggleAriaLabel")}
 							onChange={() => {
-								if (!hasEnabledOptions) {
-									// Show a message or do nothing
-									return
-								}
 								const newValue = !(autoApprovalEnabled ?? false)
 								setAutoApprovalEnabled(newValue)
 								vscode.postMessage({ type: "autoApprovalEnabled", bool: newValue })
 							}}
 						/>
-					</StandardTooltip>
+					)}
 				</div>
 				<div
 					style={{
