@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { webviewMessageHandler } from "../webviewMessageHandler"
 import { saveTaskMessages } from "../../task-persistence"
-import { checkpointRestore } from "../../checkpoints"
+import { handleCheckpointRestoreOperation } from "../checkpointRestoreHandler"
 
 // Mock dependencies
 vi.mock("../../task-persistence")
-vi.mock("../../checkpoints")
+vi.mock("../checkpointRestoreHandler")
 vi.mock("vscode", () => ({
 	window: {
 		showErrorMessage: vi.fn(),
@@ -33,7 +33,7 @@ describe("webviewMessageHandler - checkpoint operations", () => {
 					type: "user",
 					say: "user",
 					text: "Checkpoint message",
-					checkpoint: { hash: "abc123", label: "Test checkpoint" },
+					checkpoint: { hash: "abc123" },
 				},
 				{ ts: 4, type: "assistant", say: "assistant", text: "After checkpoint" },
 			],
@@ -64,12 +64,9 @@ describe("webviewMessageHandler - checkpoint operations", () => {
 	})
 
 	describe("delete operations with checkpoint restoration", () => {
-		it("should save messages to disk after checkpoint restoration", async () => {
-			// Simulate checkpoint restoration that removes messages
-			mockCline.checkpointRestore.mockImplementation(async () => {
-				// Simulate the effect of checkpoint restoration
-				mockCline.clineMessages = mockCline.clineMessages.slice(0, 2)
-			})
+		it("should call handleCheckpointRestoreOperation for checkpoint deletes", async () => {
+			// Mock handleCheckpointRestoreOperation
+			;(handleCheckpointRestoreOperation as any).mockResolvedValue(undefined)
 
 			// Call the handler with delete confirmation
 			await webviewMessageHandler(mockProvider, {
@@ -78,25 +75,15 @@ describe("webviewMessageHandler - checkpoint operations", () => {
 				restoreCheckpoint: true,
 			})
 
-			// Verify checkpoint restore was called with delete operation
-			expect(mockCline.checkpointRestore).toHaveBeenCalledWith({
-				ts: 3,
-				commitHash: "abc123",
-				mode: "restore",
+			// Verify handleCheckpointRestoreOperation was called with correct parameters
+			expect(handleCheckpointRestoreOperation).toHaveBeenCalledWith({
+				provider: mockProvider,
+				currentCline: mockCline,
+				messageTs: 3,
+				messageIndex: 2,
+				checkpoint: { hash: "abc123" },
 				operation: "delete",
 			})
-
-			// Verify saveTaskMessages was called after checkpoint restoration
-			expect(saveTaskMessages).toHaveBeenCalledWith({
-				messages: mockCline.clineMessages,
-				taskId: "test-task-123",
-				globalStoragePath: "/test/storage",
-			})
-
-			// Verify the save happened after the checkpoint restore
-			const checkpointRestoreOrder = mockCline.checkpointRestore.mock.invocationCallOrder[0]
-			const saveTaskMessagesOrder = (saveTaskMessages as any).mock.invocationCallOrder[0]
-			expect(saveTaskMessagesOrder).toBeGreaterThan(checkpointRestoreOrder)
 		})
 
 		it("should save messages for non-checkpoint deletes", async () => {
@@ -120,9 +107,9 @@ describe("webviewMessageHandler - checkpoint operations", () => {
 	})
 
 	describe("edit operations with checkpoint restoration", () => {
-		it("should call checkpoint restore with edit operation", async () => {
-			// Mock the pending edit storage
-			mockCline.pendingEditOperation = null
+		it("should call handleCheckpointRestoreOperation for checkpoint edits", async () => {
+			// Mock handleCheckpointRestoreOperation
+			;(handleCheckpointRestoreOperation as any).mockResolvedValue(undefined)
 
 			// Call the handler with edit confirmation
 			await webviewMessageHandler(mockProvider, {
@@ -132,22 +119,19 @@ describe("webviewMessageHandler - checkpoint operations", () => {
 				restoreCheckpoint: true,
 			})
 
-			// Verify checkpoint restore was called with edit operation
-			expect(mockCline.checkpointRestore).toHaveBeenCalledWith({
-				ts: 3,
-				commitHash: "abc123",
-				mode: "restore",
-				operation: "edit",
-			})
-
-			// Verify the pending edit operation was stored on the provider
-			expect(mockProvider.setPendingEditOperation).toHaveBeenCalledWith("task-test-task-123", {
+			// Verify handleCheckpointRestoreOperation was called with correct parameters
+			expect(handleCheckpointRestoreOperation).toHaveBeenCalledWith({
+				provider: mockProvider,
+				currentCline: mockCline,
 				messageTs: 3,
-				editedContent: "Edited checkpoint message",
-				images: undefined,
 				messageIndex: 2,
-				apiConversationHistoryIndex: 2,
-				originalCheckpoint: { hash: "abc123", label: "Test checkpoint" },
+				checkpoint: { hash: "abc123" },
+				operation: "edit",
+				editData: {
+					editedContent: "Edited checkpoint message",
+					images: undefined,
+					apiConversationHistoryIndex: 2,
+				},
 			})
 		})
 	})

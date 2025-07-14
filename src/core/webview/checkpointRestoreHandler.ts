@@ -28,6 +28,20 @@ export async function handleCheckpointRestoreOperation(config: CheckpointRestore
 	const { provider, currentCline, messageTs, checkpoint, operation, editData } = config
 
 	try {
+		// For delete operations, ensure the task is properly aborted to handle any pending ask operations
+		// This prevents "Current ask promise was ignored" errors
+		// For edit operations, we don't abort because the checkpoint restore will handle it
+		if (operation === "delete" && currentCline && !currentCline.abort) {
+			currentCline.abortTask()
+			// Wait a bit for the abort to complete
+			await pWaitFor(() => currentCline.abort === true, {
+				timeout: 1000,
+				interval: 50,
+			}).catch(() => {
+				// Continue even if timeout - the abort flag should be set
+			})
+		}
+
 		// For edit operations, set up pending edit data before restoration
 		if (operation === "edit" && editData) {
 			const operationId = `task-${currentCline.taskId}`

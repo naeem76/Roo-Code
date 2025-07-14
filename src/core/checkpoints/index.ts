@@ -179,6 +179,7 @@ export async function checkpointSave(cline: Task, force = false) {
 		} catch (err) {
 			console.error("[Task#checkpointSave] caught unexpected error, disabling checkpoints", err)
 			cline.enableCheckpoints = false
+			return undefined
 		}
 	})()
 
