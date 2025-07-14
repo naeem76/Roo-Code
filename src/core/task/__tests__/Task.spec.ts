@@ -1358,10 +1358,15 @@ describe("Cline", () => {
 			})
 
 			it("should handle pending ask operations gracefully when task is aborted", async () => {
-				const [cline, task] = Task.create({
+				const [cline, taskPromise] = Task.create({
 					provider: mockProvider,
 					apiConfiguration: mockApiConfig,
 					task: "test task",
+				})
+
+				// Handle the task promise to prevent unhandled rejection
+				taskPromise.catch(() => {
+					// Expected error when task is aborted
 				})
 
 				// Start an ask operation but don't respond to it
@@ -1381,10 +1386,15 @@ describe("Cline", () => {
 			})
 
 			it("should not throw 'Current ask promise was ignored' error when task is aborted", async () => {
-				const [cline, task] = Task.create({
+				const [cline, taskPromise] = Task.create({
 					provider: mockProvider,
 					apiConfiguration: mockApiConfig,
 					task: "test task",
+				})
+
+				// Handle the task promise to prevent unhandled rejection
+				taskPromise.catch(() => {
+					// Expected error when task is aborted
 				})
 
 				// Start multiple ask operations
@@ -1400,10 +1410,15 @@ describe("Cline", () => {
 			})
 
 			it("should resolve pending ask with messageResponse when abortTask is called", async () => {
-				const [cline, task] = Task.create({
+				const [cline, taskPromise] = Task.create({
 					provider: mockProvider,
 					apiConfiguration: mockApiConfig,
 					task: "test task",
+				})
+
+				// Handle the task promise to prevent unhandled rejection
+				taskPromise.catch(() => {
+					// Expected error when task is aborted
 				})
 
 				// Spy on the ask response properties

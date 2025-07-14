@@ -13,18 +13,14 @@ vi.mock("@src/i18n/TranslationContext", () => ({
 			const translations: Record<string, string> = {
 				"common:confirmation.delete_message": "Delete Message",
 				"common:confirmation.edit_message": "Edit Message",
-				"common:confirmation.delete_warning":
+				"common:confirmation.delete_question_with_checkpoint":
 					"Deleting this message will delete all subsequent messages in the conversation. Do you want to proceed?",
-				"common:confirmation.edit_warning":
+				"common:confirmation.edit_question_with_checkpoint":
 					"Editing this message will delete all subsequent messages in the conversation. Do you want to proceed?",
-				"common:confirmation.delete_warning_with_checkpoint":
-					"Deleting this message will delete all subsequent messages in the conversation. Do you want to proceed?",
-				"common:confirmation.edit_warning_with_checkpoint":
-					"Editing this message will delete all subsequent messages in the conversation. Do you want to proceed?",
-				"common:confirmation.restore_checkpoint": "Do you also wish to revert code to this checkpoint?",
-				"common:confirmation.proceed": "Proceed",
+				"common:confirmation.edit_only": "Edit Only",
+				"common:confirmation.delete_only": "Delete Only",
+				"common:confirmation.restore_to_checkpoint": "Restore to Checkpoint",
 				"common:answers.cancel": "Cancel",
-				"common:confirmation.dont_show_again": "Don't show this again",
 			}
 			return translations[key] || key
 		},
@@ -54,9 +50,9 @@ describe("CheckpointRestoreDialog", () => {
 					"Editing this message will delete all subsequent messages in the conversation. Do you want to proceed?",
 				),
 			).toBeInTheDocument()
-			expect(screen.getByText("Proceed")).toBeInTheDocument()
+			expect(screen.getByText("Edit Only")).toBeInTheDocument()
 			expect(screen.getByText("Cancel")).toBeInTheDocument()
-			expect(screen.queryByText("Do you also wish to revert code to this checkpoint?")).not.toBeInTheDocument()
+			expect(screen.queryByText("Restore to Checkpoint")).not.toBeInTheDocument()
 		})
 
 		it("renders delete dialog without checkpoint", () => {
@@ -68,9 +64,9 @@ describe("CheckpointRestoreDialog", () => {
 					"Deleting this message will delete all subsequent messages in the conversation. Do you want to proceed?",
 				),
 			).toBeInTheDocument()
-			expect(screen.getByText("Proceed")).toBeInTheDocument()
+			expect(screen.getByText("Delete Only")).toBeInTheDocument()
 			expect(screen.getByText("Cancel")).toBeInTheDocument()
-			expect(screen.queryByText("Do you also wish to revert code to this checkpoint?")).not.toBeInTheDocument()
+			expect(screen.queryByText("Restore to Checkpoint")).not.toBeInTheDocument()
 		})
 
 		it("renders edit dialog with checkpoint option", () => {
@@ -82,8 +78,9 @@ describe("CheckpointRestoreDialog", () => {
 					"Editing this message will delete all subsequent messages in the conversation. Do you want to proceed?",
 				),
 			).toBeInTheDocument()
-			expect(screen.getByText("Do you also wish to revert code to this checkpoint?")).toBeInTheDocument()
-			expect(screen.getAllByRole("checkbox")).toHaveLength(2) // restore and dont show again
+			expect(screen.getByText("Edit Only")).toBeInTheDocument()
+			expect(screen.getByText("Restore to Checkpoint")).toBeInTheDocument()
+			expect(screen.getByText("Cancel")).toBeInTheDocument()
 		})
 
 		it("renders delete dialog with checkpoint option", () => {
@@ -95,8 +92,9 @@ describe("CheckpointRestoreDialog", () => {
 					"Deleting this message will delete all subsequent messages in the conversation. Do you want to proceed?",
 				),
 			).toBeInTheDocument()
-			expect(screen.getByText("Do you also wish to revert code to this checkpoint?")).toBeInTheDocument()
-			expect(screen.getAllByRole("checkbox")).toHaveLength(2) // restore and dont show again
+			expect(screen.getByText("Delete Only")).toBeInTheDocument()
+			expect(screen.getByText("Restore to Checkpoint")).toBeInTheDocument()
+			expect(screen.getByText("Cancel")).toBeInTheDocument()
 		})
 	})
 
@@ -109,73 +107,36 @@ describe("CheckpointRestoreDialog", () => {
 			expect(onOpenChange).toHaveBeenCalledWith(false)
 		})
 
-		it("calls onConfirm with correct parameters when proceed is clicked without checkpoint", () => {
+		it("calls onConfirm with correct parameters when edit only is clicked", () => {
 			const onConfirm = vi.fn()
 			render(<CheckpointRestoreDialog {...defaultProps} onConfirm={onConfirm} />)
 
-			fireEvent.click(screen.getByText("Proceed"))
-			expect(onConfirm).toHaveBeenCalledWith(false, false) // dontShowAgain, restoreCheckpoint
+			fireEvent.click(screen.getByText("Edit Only"))
+			expect(onConfirm).toHaveBeenCalledWith(false) // restoreCheckpoint
 		})
 
-		it("calls onConfirm with restoreCheckpoint=false when proceed is clicked with unchecked checkbox", () => {
+		it("calls onConfirm with restoreCheckpoint=false when edit only is clicked with checkpoint", () => {
 			const onConfirm = vi.fn()
 			render(<CheckpointRestoreDialog {...defaultProps} onConfirm={onConfirm} hasCheckpoint={true} />)
 
-			const restoreCheckbox = screen.getByLabelText("Do you also wish to revert code to this checkpoint?")
-			expect(restoreCheckbox).not.toBeChecked()
-
-			fireEvent.click(screen.getByText("Proceed"))
-			expect(onConfirm).toHaveBeenCalledWith(false, false) // dontShowAgain, restoreCheckpoint
+			fireEvent.click(screen.getByText("Edit Only"))
+			expect(onConfirm).toHaveBeenCalledWith(false) // restoreCheckpoint
 		})
 
-		it("calls onConfirm with restoreCheckpoint=true when proceed is clicked with checked checkbox", () => {
+		it("calls onConfirm with restoreCheckpoint=true when restore to checkpoint is clicked", () => {
 			const onConfirm = vi.fn()
 			render(<CheckpointRestoreDialog {...defaultProps} onConfirm={onConfirm} hasCheckpoint={true} />)
 
-			const restoreCheckbox = screen.getByLabelText("Do you also wish to revert code to this checkpoint?")
-			fireEvent.click(restoreCheckbox)
-			expect(restoreCheckbox).toBeChecked()
-
-			fireEvent.click(screen.getByText("Proceed"))
-			expect(onConfirm).toHaveBeenCalledWith(false, true) // dontShowAgain, restoreCheckpoint
+			fireEvent.click(screen.getByText("Restore to Checkpoint"))
+			expect(onConfirm).toHaveBeenCalledWith(true) // restoreCheckpoint
 		})
 
-		it("toggles restore checkpoint checkbox state when clicked", () => {
-			render(<CheckpointRestoreDialog {...defaultProps} hasCheckpoint={true} />)
+		it("calls onOpenChange when dialog is closed", () => {
+			const onOpenChange = vi.fn()
+			render(<CheckpointRestoreDialog {...defaultProps} onOpenChange={onOpenChange} hasCheckpoint={true} />)
 
-			const restoreCheckbox = screen.getByLabelText("Do you also wish to revert code to this checkpoint?")
-			expect(restoreCheckbox).not.toBeChecked()
-
-			fireEvent.click(restoreCheckbox)
-			expect(restoreCheckbox).toBeChecked()
-
-			fireEvent.click(restoreCheckbox)
-			expect(restoreCheckbox).not.toBeChecked()
-		})
-
-		it("toggles dont show again checkbox state when clicked", () => {
-			render(<CheckpointRestoreDialog {...defaultProps} hasCheckpoint={true} />)
-
-			const dontShowCheckbox = screen.getByLabelText("Don't show this again")
-			expect(dontShowCheckbox).not.toBeChecked()
-
-			fireEvent.click(dontShowCheckbox)
-			expect(dontShowCheckbox).toBeChecked()
-
-			fireEvent.click(dontShowCheckbox)
-			expect(dontShowCheckbox).not.toBeChecked()
-		})
-
-		it("calls onConfirm with dontShowAgain=true when dont show again is checked", () => {
-			const onConfirm = vi.fn()
-			render(<CheckpointRestoreDialog {...defaultProps} onConfirm={onConfirm} hasCheckpoint={true} />)
-
-			const dontShowCheckbox = screen.getByLabelText("Don't show this again")
-			fireEvent.click(dontShowCheckbox)
-			expect(dontShowCheckbox).toBeChecked()
-
-			fireEvent.click(screen.getByText("Proceed"))
-			expect(onConfirm).toHaveBeenCalledWith(true, false) // dontShowAgain, restoreCheckpoint
+			fireEvent.click(screen.getByText("Edit Only"))
+			expect(onOpenChange).toHaveBeenCalledWith(false)
 		})
 	})
 
@@ -187,29 +148,19 @@ describe("CheckpointRestoreDialog", () => {
 			expect(screen.queryByText("Delete Message")).not.toBeInTheDocument()
 		})
 
-		it("resets checkbox states when dialog reopens", async () => {
+		it("maintains state when dialog stays open", async () => {
 			const { rerender } = render(<CheckpointRestoreDialog {...defaultProps} hasCheckpoint={true} open={true} />)
 
-			// Check both checkboxes
-			const restoreCheckbox = screen.getByLabelText("Do you also wish to revert code to this checkpoint?")
-			const dontShowCheckbox = screen.getByLabelText("Don't show this again")
+			// Verify initial state
+			expect(screen.getByText("Edit Only")).toBeInTheDocument()
+			expect(screen.getByText("Restore to Checkpoint")).toBeInTheDocument()
 
-			fireEvent.click(restoreCheckbox)
-			fireEvent.click(dontShowCheckbox)
-			expect(restoreCheckbox).toBeChecked()
-			expect(dontShowCheckbox).toBeChecked()
-
-			// Close dialog
-			rerender(<CheckpointRestoreDialog {...defaultProps} hasCheckpoint={true} open={false} />)
-
-			// Reopen dialog - useEffect should reset state when open becomes true
+			// Re-render with same props
 			rerender(<CheckpointRestoreDialog {...defaultProps} hasCheckpoint={true} open={true} />)
 
-			// Checkboxes should be unchecked after reopening due to useEffect
-			const newRestoreCheckbox = screen.getByLabelText("Do you also wish to revert code to this checkpoint?")
-			const newDontShowCheckbox = screen.getByLabelText("Don't show this again")
-			expect(newRestoreCheckbox).not.toBeChecked()
-			expect(newDontShowCheckbox).not.toBeChecked()
+			// Should still have same buttons
+			expect(screen.getByText("Edit Only")).toBeInTheDocument()
+			expect(screen.getByText("Restore to Checkpoint")).toBeInTheDocument()
 		})
 	})
 
@@ -218,19 +169,9 @@ describe("CheckpointRestoreDialog", () => {
 			render(<CheckpointRestoreDialog {...defaultProps} hasCheckpoint={true} />)
 
 			expect(screen.getByRole("alertdialog")).toBeInTheDocument() // AlertDialog uses alertdialog role
-			expect(screen.getAllByRole("checkbox")).toHaveLength(2) // restore and dont show again
-			expect(screen.getByRole("button", { name: "Proceed" })).toBeInTheDocument()
+			expect(screen.getByRole("button", { name: "Edit Only" })).toBeInTheDocument()
+			expect(screen.getByRole("button", { name: "Restore to Checkpoint" })).toBeInTheDocument()
 			expect(screen.getByRole("button", { name: "Cancel" })).toBeInTheDocument()
-		})
-
-		it("checkboxes are properly labeled", () => {
-			render(<CheckpointRestoreDialog {...defaultProps} hasCheckpoint={true} />)
-
-			const restoreCheckbox = screen.getByLabelText("Do you also wish to revert code to this checkpoint?")
-			const dontShowCheckbox = screen.getByLabelText("Don't show this again")
-
-			expect(restoreCheckbox).toBeInTheDocument()
-			expect(dontShowCheckbox).toBeInTheDocument()
 		})
 	})
 
@@ -244,20 +185,27 @@ describe("CheckpointRestoreDialog", () => {
 			expect(screen.getByText("Edit Message")).toBeInTheDocument()
 		})
 
-		it("handles rapid state changes", async () => {
+		it("handles rapid button clicks", async () => {
 			const onConfirm = vi.fn()
-			render(<CheckpointRestoreDialog {...defaultProps} onConfirm={onConfirm} hasCheckpoint={true} />)
+			const onOpenChange = vi.fn()
+			render(
+				<CheckpointRestoreDialog
+					{...defaultProps}
+					onConfirm={onConfirm}
+					onOpenChange={onOpenChange}
+					hasCheckpoint={true}
+				/>,
+			)
 
-			const restoreCheckbox = screen.getByLabelText("Do you also wish to revert code to this checkpoint?")
-			const proceedButton = screen.getByText("Proceed")
+			const editOnlyButton = screen.getByText("Edit Only")
 
-			// Rapidly toggle checkbox and click proceed
-			fireEvent.click(restoreCheckbox)
-			fireEvent.click(restoreCheckbox)
-			fireEvent.click(restoreCheckbox)
-			fireEvent.click(proceedButton)
+			// Click button once
+			fireEvent.click(editOnlyButton)
 
-			expect(onConfirm).toHaveBeenCalledWith(false, true) // dontShowAgain, restoreCheckpoint
+			// Should be called once with correct parameters
+			expect(onConfirm).toHaveBeenCalledTimes(1)
+			expect(onConfirm).toHaveBeenCalledWith(false) // restoreCheckpoint
+			expect(onOpenChange).toHaveBeenCalledWith(false) // dialog should close
 		})
 	})
 

@@ -45,28 +45,6 @@ describe("checkpointRestoreHandler", () => {
 		}
 	})
 
-	describe("hasValidCheckpoint", () => {
-		it("should return true for valid checkpoint", () => {
-			const message = { checkpoint: { hash: "abc123" } }
-			expect(hasValidCheckpoint(message)).toBe(true)
-		})
-
-		it("should return false for missing checkpoint", () => {
-			const message = { text: "No checkpoint" }
-			expect(hasValidCheckpoint(message)).toBe(false)
-		})
-
-		it("should return false for invalid checkpoint structure", () => {
-			expect(hasValidCheckpoint({ checkpoint: "invalid" })).toBe(false)
-			expect(hasValidCheckpoint({ checkpoint: {} })).toBe(false)
-			expect(hasValidCheckpoint({ checkpoint: { hash: 123 } })).toBe(false)
-		})
-
-		it("should return false for empty hash", () => {
-			expect(hasValidCheckpoint({ checkpoint: { hash: "" } })).toBe(false)
-		})
-	})
-
 	describe("handleCheckpointRestoreOperation", () => {
 		describe("delete operation", () => {
 			it("should handle delete operation correctly", async () => {

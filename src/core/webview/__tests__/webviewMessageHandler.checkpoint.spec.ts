@@ -10,6 +10,9 @@ vi.mock("vscode", () => ({
 	window: {
 		showErrorMessage: vi.fn(),
 	},
+	workspace: {
+		workspaceFolders: undefined,
+	},
 }))
 
 describe("webviewMessageHandler - checkpoint operations", () => {
@@ -53,6 +56,7 @@ describe("webviewMessageHandler - checkpoint operations", () => {
 				historyItem: { id: "test-task-123", messages: mockCline.clineMessages },
 			})),
 			initClineWithHistoryItem: vi.fn(),
+			setPendingEditOperation: vi.fn(),
 			contextProxy: {
 				globalStorageUri: { fsPath: "/test/storage" },
 			},
@@ -136,8 +140,8 @@ describe("webviewMessageHandler - checkpoint operations", () => {
 				operation: "edit",
 			})
 
-			// Verify the pending edit operation was stored
-			expect(mockCline.pendingEditOperation).toEqual({
+			// Verify the pending edit operation was stored on the provider
+			expect(mockProvider.setPendingEditOperation).toHaveBeenCalledWith("task-test-task-123", {
 				messageTs: 3,
 				editedContent: "Edited checkpoint message",
 				images: undefined,
