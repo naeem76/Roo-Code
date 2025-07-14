@@ -2,6 +2,7 @@ import { useState } from "react"
 import { ChevronDown, Check, X } from "lucide-react"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { cn } from "@src/lib/utils"
+import { StandardTooltip } from "@src/components/ui/standard-tooltip"
 
 interface CommandPattern {
 	pattern: string
@@ -60,12 +61,17 @@ export const CommandPatternSelector = ({
 					})}
 				/>
 				<span className="font-medium">{t("chat:commandExecution.manageCommands")}</span>
+				{isExpanded && (
+					<StandardTooltip content={t("chat:commandExecution.commandManagementDescription")}>
+						<i
+							className="codicon codicon-info text-vscode-descriptionForeground ml-1"
+							style={{ fontSize: "12px" }}
+						/>
+					</StandardTooltip>
+				)}
 			</button>
 			{isExpanded && (
 				<div className="px-3 pb-3 space-y-2">
-					<div className="text-xs text-vscode-descriptionForeground mb-2 ml-5">
-						{t("chat:commandExecution.commandManagementDescription")}
-					</div>
 					{patterns.map((item, index) => {
 						const status = getPatternStatus(item.pattern)
 						return (
@@ -79,38 +85,42 @@ export const CommandPatternSelector = ({
 									)}
 								</div>
 								<div className="flex items-center gap-1">
-									<button
-										onClick={() => handleAllowClick(item.pattern)}
-										className={cn(
-											"p-1 rounded transition-all",
-											status === "allowed"
-												? "bg-green-500/20 text-green-500 hover:bg-green-500/30"
-												: "text-vscode-descriptionForeground hover:text-green-500 hover:bg-green-500/10",
-										)}
-										aria-label={
-											status === "allowed"
-												? `Remove ${item.pattern} from allowed list`
-												: `Add ${item.pattern} to allowed list`
-										}
-										title={status === "allowed" ? "Remove from allowed" : "Add to allowed"}>
-										<Check className="size-3.5" />
-									</button>
-									<button
-										onClick={() => handleDenyClick(item.pattern)}
-										className={cn(
-											"p-1 rounded transition-all",
-											status === "denied"
-												? "bg-red-500/20 text-red-500 hover:bg-red-500/30"
-												: "text-vscode-descriptionForeground hover:text-red-500 hover:bg-red-500/10",
-										)}
-										aria-label={
-											status === "denied"
-												? `Remove ${item.pattern} from denied list`
-												: `Add ${item.pattern} to denied list`
-										}
-										title={status === "denied" ? "Remove from denied" : "Add to denied"}>
-										<X className="size-3.5" />
-									</button>
+									<StandardTooltip
+										content={status === "allowed" ? "Remove from allowed" : "Add to allowed"}>
+										<button
+											onClick={() => handleAllowClick(item.pattern)}
+											className={cn(
+												"p-1 rounded transition-all",
+												status === "allowed"
+													? "bg-green-500/20 text-green-500 hover:bg-green-500/30"
+													: "text-vscode-descriptionForeground hover:text-green-500 hover:bg-green-500/10",
+											)}
+											aria-label={
+												status === "allowed"
+													? `Remove ${item.pattern} from allowed list`
+													: `Add ${item.pattern} to allowed list`
+											}>
+											<Check className="size-3.5" />
+										</button>
+									</StandardTooltip>
+									<StandardTooltip
+										content={status === "denied" ? "Remove from denied" : "Add to denied"}>
+										<button
+											onClick={() => handleDenyClick(item.pattern)}
+											className={cn(
+												"p-1 rounded transition-all",
+												status === "denied"
+													? "bg-red-500/20 text-red-500 hover:bg-red-500/30"
+													: "text-vscode-descriptionForeground hover:text-red-500 hover:bg-red-500/10",
+											)}
+											aria-label={
+												status === "denied"
+													? `Remove ${item.pattern} from denied list`
+													: `Add ${item.pattern} to denied list`
+											}>
+											<X className="size-3.5" />
+										</button>
+									</StandardTooltip>
 								</div>
 							</div>
 						)
