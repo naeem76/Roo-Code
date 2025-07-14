@@ -136,7 +136,7 @@ export const AutoApproveSettings = ({
 		<div {...props}>
 			<SectionHeader description={t("settings:autoApprove.description")}>
 				<div className="flex items-center gap-2">
-					<StandardTooltip content={!hasEnabledOptions ? t("chat:autoApprove.selectOptionsFirst") : ""}>
+					<StandardTooltip content={!hasEnabledOptions ? t("settings:autoApprove.selectOptionsFirst") : ""}>
 						<VSCodeCheckbox
 							checked={effectiveAutoApprovalEnabled}
 							disabled={!hasEnabledOptions}

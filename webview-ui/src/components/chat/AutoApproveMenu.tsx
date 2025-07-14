@@ -15,7 +15,6 @@ interface AutoApproveMenuProps {
 
 const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 	const [isExpanded, setIsExpanded] = useState(false)
-	const [isMenuExpanded, setIsMenuExpanded] = useState(false)
 
 	const {
 		autoApprovalEnabled,
@@ -151,17 +150,13 @@ const AutoApproveMenu = ({ style }: AutoApproveMenuProps) => {
 	)
 
 	const toggleExpanded = useCallback(() => {
-		setIsExpanded((prev) => {
-			const newExpanded = !prev
-			setIsMenuExpanded(newExpanded)
-			return newExpanded
-		})
+		setIsExpanded((prev) => !prev)
 	}, [])
 
 	// Disable main checkbox while menu is open or no options selected
 	const isCheckboxDisabled = useMemo(() => {
-		return !hasEnabledOptions || isMenuExpanded
-	}, [hasEnabledOptions, isMenuExpanded])
+		return !hasEnabledOptions || isExpanded
+	}, [hasEnabledOptions, isExpanded])
 
 	const enabledActionsList = Object.entries(toggles)
 		.filter(([_key, value]) => !!value)
