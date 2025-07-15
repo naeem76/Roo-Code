@@ -458,8 +458,8 @@ describe("SettingsView - Allowed Commands", () => {
 		// Verify command was added
 		expect(screen.getByText("npm test")).toBeInTheDocument()
 
-		// Verify VSCode message was sent
-		expect(vscode.postMessage).toHaveBeenCalledWith({
+		// Verify VSCode message was NOT sent yet (only on Save)
+		expect(vscode.postMessage).not.toHaveBeenCalledWith({
 			type: "allowedCommands",
 			commands: ["npm test"],
 		})
@@ -489,8 +489,8 @@ describe("SettingsView - Allowed Commands", () => {
 		// Verify command was removed
 		expect(screen.queryByText("npm test")).not.toBeInTheDocument()
 
-		// Verify VSCode message was sent
-		expect(vscode.postMessage).toHaveBeenLastCalledWith({
+		// Verify VSCode message was NOT sent yet (only on Save)
+		expect(vscode.postMessage).not.toHaveBeenCalledWith({
 			type: "allowedCommands",
 			commands: [],
 		})

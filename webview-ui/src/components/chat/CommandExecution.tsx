@@ -45,7 +45,8 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 	const [isOutputExpanded, setIsOutputExpanded] = useState(false)
 
 	// Determine if we should show suggestions section
-	const showSuggestions = suggestions && suggestions.length > 0
+	// Always show suggestions if we have a command, either from LLM or programmatic generation
+	const showSuggestions = (suggestions && suggestions.length > 0) || !!command?.trim()
 
 	// Use suggestions if available, otherwise extract command patterns
 	const commandPatterns = useMemo(() => {
@@ -57,8 +58,8 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 			}))
 		}
 
-		// Only extract patterns if we're showing suggestions (for backward compatibility)
-		if (!showSuggestions || !command?.trim()) return []
+		// If no LLM suggestions but we have a command, extract patterns programmatically
+		if (!command?.trim()) return []
 
 		// Check if this is a chained command
 		const operators = ["&&", "||", ";", "|"]
@@ -151,7 +152,7 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 		)
 
 		return uniquePatterns
-	}, [command, suggestions, showSuggestions])
+	}, [command, suggestions])
 
 	// The command's output can either come from the text associated with the
 	// task message (this is the case for completed commands) or from the

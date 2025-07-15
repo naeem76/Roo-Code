@@ -37,11 +37,14 @@ Example: Requesting to execute ls in a specific directory
 	return (
 		baseDescription +
 		`
-- suggestions: (optional) Command patterns for the user to allow/deny for future auto-approval. Include 1-2 relevant patterns when executing common development commands. Use <suggest> tags.
+- suggestions: (optional) Command patterns for the user to allow/deny for future auto-approval. Use <suggest> tags.
 
 **Suggestion Guidelines:**
 - Suggestions use prefix matching (case-insensitive)
-- Include the base command (e.g., "npm", "git") and optionally a more specific pattern
+- For simple commands: Include the base command (e.g., "npm", "git") and optionally a more specific pattern
+- For chained commands (using &&, ||, ;, |): Include patterns for EACH individual command in the chain
+  - Example: For "cd backend && npm install", suggest: "cd backend && npm install", "cd", "npm install", "npm"
+- Include 2-4 relevant patterns total
 - Only suggest "*" (allow all) if explicitly requested by the user
 
 Usage:
@@ -59,6 +62,17 @@ Example: Requesting to execute npm run dev
 <command>npm run dev</command>
 <suggestions>
 <suggest>npm run</suggest>
+<suggest>npm</suggest>
+</suggestions>
+</execute_command>
+
+Example: Requesting to execute a chained command
+<execute_command>
+<command>cd backend && npm install</command>
+<suggestions>
+<suggest>cd backend && npm install</suggest>
+<suggest>cd</suggest>
+<suggest>npm install</suggest>
 <suggest>npm</suggest>
 </suggestions>
 </execute_command>

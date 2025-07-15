@@ -82,7 +82,7 @@ describe("CommandExecution", () => {
 		} as any)
 	})
 
-	it("should render command without suggestions", () => {
+	it("should render command with programmatic suggestions when no LLM suggestions provided", () => {
 		renderWithProviders(
 			<CommandExecution
 				executionId="test-1"
@@ -92,8 +92,20 @@ describe("CommandExecution", () => {
 			/>,
 		)
 
-		expect(screen.getByText("npm install")).toBeInTheDocument()
-		expect(screen.queryByText("Manage Command Permissions")).not.toBeInTheDocument()
+		// Check command is rendered in code block
+		const codeBlocks = screen.getAllByText("npm install")
+		expect(codeBlocks.length).toBeGreaterThan(0)
+
+		// Should show manage permissions section even without LLM suggestions
+		expect(screen.getByText("Manage Command Permissions")).toBeInTheDocument()
+
+		// Expand the section to verify programmatic patterns
+		const sectionHeader = screen.getByText("Manage Command Permissions")
+		fireEvent.click(sectionHeader)
+
+		// Should show programmatically extracted pattern
+		const patterns = screen.getAllByText("npm install")
+		expect(patterns.length).toBeGreaterThan(1) // Command + pattern
 	})
 
 	it("should render command with suggestions section collapsed by default", () => {
@@ -220,7 +232,7 @@ describe("CommandExecution", () => {
 		})
 	})
 
-	it("should handle empty suggestions tag", () => {
+	it("should handle empty suggestions tag and show programmatic patterns", () => {
 		const commandWithEmptySuggestions = "ls -la<suggestions>[]</suggestions>"
 
 		renderWithProviders(
@@ -232,8 +244,19 @@ describe("CommandExecution", () => {
 			/>,
 		)
 
-		expect(screen.getByText("ls -la")).toBeInTheDocument()
-		expect(screen.queryByText("Manage Command Permissions")).not.toBeInTheDocument()
+		// Check command is rendered
+		const codeBlocks = screen.getAllByText("ls -la")
+		expect(codeBlocks.length).toBeGreaterThan(0)
+
+		// Should still show manage permissions with programmatic patterns
+		expect(screen.getByText("Manage Command Permissions")).toBeInTheDocument()
+
+		// Expand the section to verify programmatic patterns
+		const sectionHeader = screen.getByText("Manage Command Permissions")
+		fireEvent.click(sectionHeader)
+
+		// Should show the base command pattern
+		expect(screen.getByText("ls")).toBeInTheDocument()
 	})
 
 	it("should handle suggestions with special characters", () => {
@@ -260,7 +283,7 @@ describe("CommandExecution", () => {
 		expect(screen.getByText("echo `date`")).toBeInTheDocument()
 	})
 
-	it("should handle malformed suggestions tag", () => {
+	it("should handle malformed suggestions tag and show programmatic patterns", () => {
 		const commandWithMalformedSuggestions = "pwd<suggestions>not-valid-json</suggestions>"
 
 		renderWithProviders(
@@ -273,9 +296,19 @@ describe("CommandExecution", () => {
 		)
 
 		// Should still render the command
-		expect(screen.getByText("pwd")).toBeInTheDocument()
-		// Suggestions should not be shown when JSON is invalid
-		expect(screen.queryByText("Manage Command Permissions")).not.toBeInTheDocument()
+		const codeBlocks = screen.getAllByText("pwd")
+		expect(codeBlocks.length).toBeGreaterThan(0)
+
+		// Should show manage permissions with programmatic patterns
+		expect(screen.getByText("Manage Command Permissions")).toBeInTheDocument()
+
+		// Expand the section to verify programmatic patterns
+		const sectionHeader = screen.getByText("Manage Command Permissions")
+		fireEvent.click(sectionHeader)
+
+		// Should show the base command pattern (there will be multiple pwd elements)
+		const patterns = screen.getAllByText("pwd")
+		expect(patterns.length).toBeGreaterThan(1) // Command + pattern
 	})
 
 	it("should parse suggestions from JSON array and show them when expanded", () => {

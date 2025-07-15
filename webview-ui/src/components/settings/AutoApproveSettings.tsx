@@ -3,7 +3,6 @@ import { X } from "lucide-react"
 
 import { useAppTranslation } from "@/i18n/TranslationContext"
 import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
-import { vscode } from "@/utils/vscode"
 import { Button, Input, Slider } from "@/components/ui"
 
 import { SetCachedStateField } from "./types"
@@ -88,7 +87,7 @@ export const AutoApproveSettings = ({
 			const newCommands = [...currentCommands, commandInput]
 			setCachedStateField("allowedCommands", newCommands)
 			setCommandInput("")
-			vscode.postMessage({ type: "allowedCommands", commands: newCommands })
+			// Don't send message here - wait for Save button
 		}
 	}
 
@@ -99,7 +98,7 @@ export const AutoApproveSettings = ({
 			const newCommands = [...currentCommands, deniedCommandInput]
 			setCachedStateField("deniedCommands", newCommands)
 			setDeniedCommandInput("")
-			vscode.postMessage({ type: "deniedCommands", commands: newCommands })
+			// Don't send message here - wait for Save button
 		}
 	}
 
@@ -318,7 +317,7 @@ export const AutoApproveSettings = ({
 									onClick={() => {
 										const newCommands = (allowedCommands ?? []).filter((_, i) => i !== index)
 										setCachedStateField("allowedCommands", newCommands)
-										vscode.postMessage({ type: "allowedCommands", commands: newCommands })
+										// Don't send message here - wait for Save button
 									}}>
 									<div className="flex flex-row items-center gap-1">
 										<div>{cmd}</div>
@@ -369,7 +368,7 @@ export const AutoApproveSettings = ({
 									onClick={() => {
 										const newCommands = (deniedCommands ?? []).filter((_, i) => i !== index)
 										setCachedStateField("deniedCommands", newCommands)
-										vscode.postMessage({ type: "deniedCommands", commands: newCommands })
+										// Don't send message here - wait for Save button
 									}}>
 									<div className="flex flex-row items-center gap-1">
 										<div>{cmd}</div>

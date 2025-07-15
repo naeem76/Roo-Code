@@ -22,6 +22,9 @@ describe("getExecuteCommandDescription", () => {
 		expect(description).toContain("<suggestions>")
 		expect(description).toContain("- suggestions: (optional) Command patterns for the user to allow/deny")
 		expect(description).toContain("Suggestion Guidelines")
+		// Check for chained command guidance
+		expect(description).toContain("For chained commands")
+		expect(description).toContain("cd backend && npm install")
 	})
 
 	it("should include suggestions section when disableLlmCommandSuggestions is not set", () => {
