@@ -22,8 +22,8 @@ vi.mock("vscode", () => ({
 // Mock i18n
 vi.mock("../../../i18n", () => ({
 	t: vi.fn((key: string, params?: any) => {
-		if (key === "common:info.command_whitelisted" && params?.pattern) {
-			return `Command pattern "${params.pattern}" has been whitelisted`
+		if (key === "common:info.command_allowed" && params?.pattern) {
+			return `Command pattern "${params.pattern}" has been allowed`
 		}
 		return key
 	}),
@@ -36,7 +36,7 @@ vi.mock("../../../shared/package", () => ({
 	},
 }))
 
-describe("webviewMessageHandler - whitelistCommand", () => {
+describe("webviewMessageHandler - allowCommand", () => {
 	let mockProvider: any
 	let mockContextProxy: any
 	let mockConfigUpdate: any
@@ -74,7 +74,7 @@ describe("webviewMessageHandler - whitelistCommand", () => {
 
 		// Create message
 		const message = {
-			type: "whitelistCommand",
+			type: "allowCommand",
 			pattern: "npm run build",
 		}
 
@@ -90,7 +90,7 @@ describe("webviewMessageHandler - whitelistCommand", () => {
 
 		// Verify user was notified
 		expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
-			'Command pattern "npm run build" has been whitelisted',
+			'Command pattern "npm run build" has been allowed',
 		)
 
 		// Verify state was posted to webview
@@ -103,7 +103,7 @@ describe("webviewMessageHandler - whitelistCommand", () => {
 
 		// Create message with duplicate pattern
 		const message = {
-			type: "whitelistCommand",
+			type: "allowCommand",
 			pattern: "npm run build",
 		}
 
@@ -126,7 +126,7 @@ describe("webviewMessageHandler - whitelistCommand", () => {
 
 		// Create message
 		const message = {
-			type: "whitelistCommand",
+			type: "allowCommand",
 			pattern: "echo 'Hello, World!'",
 		}
 
@@ -138,7 +138,7 @@ describe("webviewMessageHandler - whitelistCommand", () => {
 
 		// Verify user was notified
 		expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
-			`Command pattern "echo 'Hello, World!'" has been whitelisted`,
+			`Command pattern "echo 'Hello, World!'" has been allowed`,
 		)
 	})
 
@@ -148,7 +148,7 @@ describe("webviewMessageHandler - whitelistCommand", () => {
 
 		// Create message
 		const message = {
-			type: "whitelistCommand",
+			type: "allowCommand",
 			pattern: "npm run dev",
 		}
 
@@ -166,7 +166,7 @@ describe("webviewMessageHandler - whitelistCommand", () => {
 	it("should handle missing pattern gracefully", async () => {
 		// Create message without pattern
 		const message = {
-			type: "whitelistCommand",
+			type: "allowCommand",
 		}
 
 		// Call handler
@@ -181,7 +181,7 @@ describe("webviewMessageHandler - whitelistCommand", () => {
 	it("should handle non-string pattern gracefully", async () => {
 		// Create message with non-string pattern
 		const message = {
-			type: "whitelistCommand",
+			type: "allowCommand",
 			pattern: 123, // Invalid type
 		}
 
@@ -200,7 +200,7 @@ describe("webviewMessageHandler - whitelistCommand", () => {
 
 		// Create message with complex pattern
 		const message = {
-			type: "whitelistCommand",
+			type: "allowCommand",
 			pattern: 'echo "Hello, World!" && echo $HOME',
 		}
 

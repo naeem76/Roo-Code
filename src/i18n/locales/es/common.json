@@ -103,7 +103,7 @@
 		"public_share_link_copied": "¡Enlace de compartición pública copiado al portapapeles!",
 		"mode_exported": "Modo '{{mode}}' exportado correctamente",
 		"mode_imported": "Modo importado correctamente",
-		"command_whitelisted": "El patrón de comando '{{pattern}}' se ha añadido a la lista de comandos permitidos",
+		"command_allowed": "El patrón de comando '{{pattern}}' se ha añadido a la lista de comandos permitidos",
 		"command_denied": "El patrón de comando '{{pattern}}' se ha añadido a la lista de comandos denegados"
 	},
 	"answers": {

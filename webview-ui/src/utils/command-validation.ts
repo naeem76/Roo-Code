@@ -1,6 +1,7 @@
-import { parse } from "shell-quote"
+import { parseCommand, hasSubshellExpressions, removeRedirections } from "./commandUtils"
 
-type ShellToken = string | { op: string } | { command: string }
+// Re-export parseCommand for backward compatibility
+export { parseCommand }
 
 /**
  * # Command Denylist Feature - Longest Prefix Match Strategy
@@ -57,103 +58,6 @@ type ShellToken = string | { op: string } | { command: string }
  *
  * This allows users to have personal defaults while projects can define specific restrictions.
  */
-
-/**
- * Split a command string into individual sub-commands by
- * chaining operators (&&, ||, ;, or |).
- *
- * Uses shell-quote to properly handle:
- * - Quoted strings (preserves quotes)
- * - Subshell commands ($(cmd) or `cmd`)
- * - PowerShell redirections (2>&1)
- * - Chain operators (&&, ||, ;, |)
- */
-export function parseCommand(command: string): string[] {
-	if (!command?.trim()) return []
-
-	// Storage for replaced content
-	const redirections: string[] = []
-	const subshells: string[] = []
-	const quotes: string[] = []
-	const arrayIndexing: string[] = []
-
-	// First handle PowerShell redirections by temporarily replacing them
-	let processedCommand = command.replace(/\d*>&\d*/g, (match) => {
-		redirections.push(match)
-		return `__REDIR_${redirections.length - 1}__`
-	})
-
-	// Handle array indexing expressions: ${array[...]} pattern and partial expressions
-	processedCommand = processedCommand.replace(/\$\{[^}]*\[[^\]]*(\]([^}]*\})?)?/g, (match) => {
-		arrayIndexing.push(match)
-		return `__ARRAY_${arrayIndexing.length - 1}__`
-	})
-
-	// Then handle subshell commands
-	processedCommand = processedCommand
-		.replace(/\$\((.*?)\)/g, (_, inner) => {
-			subshells.push(inner.trim())
-			return `__SUBSH_${subshells.length - 1}__`
-		})
-		.replace(/`(.*?)`/g, (_, inner) => {
-			subshells.push(inner.trim())
-			return `__SUBSH_${subshells.length - 1}__`
-		})
-
-	// Then handle quoted strings
-	processedCommand = processedCommand.replace(/"[^"]*"/g, (match) => {
-		quotes.push(match)
-		return `__QUOTE_${quotes.length - 1}__`
-	})
-
-	const tokens = parse(processedCommand) as ShellToken[]
-	const commands: string[] = []
-	let currentCommand: string[] = []
-
-	for (const token of tokens) {
-		if (typeof token === "object" && "op" in token) {
-			// Chain operator - split command
-			if (["&&", "||", ";", "|"].includes(token.op)) {
-				if (currentCommand.length > 0) {
-					commands.push(currentCommand.join(" "))
-					currentCommand = []
-				}
-			} else {
-				// Other operators (>, &) are part of the command
-				currentCommand.push(token.op)
-			}
-		} else if (typeof token === "string") {
-			// Check if it's a subshell placeholder
-			const subshellMatch = token.match(/__SUBSH_(\d+)__/)
-			if (subshellMatch) {
-				if (currentCommand.length > 0) {
-					commands.push(currentCommand.join(" "))
-					currentCommand = []
-				}
-				commands.push(subshells[parseInt(subshellMatch[1])])
-			} else {
-				currentCommand.push(token)
-			}
-		}
-	}
-
-	// Add any remaining command
-	if (currentCommand.length > 0) {
-		commands.push(currentCommand.join(" "))
-	}
-
-	// Restore quotes and redirections
-	return commands.map((cmd) => {
-		let result = cmd
-		// Restore quotes
-		result = result.replace(/__QUOTE_(\d+)__/g, (_, i) => quotes[parseInt(i)])
-		// Restore redirections
-		result = result.replace(/__REDIR_(\d+)__/g, (_, i) => redirections[parseInt(i)])
-		// Restore array indexing expressions
-		result = result.replace(/__ARRAY_(\d+)__/g, (_, i) => arrayIndexing[parseInt(i)])
-		return result
-	})
-}
 
 /**
  * Find the longest matching prefix from a list of prefixes for a given command.
@@ -288,7 +192,7 @@ export function isAutoApprovedCommand(command: string, allowedCommands: string[]
 	if (!command?.trim()) return true
 
 	// Only block subshell execution attempts if there's a denylist configured
-	if ((command.includes("$(") || command.includes("`")) && deniedCommands?.length) {
+	if (hasSubshellExpressions(command) && deniedCommands?.length) {
 		return false
 	}
 
@@ -298,7 +202,7 @@ export function isAutoApprovedCommand(command: string, allowedCommands: string[]
 	// Ensure every sub-command is auto-approved
 	return subCommands.every((cmd) => {
 		// Remove simple PowerShell-like redirections (e.g. 2>&1) before checking
-		const cmdWithoutRedirection = cmd.replace(/\d*>&\d*/, "").trim()
+		const cmdWithoutRedirection = removeRedirections(cmd)
 
 		return isAutoApprovedSingleCommand(cmdWithoutRedirection, allowedCommands, deniedCommands)
 	})
@@ -313,7 +217,7 @@ export function isAutoDeniedCommand(command: string, allowedCommands: string[], 
 	if (!command?.trim()) return false
 
 	// Only block subshell execution attempts if there's a denylist configured
-	if ((command.includes("$(") || command.includes("`")) && deniedCommands?.length) {
+	if (hasSubshellExpressions(command) && deniedCommands?.length) {
 		return true
 	}
 
@@ -323,7 +227,7 @@ export function isAutoDeniedCommand(command: string, allowedCommands: string[], 
 	// Auto-deny if any sub-command is auto-denied
 	return subCommands.some((cmd) => {
 		// Remove simple PowerShell-like redirections (e.g. 2>&1) before checking
-		const cmdWithoutRedirection = cmd.replace(/\d*>&\d*/, "").trim()
+		const cmdWithoutRedirection = removeRedirections(cmd)
 
 		return isAutoDeniedSingleCommand(cmdWithoutRedirection, allowedCommands, deniedCommands)
 	})
@@ -385,7 +289,7 @@ export function getCommandDecision(
 	if (!command?.trim()) return "auto_approve"
 
 	// Only block subshell execution attempts if there's a denylist configured
-	if ((command.includes("$(") || command.includes("`")) && deniedCommands?.length) {
+	if (hasSubshellExpressions(command) && deniedCommands?.length) {
 		return "auto_deny"
 	}
 
@@ -395,7 +299,7 @@ export function getCommandDecision(
 	// Check each sub-command and collect decisions
 	const decisions: CommandDecision[] = subCommands.map((cmd) => {
 		// Remove simple PowerShell-like redirections (e.g. 2>&1) before checking
-		const cmdWithoutRedirection = cmd.replace(/\d*>&\d*/, "").trim()
+		const cmdWithoutRedirection = removeRedirections(cmd)
 
 		return getSingleCommandDecision(cmdWithoutRedirection, allowedCommands, deniedCommands)
 	})
@@ -561,16 +465,16 @@ export class CommandValidator {
 		hasSubshells: boolean
 	} {
 		const subCommands = parseCommand(command)
-		const hasSubshells = command.includes("$(") || command.includes("`")
+		const hasSubshells = hasSubshellExpressions(command)
 
 		const allowedMatches = subCommands.map((cmd) => ({
 			command: cmd,
-			match: findLongestPrefixMatch(cmd.replace(/\d*>&\d*/, "").trim(), this.allowedCommands),
+			match: findLongestPrefixMatch(removeRedirections(cmd), this.allowedCommands),
 		}))
 
 		const deniedMatches = subCommands.map((cmd) => ({
 			command: cmd,
-			match: findLongestPrefixMatch(cmd.replace(/\d*>&\d*/, "").trim(), this.deniedCommands || []),
+			match: findLongestPrefixMatch(removeRedirections(cmd), this.deniedCommands || []),
 		}))
 
 		return {

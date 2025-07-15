@@ -771,7 +771,7 @@ export const webviewMessageHandler = async (
 
 			break
 		}
-		case "whitelistCommand": {
+		case "allowCommand": {
 			// Add a command pattern to the allowed commands list
 			if (message.pattern && typeof message.pattern === "string") {
 				const currentCommands = getGlobalState("allowedCommands") ?? []
@@ -786,9 +786,7 @@ export const webviewMessageHandler = async (
 					await updateGlobalState("allowedCommands", validCommands)
 
 					// Show confirmation to the user
-					vscode.window.showInformationMessage(
-						t("common:info.command_whitelisted", { pattern: message.pattern }),
-					)
+					vscode.window.showInformationMessage(t("common:info.command_allowed", { pattern: message.pattern }))
 
 					// Update the webview state
 					await provider.postStateToWebview()

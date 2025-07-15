@@ -26,19 +26,12 @@ interface CommandExecutionProps {
 
 export const CommandExecution = ({ executionId, text, icon, title }: CommandExecutionProps) => {
 	const { t } = useAppTranslation()
-	const {
-		terminalShellIntegrationDisabled = false,
-		allowedCommands = [],
-		deniedCommands = [],
-		setAllowedCommands,
-		setDeniedCommands,
-	} = useExtensionState()
+	const { allowedCommands = [], deniedCommands = [], setAllowedCommands, setDeniedCommands } = useExtensionState()
 
 	const { command, output: parsedOutput, suggestions } = useMemo(() => parseCommandAndOutput(text), [text])
 
-	// If we aren't opening the VSCode terminal for this command then we default
-	// to expanding the command execution output.
-	const [_isExpanded, setIsExpanded] = useState(terminalShellIntegrationDisabled)
+	// Note: isExpanded state removed as it was unused. The setIsExpanded in fallback case
+	// now directly sets isOutputExpanded instead.
 	const [streamingOutput, setStreamingOutput] = useState("")
 	const [status, setStatus] = useState<CommandExecutionStatus | null>(null)
 	// Separate state for output expansion - default to closed
@@ -98,7 +91,7 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 							setStreamingOutput(data.output)
 							break
 						case "fallback":
-							setIsExpanded(true)
+							setIsOutputExpanded(true)
 							break
 						default:
 							setStatus(data)
@@ -116,10 +109,10 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 		(pattern: string) => {
 			if (!pattern) return
 
-			const isWhitelisted = allowedCommands.includes(pattern)
+			const isAllowed = allowedCommands.includes(pattern)
 
-			if (isWhitelisted) {
-				// Remove from whitelist
+			if (isAllowed) {
+				// Remove from allowed list
 				const updatedAllowedCommands = allowedCommands.filter((p) => p !== pattern)
 				setAllowedCommands(updatedAllowedCommands)
 				vscode.postMessage({
@@ -127,7 +120,7 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 					commands: updatedAllowedCommands,
 				})
 			} else {
-				// Add to whitelist
+				// Add to allowed list
 				const updatedAllowedCommands = [...allowedCommands, pattern]
 				setAllowedCommands(updatedAllowedCommands)
 				vscode.postMessage({

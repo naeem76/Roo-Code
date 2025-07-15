@@ -36,7 +36,7 @@ export interface WebviewMessage {
 		| "getListApiConfiguration"
 		| "customInstructions"
 		| "allowedCommands"
-		| "whitelistCommand"
+		| "allowCommand"
 		| "deniedCommands"
 		| "denyCommand"
 		| "alwaysAllowReadOnly"
@@ -237,7 +237,7 @@ export interface WebviewMessage {
 	visibility?: ShareVisibility // For share visibility
 	hasContent?: boolean // For checkRulesDirectoryResult
 	checkOnly?: boolean // For deleteCustomMode check
-	pattern?: string // For whitelistCommand
+	pattern?: string // For allowCommand
 	codeIndexSettings?: {
 		// Global state settings
 		codebaseIndexEnabled: boolean

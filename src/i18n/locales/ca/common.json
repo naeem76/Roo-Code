@@ -107,7 +107,7 @@
 		"public_share_link_copied": "Enllaç de compartició pública copiat al porta-retalls!",
 		"mode_exported": "Mode '{{mode}}' exportat correctament",
 		"mode_imported": "Mode importat correctament",
-		"command_whitelisted": "El patró d'ordres '{{pattern}}' s'ha afegit a la llista d'ordres permeses",
+		"command_allowed": "El patró d'ordres '{{pattern}}' s'ha afegit a la llista d'ordres permeses",
 		"command_denied": "El patró de comanda '{{pattern}}' s'ha afegit a la llista de comandes denegades"
 	},
 	"answers": {

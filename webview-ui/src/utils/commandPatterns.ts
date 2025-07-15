@@ -1,9 +1,10 @@
 import { parse } from "shell-quote"
+import { parseCommand } from "./commandUtils"
 
 /**
  * Extracts command patterns from a command string using shell-quote parser.
  * This provides a robust, deterministic way to extract patterns that can be
- * used for whitelisting similar commands.
+ * used for allowing similar commands.
  *
  * @param command The full command string to extract patterns from
  * @returns Array of unique command patterns sorted alphabetically
@@ -13,9 +14,8 @@ export function extractCommandPatterns(command: string): string[] {
 
 	const patterns = new Set<string>()
 
-	// Handle command chains (&&, ||, ;, |)
-	const chainOperators = ["&&", "||", ";", "|"]
-	const commands = splitByOperators(command, chainOperators)
+	// Handle command chains (&&, ||, ;, |) using the unified parseCommand function
+	const commands = parseCommand(command)
 
 	for (const cmd of commands) {
 		const cmdPatterns = extractSingleCommandPattern(cmd.trim())
@@ -31,79 +31,65 @@ export function extractCommandPatterns(command: string): string[] {
 }
 
 /**
- * Split command by operators while respecting shell syntax
- */
-function splitByOperators(command: string, operators: string[]): string[] {
-	const commands: string[] = []
-	let current = ""
-	let inSingleQuote = false
-	let inDoubleQuote = false
-	let escapeNext = false
-
-	for (let i = 0; i < command.length; i++) {
-		const char = command[i]
-
-		if (escapeNext) {
-			current += char
-			escapeNext = false
-			continue
-		}
-
-		if (char === "\\") {
-			escapeNext = true
-			current += char
-			continue
-		}
-
-		if (char === "'" && !inDoubleQuote) {
-			inSingleQuote = !inSingleQuote
-			current += char
-			continue
-		}
-
-		if (char === '"' && !inSingleQuote) {
-			inDoubleQuote = !inDoubleQuote
-			current += char
-			continue
-		}
-
-		// Check for operators outside quotes
-		if (!inSingleQuote && !inDoubleQuote) {
-			let foundOperator = false
-			for (const op of operators) {
-				if (command.substring(i, i + op.length) === op) {
-					// Found an operator, save current command
-					if (current.trim()) {
-						commands.push(current.trim())
-					}
-					current = ""
-					i += op.length - 1 // -1 because the loop will increment
-					foundOperator = true
-					break
-				}
-			}
-			if (foundOperator) continue
-		}
-
-		current += char
-	}
-
-	// Don't forget the last command
-	if (current.trim()) {
-		commands.push(current.trim())
-	}
-
-	// If no commands were found, return the whole command
-	if (commands.length === 0) {
-		commands.push(command)
-	}
-
-	return commands
-}
-
-/**
  * Extract patterns from a single command (not chained)
- * Returns an array of patterns instead of a single pattern
+ *
+ * This function implements a sophisticated pattern extraction algorithm that:
+ * 1. Parses the command using shell-quote for accurate tokenization
+ * 2. Identifies the base command and relevant subcommands
+ * 3. Generates progressively more specific patterns
+ * 4. Handles special cases for common tools (npm, git, docker, etc.)
+ *
+ * ## Pattern Extraction Strategy:
+ *
+ * The algorithm generates multiple patterns from least to most specific:
+ * - Base command only (e.g., "git")
+ * - Command + subcommand (e.g., "git push")
+ * - Stops at flags, paths, or complex arguments
+ *
+ * ## Special Command Handling:
+ *
+ * **Package Managers (npm, yarn, pnpm, bun):**
+ * - Extracts base command and subcommand
+ * - Special handling for "run" to allow any script
+ * - Example: "npm install" → ["npm", "npm install"]
+ *
+ * **Version Control (git):**
+ * - Extracts git + subcommand only
+ * - Example: "git push origin main" → ["git", "git push"]
+ *
+ * **Container/Orchestration (docker, kubectl, helm):**
+ * - Similar to git, extracts command + subcommand
+ * - Example: "docker build -t app ." → ["docker", "docker build"]
+ *
+ * **Interpreters (python, node, ruby, etc.):**
+ * - Only extracts the interpreter name
+ * - Example: "python script.py --arg" → ["python"]
+ *
+ * **Dangerous Commands (rm, mv, chmod, etc.):**
+ * - Only extracts the base command for safety
+ * - Example: "rm -rf /tmp/*" → ["rm"]
+ *
+ * **Script Files:**
+ * - If command is a path or has script extension, returns as-is
+ * - Example: "./deploy.sh" → ["./deploy.sh"]
+ *
+ * ## Examples:
+ * ```typescript
+ * extractSingleCommandPattern("npm install express")
+ * // Returns: ["npm", "npm install"]
+ *
+ * extractSingleCommandPattern("git push --force origin main")
+ * // Returns: ["git", "git push"]
+ *
+ * extractSingleCommandPattern("rm -rf node_modules")
+ * // Returns: ["rm"]
+ *
+ * extractSingleCommandPattern("./scripts/build.sh --prod")
+ * // Returns: ["./scripts/build.sh"]
+ * ```
+ *
+ * @param command - Single command string to extract patterns from
+ * @returns Array of patterns from least to most specific
  */
 function extractSingleCommandPattern(command: string): string[] {
 	if (!command) return []

@@ -103,7 +103,7 @@
 		"public_share_link_copied": "Tautan berbagi publik disalin ke clipboard!",
 		"mode_exported": "Mode '{{mode}}' berhasil diekspor",
 		"mode_imported": "Mode berhasil diimpor",
-		"command_whitelisted": "Pola perintah '{{pattern}}' telah ditambahkan ke daftar perintah yang diizinkan",
+		"command_allowed": "Pola perintah '{{pattern}}' telah ditambahkan ke daftar perintah yang diizinkan",
 		"command_denied": "Pola perintah '{{pattern}}' telah ditambahkan ke daftar perintah yang ditolak"
 	},
 	"answers": {

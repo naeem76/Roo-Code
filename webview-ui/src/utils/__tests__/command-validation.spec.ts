@@ -3,7 +3,6 @@
 // npx vitest src/utils/__tests__/command-validation.spec.ts
 
 import {
-	parseCommand,
 	isAutoApprovedSingleCommand,
 	isAutoDeniedSingleCommand,
 	isAutoApprovedCommand,
@@ -14,6 +13,7 @@ import {
 	CommandValidator,
 	createCommandValidator,
 } from "../command-validation"
+import { parseCommand } from "../commandUtils"
 
 describe("Command Validation", () => {
 	describe("parseCommand", () => {
