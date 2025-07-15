@@ -1,253 +1,272 @@
+import { parse } from "shell-quote"
+
 /**
- * Extracts a generalizable command pattern from a specific command.
- * This function creates patterns that can be used for whitelisting similar commands.
+ * Extracts command patterns from a command string using shell-quote parser.
+ * This provides a robust, deterministic way to extract patterns that can be
+ * used for whitelisting similar commands.
  *
- * Examples:
- * - "npm test" -> "npm test"
- * - "npm run build" -> "npm run"
- * - "git commit -m 'message'" -> "git commit"
- * - "echo 'hello world'" -> "echo"
- * - "python script.py --arg value" -> "python"
- * - "./scripts/deploy.sh production" -> "./scripts/deploy.sh"
- * - "cd /path/to/dir && npm install" -> "cd * && npm install"
- * - "rm -rf node_modules" -> "rm"
+ * @param command The full command string to extract patterns from
+ * @returns Array of unique command patterns sorted alphabetically
  */
-export function extractCommandPattern(command: string): string {
-	if (!command?.trim()) return ""
+export function extractCommandPatterns(command: string): string[] {
+	if (!command?.trim()) return []
 
-	// Remove leading/trailing whitespace
-	const trimmedCommand = command.trim()
+	const patterns = new Set<string>()
 
-	// Check if this is a chained command
-	// Use a more robust regex that handles nested quotes properly
-	const operators = ["&&", "||", ";", "|"]
-	let chainOperator: string | null = null
-	let splitIndex = -1
+	// Handle command chains (&&, ||, ;, |)
+	const chainOperators = ["&&", "||", ";", "|"]
+	const commands = splitByOperators(command, chainOperators)
 
-	// Find the first unquoted operator
-	let inSingleQuote = false
-	let inDoubleQuote = false
-	let escapeNext = false
-
-	for (let i = 0; i < trimmedCommand.length; i++) {
-		const char = trimmedCommand[i]
-
-		if (escapeNext) {
-			escapeNext = false
-			continue
-		}
-
-		if (char === "\\") {
-			escapeNext = true
-			continue
-		}
-
-		if (char === "'" && !inDoubleQuote) {
-			inSingleQuote = !inSingleQuote
-			continue
-		}
-
-		if (char === '"' && !inSingleQuote) {
-			inDoubleQuote = !inDoubleQuote
-			continue
-		}
-
-		// Only look for operators outside of quotes
-		if (!inSingleQuote && !inDoubleQuote) {
-			for (const op of operators) {
-				if (trimmedCommand.substring(i, i + op.length) === op) {
-					chainOperator = op
-					splitIndex = i
-					break
-				}
-			}
-			if (chainOperator) break
+	for (const cmd of commands) {
+		const pattern = extractSingleCommandPattern(cmd.trim())
+		if (pattern) {
+			patterns.add(pattern)
 		}
 	}
 
-	if (chainOperator && splitIndex > 0) {
-		const firstPart = trimmedCommand.substring(0, splitIndex).trim()
-		const restPart = trimmedCommand.substring(splitIndex + chainOperator.length).trim()
-
-		// Process each part separately
-		const firstPattern = extractSingleCommandPattern(firstPart)
-		const restPattern = extractCommandPattern(restPart)
-
-		// For security, limit the depth of chained commands
-		// Count existing operators in the pattern to prevent deeply nested chains
-		const operatorCount = (restPattern.match(/&&|\|\||;|\|/g) || []).length
-		if (operatorCount >= 3) {
-			// Too many chained commands, return a more restrictive pattern
-			return firstPattern
-		}
-
-		return `${firstPattern} ${chainOperator} ${restPattern}`
-	}
-
-	// Not a chained command, process normally
-	return extractSingleCommandPattern(trimmedCommand)
+	// Return sorted unique patterns
+	return Array.from(patterns).sort()
 }
 
 /**
- * Extracts pattern from a single command (not chained)
+ * Split command by operators while respecting shell syntax
  */
-function extractSingleCommandPattern(command: string): string {
-	const firstCommand = command
-
-	// Split the command into tokens, respecting quotes
-	const tokens: string[] = []
-	let currentToken = ""
+function splitByOperators(command: string, operators: string[]): string[] {
+	const commands: string[] = []
+	let current = ""
 	let inSingleQuote = false
 	let inDoubleQuote = false
 	let escapeNext = false
 
-	for (let i = 0; i < firstCommand.length; i++) {
-		const char = firstCommand[i]
+	for (let i = 0; i < command.length; i++) {
+		const char = command[i]
 
 		if (escapeNext) {
-			currentToken += char
+			current += char
 			escapeNext = false
 			continue
 		}
 
 		if (char === "\\") {
 			escapeNext = true
-			currentToken += char
+			current += char
 			continue
 		}
 
 		if (char === "'" && !inDoubleQuote) {
 			inSingleQuote = !inSingleQuote
-			currentToken += char
+			current += char
 			continue
 		}
 
 		if (char === '"' && !inSingleQuote) {
 			inDoubleQuote = !inDoubleQuote
-			currentToken += char
+			current += char
 			continue
 		}
 
-		if (char === " " && !inSingleQuote && !inDoubleQuote) {
-			if (currentToken) {
-				tokens.push(currentToken)
-				currentToken = ""
+		// Check for operators outside quotes
+		if (!inSingleQuote && !inDoubleQuote) {
+			let foundOperator = false
+			for (const op of operators) {
+				if (command.substring(i, i + op.length) === op) {
+					// Found an operator, save current command
+					if (current.trim()) {
+						commands.push(current.trim())
+					}
+					current = ""
+					i += op.length - 1 // -1 because the loop will increment
+					foundOperator = true
+					break
+				}
 			}
-		} else {
-			currentToken += char
+			if (foundOperator) continue
 		}
+
+		current += char
 	}
 
-	if (currentToken) {
-		tokens.push(currentToken)
+	// Don't forget the last command
+	if (current.trim()) {
+		commands.push(current.trim())
 	}
 
-	if (tokens.length === 0) return ""
+	// If no commands were found, return the whole command
+	if (commands.length === 0) {
+		commands.push(command)
+	}
 
-	const baseCommand = tokens[0]
+	return commands
+}
 
-	// Special handling for common patterns
+/**
+ * Extract pattern from a single command (not chained)
+ */
+function extractSingleCommandPattern(command: string): string {
+	if (!command) return ""
 
-	// 1. npm/yarn/pnpm commands - include subcommand with wildcards for scripts
-	if (["npm", "yarn", "pnpm", "bun"].includes(baseCommand) && tokens.length > 1) {
-		const subCommand = tokens[1]
-		// For "run" commands, check the script name
-		if (subCommand === "run" && tokens.length > 2) {
-			const _scriptName = tokens[2].replace(/^["']|["']$/g, "") // Remove quotes if present
+	try {
+		const parsed = parse(command)
+		if (parsed.length === 0) return ""
 
-			// Check if there's a -- separator (pass-through args)
-			const _hasPassThroughArgs = tokens.includes("--")
+		const patterns: string[] = []
+		let i = 0
 
-			// Always return just "npm run" without the script name
-			// This allows all npm run commands without using wildcards
-			return `${baseCommand} run`
+		while (i < parsed.length) {
+			const token = parsed[i]
+
+			// Skip operators and glob patterns
+			if (typeof token === "object" && "op" in token) {
+				// Handle redirects (>, >>, <, etc.)
+				if (token.op === ">" || token.op === ">>" || token.op === "<") {
+					// Stop processing - we've hit a redirect
+					break
+				}
+				// Handle glob patterns - treat as regular tokens
+				if (token.op === "glob") {
+					// For globs, we typically want to stop at the command level
+					if (patterns.length > 0) {
+						break
+					}
+				}
+				i++
+				continue
+			}
+
+			// Convert token to string
+			const strToken = String(token)
+
+			// Skip empty tokens
+			if (!strToken) {
+				i++
+				continue
+			}
+
+			// Handle environment variables at the start
+			if (patterns.length === 0 && strToken.includes("=") && /^[A-Z_]+=/i.test(strToken)) {
+				// This is an environment variable, skip it
+				i++
+				continue
+			}
+
+			// First non-env-var token is the command
+			if (patterns.length === 0) {
+				// Handle script files
+				if (
+					strToken.includes("/") ||
+					strToken.endsWith(".sh") ||
+					strToken.endsWith(".py") ||
+					strToken.endsWith(".js") ||
+					strToken.endsWith(".rb")
+				) {
+					return strToken
+				}
+				patterns.push(strToken)
+				i++
+				continue
+			}
+
+			// Stop at common flag indicators
+			if (strToken.startsWith("-")) {
+				break
+			}
+
+			// Stop at special shell operators
+			if ([">", ">>", "<", "|", "&", ";"].includes(strToken)) {
+				break
+			}
+
+			// Handle second token based on the command
+			if (patterns.length === 1) {
+				const baseCmd = patterns[0]
+
+				// Special handling for package managers
+				if (["npm", "yarn", "pnpm", "bun"].includes(baseCmd)) {
+					// Include subcommand
+					if (!strToken.startsWith("-") && !strToken.includes("/")) {
+						patterns.push(strToken)
+						// For 'run' commands, stop here to allow any script
+						if (strToken === "run") {
+							break
+						}
+					} else {
+						break
+					}
+				}
+
+				// Special handling for git
+				else if (baseCmd === "git") {
+					if (!strToken.startsWith("-")) {
+						patterns.push(strToken)
+					}
+					break
+				}
+
+				// Special handling for docker/kubectl/helm
+				else if (["docker", "kubectl", "helm"].includes(baseCmd)) {
+					if (!strToken.startsWith("-")) {
+						patterns.push(strToken)
+					}
+					break
+				}
+
+				// Special handling for make
+				else if (baseCmd === "make") {
+					if (!strToken.startsWith("-")) {
+						patterns.push(strToken)
+					}
+					break
+				}
+
+				// For interpreters, stop after the command
+				else if (["python", "python3", "node", "ruby", "perl", "php", "java", "go"].includes(baseCmd)) {
+					break
+				}
+
+				// For dangerous commands, stop immediately
+				else if (["rm", "mv", "cp", "chmod", "chown", "find", "grep", "sed", "awk"].includes(baseCmd)) {
+					break
+				}
+
+				// For cd, stop immediately
+				else if (baseCmd === "cd") {
+					break
+				}
+
+				// For echo and similar commands, stop immediately
+				else if (["echo", "printf", "cat", "ls", "pwd"].includes(baseCmd)) {
+					break
+				}
+
+				// Default: stop at paths or complex arguments
+				else if (
+					strToken.includes("/") ||
+					strToken.includes("\\") ||
+					strToken.includes(":") ||
+					strToken.includes("=")
+				) {
+					break
+				}
+			}
+
+			// For third+ tokens, be very restrictive
+			else {
+				break
+			}
+
+			i++
 		}
-		// For direct scripts like "npm test", "npm build", include the script name
-		if (!subCommand.startsWith("-")) {
-			return `${baseCommand} ${subCommand}`
-		}
-	}
 
-	// 2. git commands - include subcommand
-	if (baseCommand === "git" && tokens.length > 1) {
-		const subCommand = tokens[1]
-		if (!subCommand.startsWith("-")) {
-			return `${baseCommand} ${subCommand}`
-		}
+		return patterns.join(" ")
+	} catch (_error) {
+		// If parsing fails, fall back to simple first token
+		const tokens = command.split(/\s+/)
+		return tokens[0] || ""
 	}
-
-	// 3. Script files - include the full script path
-	if (
-		baseCommand.includes("/") ||
-		baseCommand.endsWith(".sh") ||
-		baseCommand.endsWith(".py") ||
-		baseCommand.endsWith(".js") ||
-		baseCommand.endsWith(".rb")
-	) {
-		return baseCommand
-	}
-
-	// 4. Python/node/ruby/etc interpreters - just the interpreter
-	if (["python", "python3", "node", "ruby", "perl", "php", "java", "go"].includes(baseCommand)) {
-		return baseCommand
-	}
-
-	// 5. Common shell commands with dangerous flags - just the command
-	if (["rm", "mv", "cp", "chmod", "chown", "find", "grep", "sed", "awk"].includes(baseCommand)) {
-		return baseCommand
-	}
-
-	// 6. cd command - just return cd
-	if (baseCommand === "cd") {
-		return "cd"
-	}
-
-	// 7. Docker/kubectl commands - include subcommand
-	if (["docker", "kubectl", "helm"].includes(baseCommand) && tokens.length > 1) {
-		const subCommand = tokens[1]
-		if (!subCommand.startsWith("-")) {
-			return `${baseCommand} ${subCommand}`
-		}
-	}
-
-	// 8. Make commands - include target if present
-	if (baseCommand === "make" && tokens.length > 1) {
-		const target = tokens[1]
-		if (!target.startsWith("-")) {
-			return `${baseCommand} ${target}`
-		}
-	}
-
-	// 9. Environment variables - handle with care
-	if (baseCommand.includes("=")) {
-		// This might be an environment variable like NODE_ENV=production
-		const envMatch = baseCommand.match(/^([A-Z_]+)=/)
-		if (envMatch) {
-			// Return the full environment variable assignment
-			return baseCommand
-		}
-	}
-
-	// 10. Commands with suspicious patterns - be restrictive
-	// Check for potential command injection patterns
-	if (baseCommand.includes("$") || baseCommand.includes("`") || baseCommand.includes("(")) {
-		// These could be command substitutions or variables, be very restrictive
-		return baseCommand.split(/[$`(]/)[0].trim() || "echo"
-	}
-
-	// Default: just return the base command
-	return baseCommand
 }
 
 /**
  * Get a human-readable description of what the pattern will allow
- *
- * Examples:
- * - "npm test" -> "npm test commands"
- * - "npm run" -> "npm run scripts"
- * - "git commit" -> "git commit commands"
- * - "python" -> "python scripts"
- * - "./scripts/deploy.sh" -> "this specific script"
  */
 export function getPatternDescription(pattern: string): string {
 	if (!pattern) return ""
@@ -258,7 +277,6 @@ export function getPatternDescription(pattern: string): string {
 	// npm/yarn/pnpm patterns
 	if (["npm", "yarn", "pnpm", "bun"].includes(baseCommand)) {
 		if (tokens[1] === "run") {
-			// For "npm run", describe what it allows
 			return `all ${baseCommand} run scripts`
 		}
 		if (tokens[1]) {
@@ -305,4 +323,13 @@ export function getPatternDescription(pattern: string): string {
 
 	// Default
 	return `${baseCommand} commands`
+}
+
+/**
+ * Wrapper function to maintain backward compatibility with existing code
+ * that expects a single pattern string
+ */
+export function extractCommandPattern(command: string): string {
+	const patterns = extractCommandPatterns(command)
+	return patterns[0] || ""
 }
