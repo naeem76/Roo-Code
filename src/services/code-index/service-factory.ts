@@ -63,7 +63,7 @@ export class CodeIndexServiceFactory {
 			if (!config.geminiOptions?.apiKey) {
 				throw new Error(t("embeddings:serviceFactory.geminiConfigMissing"))
 			}
-			return new GeminiEmbedder(config.geminiOptions.apiKey, config.modelId)
+			return new GeminiEmbedder(config.geminiOptions.apiKey, config.modelId, config.geminiOptions.baseUrl)
 		}
 
 		throw new Error(

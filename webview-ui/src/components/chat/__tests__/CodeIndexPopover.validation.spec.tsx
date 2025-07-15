@@ -234,6 +234,193 @@ describe("CodeIndexPopover Validation", () => {
 		})
 	})
 
+	describe("Gemini Provider Validation", () => {
+		beforeEach(async () => {
+			// Setup extension state for Gemini provider
+			mockUseExtensionState.mockReturnValue({
+				codebaseIndexConfig: {
+					codebaseIndexEnabled: false,
+					codebaseIndexQdrantUrl: "",
+					codebaseIndexEmbedderProvider: "gemini",
+					codebaseIndexEmbedderBaseUrl: "",
+					codebaseIndexEmbedderModelId: "",
+					codebaseIndexSearchMaxResults: 10,
+					codebaseIndexSearchMinScore: 0.7,
+					codebaseIndexOpenAiCompatibleBaseUrl: "",
+					codebaseIndexEmbedderModelDimension: undefined,
+					codebaseIndexGeminiBaseUrl: "",
+				},
+				codebaseIndexModels: {
+					gemini: {
+						"text-embedding-004": { dimension: 768 },
+					},
+				},
+			})
+		})
+
+		it("should show validation error when Gemini API key is empty", async () => {
+			renderComponent()
+			await openPopover()
+			await expandSetupSection()
+
+			// First, make a change to enable the save button by modifying the Qdrant URL
+			const qdrantUrlField = screen.getByPlaceholderText(/settings:codeIndex.qdrantUrlPlaceholder/i)
+			fireEvent.change(qdrantUrlField, { target: { value: "http://localhost:6333" } })
+
+			// Wait for the save button to become enabled
+			await waitFor(() => {
+				const saveButton = screen.getByText("settings:codeIndex.saveSettings")
+				expect(saveButton).not.toBeDisabled()
+			})
+
+			// Now clear the Gemini API key to create a validation error
+			const apiKeyField = screen.getByPlaceholderText(/settings:codeIndex.geminiApiKeyPlaceholder/i)
+			fireEvent.change(apiKeyField, { target: { value: "" } })
+
+			// Click the save button to trigger validation
+			const saveButton = screen.getByText("settings:codeIndex.saveSettings")
+			fireEvent.click(saveButton)
+
+			// Should show specific field error
+			await waitFor(() => {
+				expect(screen.getByText("settings:codeIndex.validation.geminiApiKeyRequired")).toBeInTheDocument()
+			})
+		})
+
+		it("should show validation error when Gemini model is not selected", async () => {
+			renderComponent()
+			await openPopover()
+			await expandSetupSection()
+
+			// First, make a change to enable the save button
+			const qdrantUrlField = screen.getByPlaceholderText(/settings:codeIndex.qdrantUrlPlaceholder/i)
+			fireEvent.change(qdrantUrlField, { target: { value: "http://localhost:6333" } })
+
+			// Set API key but leave model empty
+			const apiKeyField = screen.getByPlaceholderText(/settings:codeIndex.geminiApiKeyPlaceholder/i)
+			fireEvent.change(apiKeyField, { target: { value: "test-api-key" } })
+
+			// Wait for the save button to become enabled
+			await waitFor(() => {
+				const saveButton = screen.getByText("settings:codeIndex.saveSettings")
+				expect(saveButton).not.toBeDisabled()
+			})
+
+			const saveButton = screen.getByText("settings:codeIndex.saveSettings")
+			fireEvent.click(saveButton)
+
+			await waitFor(() => {
+				expect(screen.getByText("settings:codeIndex.validation.modelSelectionRequired")).toBeInTheDocument()
+			})
+		})
+
+		it("should show validation error when Gemini base URL is invalid", async () => {
+			renderComponent()
+			await openPopover()
+			await expandSetupSection()
+
+			// Set required fields first
+			const qdrantUrlField = screen.getByPlaceholderText(/settings:codeIndex.qdrantUrlPlaceholder/i)
+			fireEvent.change(qdrantUrlField, { target: { value: "http://localhost:6333" } })
+
+			const apiKeyField = screen.getByPlaceholderText(/settings:codeIndex.geminiApiKeyPlaceholder/i)
+			fireEvent.change(apiKeyField, { target: { value: "test-api-key" } })
+
+			// Set invalid Gemini base URL
+			const baseUrlField = screen.getByPlaceholderText(/settings:codeIndex.geminiBaseUrlPlaceholder/i)
+			fireEvent.change(baseUrlField, { target: { value: "invalid-url" } })
+
+			// Wait for the save button to become enabled
+			await waitFor(() => {
+				const saveButton = screen.getByText("settings:codeIndex.saveSettings")
+				expect(saveButton).not.toBeDisabled()
+			})
+
+			const saveButton = screen.getByText("settings:codeIndex.saveSettings")
+			fireEvent.click(saveButton)
+
+			await waitFor(() => {
+				expect(screen.getByText("settings:codeIndex.validation.invalidGeminiBaseUrl")).toBeInTheDocument()
+			})
+		})
+
+		it("should not show validation error when Gemini base URL is empty (optional)", async () => {
+			renderComponent()
+			await openPopover()
+			await expandSetupSection()
+
+			// Set required fields to make form valid
+			const qdrantUrlField = screen.getByPlaceholderText(/settings:codeIndex.qdrantUrlPlaceholder/i)
+			fireEvent.change(qdrantUrlField, { target: { value: "http://localhost:6333" } })
+
+			const apiKeyField = screen.getByPlaceholderText(/settings:codeIndex.geminiApiKeyPlaceholder/i)
+			fireEvent.change(apiKeyField, { target: { value: "test-api-key" } })
+
+			// Select a model - this is required
+			const modelSelect = screen.getAllByRole("combobox").find((el) => el.tagName === "SELECT")
+			if (modelSelect) {
+				fireEvent.change(modelSelect, { target: { value: "text-embedding-004" } })
+			}
+
+			// Leave Gemini base URL empty (it's optional)
+			const baseUrlField = screen.getByPlaceholderText(/settings:codeIndex.geminiBaseUrlPlaceholder/i)
+			fireEvent.change(baseUrlField, { target: { value: "" } })
+
+			// Wait for the save button to become enabled
+			await waitFor(() => {
+				const saveButton = screen.getByText("settings:codeIndex.saveSettings")
+				expect(saveButton).not.toBeDisabled()
+			})
+
+			const saveButton = screen.getByText("settings:codeIndex.saveSettings")
+			fireEvent.click(saveButton)
+
+			// Should not show validation errors since Gemini base URL is optional
+			await waitFor(() => {
+				expect(screen.queryByText("settings:codeIndex.validation.invalidGeminiBaseUrl")).not.toBeInTheDocument()
+			})
+		})
+
+		it("should accept valid Gemini base URL", async () => {
+			renderComponent()
+			await openPopover()
+			await expandSetupSection()
+
+			// Set all required fields with valid values
+			const qdrantUrlField = screen.getByPlaceholderText(/settings:codeIndex.qdrantUrlPlaceholder/i)
+			fireEvent.change(qdrantUrlField, { target: { value: "http://localhost:6333" } })
+
+			const apiKeyField = screen.getByPlaceholderText(/settings:codeIndex.geminiApiKeyPlaceholder/i)
+			fireEvent.change(apiKeyField, { target: { value: "test-api-key" } })
+
+			// Set valid Gemini base URL
+			const baseUrlField = screen.getByPlaceholderText(/settings:codeIndex.geminiBaseUrlPlaceholder/i)
+			fireEvent.change(baseUrlField, {
+				target: { value: "https://custom-gemini-proxy.example.com/v1beta/openai/" },
+			})
+
+			// Select a model
+			const modelSelect = screen.getAllByRole("combobox").find((el) => el.tagName === "SELECT")
+			if (modelSelect) {
+				fireEvent.change(modelSelect, { target: { value: "text-embedding-004" } })
+			}
+
+			// Wait for the save button to become enabled
+			await waitFor(() => {
+				const saveButton = screen.getByText("settings:codeIndex.saveSettings")
+				expect(saveButton).not.toBeDisabled()
+			})
+
+			const saveButton = screen.getByText("settings:codeIndex.saveSettings")
+			fireEvent.click(saveButton)
+
+			// Should not show validation errors for valid URL
+			await waitFor(() => {
+				expect(screen.queryByText("settings:codeIndex.validation.invalidGeminiBaseUrl")).not.toBeInTheDocument()
+			})
+		})
+	})
+
 	describe("Qdrant URL Validation", () => {
 		it("should show validation error when Qdrant URL is empty", async () => {
 			renderComponent()

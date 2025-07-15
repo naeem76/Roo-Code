@@ -12,7 +12,7 @@ export interface CodeIndexConfig {
 	openAiOptions?: ApiHandlerOptions
 	ollamaOptions?: ApiHandlerOptions
 	openAiCompatibleOptions?: { baseUrl: string; apiKey: string }
-	geminiOptions?: { apiKey: string }
+	geminiOptions?: { apiKey: string; baseUrl?: string }
 	qdrantUrl?: string
 	qdrantApiKey?: string
 	searchMinScore?: number
@@ -33,6 +33,7 @@ export type PreviousConfigSnapshot = {
 	openAiCompatibleBaseUrl?: string
 	openAiCompatibleApiKey?: string
 	geminiApiKey?: string
+	geminiBaseUrl?: string
 	qdrantUrl?: string
 	qdrantApiKey?: string
 }

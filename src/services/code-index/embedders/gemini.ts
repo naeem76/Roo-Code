@@ -23,8 +23,9 @@ export class GeminiEmbedder implements IEmbedder {
 	 * Creates a new Gemini embedder
 	 * @param apiKey The Gemini API key for authentication
 	 * @param modelId The model ID to use (defaults to gemini-embedding-001)
+	 * @param baseUrl The base URL for the Gemini API (defaults to Google's official endpoint)
 	 */
-	constructor(apiKey: string, modelId?: string) {
+	constructor(apiKey: string, modelId?: string, baseUrl?: string) {
 		if (!apiKey) {
 			throw new Error(t("embeddings:validation.apiKeyRequired"))
 		}
@@ -32,9 +33,12 @@ export class GeminiEmbedder implements IEmbedder {
 		// Use provided model or default
 		this.modelId = modelId || GeminiEmbedder.DEFAULT_MODEL
 
+		// Use provided base URL or default
+		const geminiBaseUrl = baseUrl || GeminiEmbedder.GEMINI_BASE_URL
+
 		// Create an OpenAI Compatible embedder with Gemini's configuration
 		this.openAICompatibleEmbedder = new OpenAICompatibleEmbedder(
-			GeminiEmbedder.GEMINI_BASE_URL,
+			geminiBaseUrl,
 			apiKey,
 			this.modelId,
 			GEMINI_MAX_ITEM_TOKENS,

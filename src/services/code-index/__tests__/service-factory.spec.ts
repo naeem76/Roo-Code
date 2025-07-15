@@ -279,7 +279,7 @@ describe("CodeIndexServiceFactory", () => {
 			factory.createEmbedder()
 
 			// Assert
-			expect(MockedGeminiEmbedder).toHaveBeenCalledWith("test-gemini-api-key", undefined)
+			expect(MockedGeminiEmbedder).toHaveBeenCalledWith("test-gemini-api-key", undefined, undefined)
 		})
 
 		it("should create GeminiEmbedder with specified modelId", () => {
@@ -297,7 +297,49 @@ describe("CodeIndexServiceFactory", () => {
 			factory.createEmbedder()
 
 			// Assert
-			expect(MockedGeminiEmbedder).toHaveBeenCalledWith("test-gemini-api-key", "text-embedding-004")
+			expect(MockedGeminiEmbedder).toHaveBeenCalledWith("test-gemini-api-key", "text-embedding-004", undefined)
+		})
+
+		it("should create GeminiEmbedder with custom base URL", () => {
+			// Arrange
+			const testConfig = {
+				embedderProvider: "gemini",
+				modelId: "text-embedding-004",
+				geminiOptions: {
+					apiKey: "test-gemini-api-key",
+					baseUrl: "https://custom-gemini-proxy.example.com/v1beta/openai/",
+				},
+			}
+			mockConfigManager.getConfig.mockReturnValue(testConfig as any)
+
+			// Act
+			factory.createEmbedder()
+
+			// Assert
+			expect(MockedGeminiEmbedder).toHaveBeenCalledWith(
+				"test-gemini-api-key",
+				"text-embedding-004",
+				"https://custom-gemini-proxy.example.com/v1beta/openai/",
+			)
+		})
+
+		it("should create GeminiEmbedder without base URL when not specified", () => {
+			// Arrange
+			const testConfig = {
+				embedderProvider: "gemini",
+				modelId: "text-embedding-004",
+				geminiOptions: {
+					apiKey: "test-gemini-api-key",
+					// baseUrl not specified
+				},
+			}
+			mockConfigManager.getConfig.mockReturnValue(testConfig as any)
+
+			// Act
+			factory.createEmbedder()
+
+			// Assert
+			expect(MockedGeminiEmbedder).toHaveBeenCalledWith("test-gemini-api-key", "text-embedding-004", undefined)
 		})
 
 		it("should throw error when Gemini API key is missing", () => {

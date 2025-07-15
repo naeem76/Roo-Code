@@ -1239,6 +1239,151 @@ describe("CodeIndexConfigManager", () => {
 			expect(configManager.isFeatureConfigured).toBe(true)
 		})
 
+		it("should load Gemini configuration with custom base URL from globalState", async () => {
+			const mockGlobalState = {
+				codebaseIndexEnabled: true,
+				codebaseIndexQdrantUrl: "http://qdrant.local",
+				codebaseIndexEmbedderProvider: "gemini",
+				codebaseIndexEmbedderModelId: "text-embedding-004",
+				codebaseIndexGeminiBaseUrl: "https://custom-gemini-proxy.example.com/v1beta/openai/",
+			}
+			mockContextProxy.getGlobalState.mockImplementation((key: string) => {
+				if (key === "codebaseIndexConfig") return mockGlobalState
+				return undefined
+			})
+
+			setupSecretMocks({
+				codebaseIndexGeminiApiKey: "test-gemini-key",
+				codeIndexQdrantApiKey: "test-qdrant-key",
+			})
+
+			const result = await configManager.loadConfiguration()
+
+			expect(result.currentConfig).toEqual({
+				isConfigured: true,
+				embedderProvider: "gemini",
+				modelId: "text-embedding-004",
+				modelDimension: undefined,
+				openAiOptions: { openAiNativeApiKey: "" },
+				ollamaOptions: { ollamaBaseUrl: undefined },
+				openAiCompatibleOptions: undefined,
+				geminiOptions: {
+					apiKey: "test-gemini-key",
+					baseUrl: "https://custom-gemini-proxy.example.com/v1beta/openai/",
+				},
+				qdrantUrl: "http://qdrant.local",
+				qdrantApiKey: "test-qdrant-key",
+				searchMinScore: 0.4,
+			})
+		})
+
+		it("should load Gemini configuration without custom base URL (default)", async () => {
+			const mockGlobalState = {
+				codebaseIndexEnabled: true,
+				codebaseIndexQdrantUrl: "http://qdrant.local",
+				codebaseIndexEmbedderProvider: "gemini",
+				codebaseIndexEmbedderModelId: "text-embedding-004",
+				// No custom base URL specified
+			}
+			mockContextProxy.getGlobalState.mockImplementation((key: string) => {
+				if (key === "codebaseIndexConfig") return mockGlobalState
+				return undefined
+			})
+
+			setupSecretMocks({
+				codebaseIndexGeminiApiKey: "test-gemini-key",
+				codeIndexQdrantApiKey: "test-qdrant-key",
+			})
+
+			const result = await configManager.loadConfiguration()
+
+			expect(result.currentConfig).toEqual({
+				isConfigured: true,
+				embedderProvider: "gemini",
+				modelId: "text-embedding-004",
+				modelDimension: undefined,
+				openAiOptions: { openAiNativeApiKey: "" },
+				ollamaOptions: { ollamaBaseUrl: undefined },
+				openAiCompatibleOptions: undefined,
+				geminiOptions: {
+					apiKey: "test-gemini-key",
+					baseUrl: "", // Should be empty string when not specified
+				},
+				qdrantUrl: "http://qdrant.local",
+				qdrantApiKey: "test-qdrant-key",
+				searchMinScore: 0.4,
+			})
+		})
+
+		it("should detect restart requirement when Gemini base URL changes", async () => {
+			// Initial state with no custom base URL
+			mockContextProxy.getGlobalState.mockImplementation((key: string) => {
+				if (key === "codebaseIndexConfig") {
+					return {
+						codebaseIndexEnabled: true,
+						codebaseIndexQdrantUrl: "http://qdrant.local",
+						codebaseIndexEmbedderProvider: "gemini",
+						codebaseIndexEmbedderModelId: "text-embedding-004",
+					}
+				}
+				return undefined
+			})
+			setupSecretMocks({
+				codebaseIndexGeminiApiKey: "test-gemini-key",
+				codeIndexQdrantApiKey: "test-qdrant-key",
+			})
+
+			await configManager.loadConfiguration()
+
+			// Change to custom base URL
+			mockContextProxy.getGlobalState.mockImplementation((key: string) => {
+				if (key === "codebaseIndexConfig") {
+					return {
+						codebaseIndexEnabled: true,
+						codebaseIndexQdrantUrl: "http://qdrant.local",
+						codebaseIndexEmbedderProvider: "gemini",
+						codebaseIndexEmbedderModelId: "text-embedding-004",
+						codebaseIndexGeminiBaseUrl: "https://custom-gemini-proxy.example.com/v1beta/openai/",
+					}
+				}
+				return undefined
+			})
+
+			const result = await configManager.loadConfiguration()
+			expect(result.requiresRestart).toBe(true)
+		})
+
+		it("should detect restart requirement when Gemini API key changes", async () => {
+			// Initial state
+			mockContextProxy.getGlobalState.mockImplementation((key: string) => {
+				if (key === "codebaseIndexConfig") {
+					return {
+						codebaseIndexEnabled: true,
+						codebaseIndexQdrantUrl: "http://qdrant.local",
+						codebaseIndexEmbedderProvider: "gemini",
+						codebaseIndexEmbedderModelId: "text-embedding-004",
+						codebaseIndexGeminiBaseUrl: "https://custom-gemini-proxy.example.com/v1beta/openai/",
+					}
+				}
+				return undefined
+			})
+			setupSecretMocks({
+				codebaseIndexGeminiApiKey: "old-gemini-key",
+				codeIndexQdrantApiKey: "test-qdrant-key",
+			})
+
+			await configManager.loadConfiguration()
+
+			// Change Gemini API key
+			setupSecretMocks({
+				codebaseIndexGeminiApiKey: "new-gemini-key",
+				codeIndexQdrantApiKey: "test-qdrant-key",
+			})
+
+			const result = await configManager.loadConfiguration()
+			expect(result.requiresRestart).toBe(true)
+		})
+
 		it("should return false when Gemini API key is missing", async () => {
 			mockContextProxy.getGlobalState.mockImplementation((key: string) => {
 				if (key === "codebaseIndexConfig") {

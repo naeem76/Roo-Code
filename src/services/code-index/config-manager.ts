@@ -17,7 +17,7 @@ export class CodeIndexConfigManager {
 	private openAiOptions?: ApiHandlerOptions
 	private ollamaOptions?: ApiHandlerOptions
 	private openAiCompatibleOptions?: { baseUrl: string; apiKey: string }
-	private geminiOptions?: { apiKey: string }
+	private geminiOptions?: { apiKey: string; baseUrl?: string }
 	private qdrantUrl?: string = "http://localhost:6333"
 	private qdrantApiKey?: string
 	private searchMinScore?: number
@@ -49,6 +49,9 @@ export class CodeIndexConfigManager {
 			codebaseIndexEmbedderModelId: "",
 			codebaseIndexSearchMinScore: undefined,
 			codebaseIndexSearchMaxResults: undefined,
+			codebaseIndexOpenAiCompatibleBaseUrl: "",
+			codebaseIndexEmbedderModelDimension: undefined,
+			codebaseIndexGeminiBaseUrl: "",
 		}
 
 		const {
@@ -67,6 +70,7 @@ export class CodeIndexConfigManager {
 		const openAiCompatibleBaseUrl = codebaseIndexConfig.codebaseIndexOpenAiCompatibleBaseUrl ?? ""
 		const openAiCompatibleApiKey = this.contextProxy?.getSecret("codebaseIndexOpenAiCompatibleApiKey") ?? ""
 		const geminiApiKey = this.contextProxy?.getSecret("codebaseIndexGeminiApiKey") ?? ""
+		const geminiBaseUrl = codebaseIndexConfig.codebaseIndexGeminiBaseUrl ?? ""
 
 		// Update instance variables with configuration
 		this.codebaseIndexEnabled = codebaseIndexEnabled ?? true
@@ -118,7 +122,7 @@ export class CodeIndexConfigManager {
 					}
 				: undefined
 
-		this.geminiOptions = geminiApiKey ? { apiKey: geminiApiKey } : undefined
+		this.geminiOptions = geminiApiKey ? { apiKey: geminiApiKey, baseUrl: geminiBaseUrl } : undefined
 	}
 
 	/**
@@ -134,7 +138,7 @@ export class CodeIndexConfigManager {
 			openAiOptions?: ApiHandlerOptions
 			ollamaOptions?: ApiHandlerOptions
 			openAiCompatibleOptions?: { baseUrl: string; apiKey: string }
-			geminiOptions?: { apiKey: string }
+			geminiOptions?: { apiKey: string; baseUrl?: string }
 			qdrantUrl?: string
 			qdrantApiKey?: string
 			searchMinScore?: number
@@ -153,6 +157,7 @@ export class CodeIndexConfigManager {
 			openAiCompatibleBaseUrl: this.openAiCompatibleOptions?.baseUrl ?? "",
 			openAiCompatibleApiKey: this.openAiCompatibleOptions?.apiKey ?? "",
 			geminiApiKey: this.geminiOptions?.apiKey ?? "",
+			geminiBaseUrl: this.geminiOptions?.baseUrl ?? "",
 			qdrantUrl: this.qdrantUrl ?? "",
 			qdrantApiKey: this.qdrantApiKey ?? "",
 		}
@@ -241,6 +246,7 @@ export class CodeIndexConfigManager {
 		const prevOpenAiCompatibleApiKey = prev?.openAiCompatibleApiKey ?? ""
 		const prevModelDimension = prev?.modelDimension
 		const prevGeminiApiKey = prev?.geminiApiKey ?? ""
+		const prevGeminiBaseUrl = prev?.geminiBaseUrl ?? ""
 		const prevQdrantUrl = prev?.qdrantUrl ?? ""
 		const prevQdrantApiKey = prev?.qdrantApiKey ?? ""
 
@@ -277,6 +283,7 @@ export class CodeIndexConfigManager {
 		const currentOpenAiCompatibleApiKey = this.openAiCompatibleOptions?.apiKey ?? ""
 		const currentModelDimension = this.modelDimension
 		const currentGeminiApiKey = this.geminiOptions?.apiKey ?? ""
+		const currentGeminiBaseUrl = this.geminiOptions?.baseUrl ?? ""
 		const currentQdrantUrl = this.qdrantUrl ?? ""
 		const currentQdrantApiKey = this.qdrantApiKey ?? ""
 
@@ -292,6 +299,10 @@ export class CodeIndexConfigManager {
 			prevOpenAiCompatibleBaseUrl !== currentOpenAiCompatibleBaseUrl ||
 			prevOpenAiCompatibleApiKey !== currentOpenAiCompatibleApiKey
 		) {
+			return true
+		}
+
+		if (prevGeminiApiKey !== currentGeminiApiKey || prevGeminiBaseUrl !== currentGeminiBaseUrl) {
 			return true
 		}
 

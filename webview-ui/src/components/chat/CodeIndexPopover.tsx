@@ -68,6 +68,7 @@ interface LocalCodeIndexSettings {
 	codebaseIndexOpenAiCompatibleBaseUrl?: string
 	codebaseIndexOpenAiCompatibleApiKey?: string
 	codebaseIndexGeminiApiKey?: string
+	codebaseIndexGeminiBaseUrl?: string
 }
 
 // Validation schema for codebase index settings
@@ -117,6 +118,12 @@ const createValidationSchema = (provider: EmbedderProvider, t: any) => {
 		case "gemini":
 			return baseSchema.extend({
 				codebaseIndexGeminiApiKey: z.string().min(1, t("settings:codeIndex.validation.geminiApiKeyRequired")),
+				codebaseIndexGeminiBaseUrl: z
+					.string()
+					.optional()
+					.refine((val) => !val || z.string().url().safeParse(val).success, {
+						message: t("settings:codeIndex.validation.invalidGeminiBaseUrl"),
+					}),
 				codebaseIndexEmbedderModelId: z
 					.string()
 					.min(1, t("settings:codeIndex.validation.modelSelectionRequired")),
@@ -165,6 +172,7 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 		codebaseIndexOpenAiCompatibleBaseUrl: "",
 		codebaseIndexOpenAiCompatibleApiKey: "",
 		codebaseIndexGeminiApiKey: "",
+		codebaseIndexGeminiBaseUrl: "",
 	})
 
 	// Initial settings state - stores the settings when popover opens
@@ -198,6 +206,7 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 				codebaseIndexOpenAiCompatibleBaseUrl: codebaseIndexConfig.codebaseIndexOpenAiCompatibleBaseUrl || "",
 				codebaseIndexOpenAiCompatibleApiKey: "",
 				codebaseIndexGeminiApiKey: "",
+				codebaseIndexGeminiBaseUrl: codebaseIndexConfig.codebaseIndexGeminiBaseUrl || "",
 			}
 			setInitialSettings(settings)
 			setCurrentSettings(settings)
@@ -874,6 +883,27 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 												{formErrors.codebaseIndexGeminiApiKey && (
 													<p className="text-xs text-vscode-errorForeground mt-1 mb-0">
 														{formErrors.codebaseIndexGeminiApiKey}
+													</p>
+												)}
+											</div>
+
+											<div className="space-y-2">
+												<label className="text-sm font-medium">
+													{t("settings:codeIndex.geminiBaseUrlLabel")}
+												</label>
+												<VSCodeTextField
+													value={currentSettings.codebaseIndexGeminiBaseUrl || ""}
+													onInput={(e: any) =>
+														updateSetting("codebaseIndexGeminiBaseUrl", e.target.value)
+													}
+													placeholder={t("settings:codeIndex.geminiBaseUrlPlaceholder")}
+													className={cn("w-full", {
+														"border-red-500": formErrors.codebaseIndexGeminiBaseUrl,
+													})}
+												/>
+												{formErrors.codebaseIndexGeminiBaseUrl && (
+													<p className="text-xs text-vscode-errorForeground mt-1 mb-0">
+														{formErrors.codebaseIndexGeminiBaseUrl}
 													</p>
 												)}
 											</div>
