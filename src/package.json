@@ -315,40 +315,12 @@
 		"configuration": {
 			"title": "%configuration.title%",
 			"properties": {
-				"roo-cline.allowedCommands": {
-					"type": "array",
-					"items": {
-						"type": "string"
-					},
-					"default": [
-						"npm test",
-						"npm install",
-						"tsc",
-						"git log",
-						"git diff",
-						"git show"
-					],
-					"description": "%commands.allowedCommands.description%"
-				},
-				"roo-cline.deniedCommands": {
-					"type": "array",
-					"items": {
-						"type": "string"
-					},
-					"default": [],
-					"description": "%commands.deniedCommands.description%"
-				},
 				"roo-cline.commandExecutionTimeout": {
 					"type": "number",
 					"default": 0,
 					"minimum": 0,
 					"maximum": 600,
 					"description": "%commands.commandExecutionTimeout.description%"
-				},
-				"roo-cline.disableLlmCommandSuggestions": {
-					"type": "boolean",
-					"default": false,
-					"description": "%settings.disableLlmCommandSuggestions.description%"
 				},
 				"roo-cline.vsCodeLmModelSelector": {
 					"type": "object",

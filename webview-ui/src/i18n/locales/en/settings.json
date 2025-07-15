@@ -173,6 +173,10 @@
 		"execute": {
 			"label": "Execute",
 			"description": "Automatically execute allowed terminal commands without requiring approval",
+			"disableLlmSuggestions": {
+				"label": "Disable LLM Command Suggestions",
+				"description": "When enabled, command patterns will be generated programmatically instead of by the LLM, reducing token usage"
+			},
 			"allowedCommands": "Allowed Auto-Execute Commands",
 			"allowedCommandsDescription": "Command prefixes that can be auto-executed when \"Always approve execute operations\" is enabled. Add * to allow all commands (use with caution).",
 			"deniedCommands": "Denied Commands",

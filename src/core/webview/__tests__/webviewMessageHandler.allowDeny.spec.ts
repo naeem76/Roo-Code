@@ -75,15 +75,7 @@ describe("webviewMessageHandler - allowedCommands and deniedCommands", () => {
 				"npm run build",
 			])
 
-			// Verify workspace settings were updated
-			expect(vscode.workspace.getConfiguration).toHaveBeenCalledWith("roo-code")
-			expect(mockConfigUpdate).toHaveBeenCalledWith(
-				"allowedCommands",
-				["npm test", "git status", "npm run build"],
-				vscode.ConfigurationTarget.Global,
-			)
-
-			// Note: The actual implementation doesn't call postStateToWebview for these messages
+			// Note: We no longer update VS Code workspace settings, only global state
 		})
 
 		it("should handle removing patterns from allowed commands", async () => {
@@ -102,12 +94,7 @@ describe("webviewMessageHandler - allowedCommands and deniedCommands", () => {
 			// Verify the pattern was removed
 			expect(mockContextProxy.setValue).toHaveBeenCalledWith("allowedCommands", ["npm test", "npm run build"])
 
-			// Verify workspace settings were updated
-			expect(mockConfigUpdate).toHaveBeenCalledWith(
-				"allowedCommands",
-				["npm test", "npm run build"],
-				vscode.ConfigurationTarget.Global,
-			)
+			// Note: We no longer update VS Code workspace settings, only global state
 		})
 
 		it("should handle empty allowed commands list", async () => {
@@ -123,8 +110,7 @@ describe("webviewMessageHandler - allowedCommands and deniedCommands", () => {
 			// Verify the commands were cleared
 			expect(mockContextProxy.setValue).toHaveBeenCalledWith("allowedCommands", [])
 
-			// Verify workspace settings were updated
-			expect(mockConfigUpdate).toHaveBeenCalledWith("allowedCommands", [], vscode.ConfigurationTarget.Global)
+			// Note: We no longer update VS Code workspace settings, only global state
 		})
 
 		it("should filter out invalid commands", async () => {
@@ -156,15 +142,7 @@ describe("webviewMessageHandler - allowedCommands and deniedCommands", () => {
 			// Verify the commands were updated
 			expect(mockContextProxy.setValue).toHaveBeenCalledWith("deniedCommands", ["rm -rf", "sudo", "chmod 777"])
 
-			// Verify workspace settings were updated
-			expect(vscode.workspace.getConfiguration).toHaveBeenCalledWith("roo-code")
-			expect(mockConfigUpdate).toHaveBeenCalledWith(
-				"deniedCommands",
-				["rm -rf", "sudo", "chmod 777"],
-				vscode.ConfigurationTarget.Global,
-			)
-
-			// Note: The actual implementation doesn't call postStateToWebview for these messages
+			// Note: We no longer update VS Code workspace settings, only global state
 		})
 
 		it("should handle removing patterns from denied commands", async () => {
@@ -183,12 +161,7 @@ describe("webviewMessageHandler - allowedCommands and deniedCommands", () => {
 			// Verify the pattern was removed
 			expect(mockContextProxy.setValue).toHaveBeenCalledWith("deniedCommands", ["rm -rf", "chmod 777"])
 
-			// Verify workspace settings were updated
-			expect(mockConfigUpdate).toHaveBeenCalledWith(
-				"deniedCommands",
-				["rm -rf", "chmod 777"],
-				vscode.ConfigurationTarget.Global,
-			)
+			// Note: We no longer update VS Code workspace settings, only global state
 		})
 
 		it("should handle empty denied commands list", async () => {
@@ -204,8 +177,7 @@ describe("webviewMessageHandler - allowedCommands and deniedCommands", () => {
 			// Verify the commands were cleared
 			expect(mockContextProxy.setValue).toHaveBeenCalledWith("deniedCommands", [])
 
-			// Verify workspace settings were updated
-			expect(mockConfigUpdate).toHaveBeenCalledWith("deniedCommands", [], vscode.ConfigurationTarget.Global)
+			// Note: We no longer update VS Code workspace settings, only global state
 		})
 
 		it("should filter out invalid commands", async () => {

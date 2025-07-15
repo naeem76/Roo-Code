@@ -55,10 +55,10 @@ export async function executeCommandTool(
 
 			command = unescapeHtmlEntities(command) // Unescape HTML entities.
 
-			// Get the setting for disabling LLM suggestions
-			const disableLlmSuggestions = vscode.workspace
-				.getConfiguration(Package.name)
-				.get<boolean>("disableLlmCommandSuggestions", false)
+			// Get the provider state to check the setting
+			const clineProvider = await cline.providerRef.deref()
+			const clineProviderState = await clineProvider?.getState()
+			const disableLlmSuggestions = clineProviderState?.disableLlmCommandSuggestions ?? false
 
 			// Parse suggestions if provided and not disabled
 			let suggestions: string[] | undefined
@@ -113,8 +113,6 @@ export async function executeCommandTool(
 			}
 
 			const executionId = cline.lastMessageTs?.toString() ?? Date.now().toString()
-			const clineProvider = await cline.providerRef.deref()
-			const clineProviderState = await clineProvider?.getState()
 			const { terminalOutputLineLimit = 500, terminalShellIntegrationDisabled = false } = clineProviderState ?? {}
 
 			// Get command execution timeout from VSCode configuration (in seconds)

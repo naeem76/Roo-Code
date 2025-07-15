@@ -89,14 +89,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Initialize terminal shell execution handlers.
 	TerminalRegistry.initialize()
 
-	// Get default commands from configuration.
-	const defaultCommands = vscode.workspace.getConfiguration(Package.name).get<string[]>("allowedCommands") || []
-
-	// Initialize global state if not already set.
-	if (!context.globalState.get("allowedCommands")) {
-		context.globalState.update("allowedCommands", defaultCommands)
-	}
-
 	const contextProxy = await ContextProxy.getInstance(context)
 	const codeIndexManager = CodeIndexManager.getInstance(context)
 

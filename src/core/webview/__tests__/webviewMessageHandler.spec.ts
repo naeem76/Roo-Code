@@ -88,14 +88,6 @@ describe("webviewMessageHandler - whitelistCommand", () => {
 			"npm run build",
 		])
 
-		// Verify workspace settings were updated
-		expect(vscode.workspace.getConfiguration).toHaveBeenCalledWith("roo-code")
-		expect(mockConfigUpdate).toHaveBeenCalledWith(
-			"allowedCommands",
-			["npm test", "git status", "npm run build"],
-			vscode.ConfigurationTarget.Global,
-		)
-
 		// Verify user was notified
 		expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
 			'Command pattern "npm run build" has been whitelisted',
@@ -121,9 +113,6 @@ describe("webviewMessageHandler - whitelistCommand", () => {
 		// Verify setValue was NOT called (no update needed)
 		expect(mockContextProxy.setValue).not.toHaveBeenCalled()
 
-		// Verify workspace settings were NOT updated
-		expect(mockConfigUpdate).not.toHaveBeenCalled()
-
 		// Verify user was NOT notified
 		expect(vscode.window.showInformationMessage).not.toHaveBeenCalled()
 
@@ -146,14 +135,6 @@ describe("webviewMessageHandler - whitelistCommand", () => {
 
 		// Verify the pattern was added as the first item
 		expect(mockContextProxy.setValue).toHaveBeenCalledWith("allowedCommands", ["echo 'Hello, World!'"])
-
-		// Verify workspace settings were updated
-		expect(vscode.workspace.getConfiguration).toHaveBeenCalledWith("roo-code")
-		expect(mockConfigUpdate).toHaveBeenCalledWith(
-			"allowedCommands",
-			["echo 'Hello, World!'"],
-			vscode.ConfigurationTarget.Global,
-		)
 
 		// Verify user was notified
 		expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
@@ -231,13 +212,5 @@ describe("webviewMessageHandler - whitelistCommand", () => {
 			"npm test",
 			'echo "Hello, World!" && echo $HOME',
 		])
-
-		// Verify workspace settings were updated
-		expect(vscode.workspace.getConfiguration).toHaveBeenCalledWith("roo-code")
-		expect(mockConfigUpdate).toHaveBeenCalledWith(
-			"allowedCommands",
-			["npm test", 'echo "Hello, World!" && echo $HOME'],
-			vscode.ConfigurationTarget.Global,
-		)
 	})
 })

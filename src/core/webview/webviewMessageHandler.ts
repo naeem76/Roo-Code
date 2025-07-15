@@ -769,11 +769,6 @@ export const webviewMessageHandler = async (
 
 			await updateGlobalState("allowedCommands", validCommands)
 
-			// Also update workspace settings.
-			await vscode.workspace
-				.getConfiguration(Package.name)
-				.update("allowedCommands", validCommands, vscode.ConfigurationTarget.Global)
-
 			break
 		}
 		case "whitelistCommand": {
@@ -789,11 +784,6 @@ export const webviewMessageHandler = async (
 					validCommands.push(message.pattern)
 
 					await updateGlobalState("allowedCommands", validCommands)
-
-					// Also update workspace settings
-					await vscode.workspace
-						.getConfiguration(Package.name)
-						.update("allowedCommands", validCommands, vscode.ConfigurationTarget.Global)
 
 					// Show confirmation to the user
 					vscode.window.showInformationMessage(
@@ -815,11 +805,6 @@ export const webviewMessageHandler = async (
 
 			await updateGlobalState("deniedCommands", validCommands)
 
-			// Also update workspace settings.
-			await vscode.workspace
-				.getConfiguration(Package.name)
-				.update("deniedCommands", validCommands, vscode.ConfigurationTarget.Global)
-
 			break
 		}
 		case "denyCommand": {
@@ -835,11 +820,6 @@ export const webviewMessageHandler = async (
 					validCommands.push(message.pattern)
 
 					await updateGlobalState("deniedCommands", validCommands)
-
-					// Also update workspace settings
-					await vscode.workspace
-						.getConfiguration(Package.name)
-						.update("deniedCommands", validCommands, vscode.ConfigurationTarget.Global)
 
 					// Show confirmation to the user
 					vscode.window.showInformationMessage(t("common:info.command_denied", { pattern: message.pattern }))
@@ -1291,6 +1271,10 @@ export const webviewMessageHandler = async (
 			break
 		case "followupAutoApproveTimeoutMs":
 			await updateGlobalState("followupAutoApproveTimeoutMs", message.value)
+			await provider.postStateToWebview()
+			break
+		case "disableLlmCommandSuggestions":
+			await updateGlobalState("disableLlmCommandSuggestions", message.bool ?? false)
 			await provider.postStateToWebview()
 			break
 		case "browserToolEnabled":

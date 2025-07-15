@@ -59,7 +59,6 @@ import { TerminalRegistry } from "../../integrations/terminal/TerminalRegistry"
 // utils
 import { calculateApiCostAnthropic } from "../../shared/cost"
 import { getWorkspacePath } from "../../utils/path"
-import { Package } from "../../shared/package"
 
 // prompts
 import { formatResponse } from "../prompts/responses"
@@ -1650,9 +1649,7 @@ export class Task extends EventEmitter<ClineEvents> {
 				maxReadFileLine !== -1,
 				{
 					maxConcurrentFileReads,
-					disableLlmCommandSuggestions: vscode.workspace
-						.getConfiguration(Package.name)
-						.get<boolean>("disableLlmCommandSuggestions", false),
+					disableLlmCommandSuggestions: state?.disableLlmCommandSuggestions ?? false,
 				},
 			)
 		})()
