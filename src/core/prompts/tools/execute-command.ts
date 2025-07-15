@@ -42,8 +42,8 @@ Example: Requesting to execute ls in a specific directory
 **Suggestion Guidelines:**
 - Suggestions use prefix matching (case-insensitive)
 - For simple commands: Include the base command (e.g., "npm", "git") and optionally a more specific pattern
-- For chained commands (using &&, ||, ;, |): Include patterns for EACH individual command in the chain
-  - Example: For "cd backend && npm install", suggest: "cd backend && npm install", "cd", "npm install", "npm"
+- For chained commands (using &&, ||, ;, |): Include patterns for EACH individual command in the chain (NOT the full chain)
+  - Example: For "cd backend && npm install", suggest: "cd", "npm install", "npm"
 - Include 2-4 relevant patterns total
 - Only suggest "*" (allow all) if explicitly requested by the user
 
@@ -70,7 +70,6 @@ Example: Requesting to execute a chained command
 <execute_command>
 <command>cd backend && npm install</command>
 <suggestions>
-<suggest>cd backend && npm install</suggest>
 <suggest>cd</suggest>
 <suggest>npm install</suggest>
 <suggest>npm</suggest>
