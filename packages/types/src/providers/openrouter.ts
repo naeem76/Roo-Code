@@ -5,7 +5,7 @@ export const openRouterDefaultModelId = "anthropic/claude-sonnet-4"
 
 export const openRouterDefaultModelInfo: ModelInfo = {
 	maxTokens: 8192,
-	contextWindow: 200_000,
+	contextWindow: 1_000_000, // 1M token context window for Claude 4 Sonnet
 	supportsImages: true,
 	supportsComputerUse: true,
 	supportsPromptCache: true,

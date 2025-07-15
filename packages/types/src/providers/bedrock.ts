@@ -69,7 +69,7 @@ export const bedrockModels = {
 	},
 	"anthropic.claude-sonnet-4-20250514-v1:0": {
 		maxTokens: 8192,
-		contextWindow: 200_000,
+		contextWindow: 1_000_000, // 1M token context window
 		supportsImages: true,
 		supportsComputerUse: true,
 		supportsPromptCache: true,
@@ -84,7 +84,7 @@ export const bedrockModels = {
 	},
 	"anthropic.claude-opus-4-20250514-v1:0": {
 		maxTokens: 8192,
-		contextWindow: 200_000,
+		contextWindow: 1_000_000, // 1M token context window
 		supportsImages: true,
 		supportsComputerUse: true,
 		supportsPromptCache: true,

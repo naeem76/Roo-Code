@@ -2216,7 +2216,7 @@ describe("getTelemetryProperties", () => {
 		mockCline.api = {
 			getModel: vi.fn().mockReturnValue({
 				id: "claude-sonnet-4-20250514",
-				info: { contextWindow: 200000 },
+				info: { contextWindow: 1000000 },
 			}),
 		}
 	})

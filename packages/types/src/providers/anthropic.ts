@@ -8,7 +8,7 @@ export const anthropicDefaultModelId: AnthropicModelId = "claude-sonnet-4-202505
 export const anthropicModels = {
 	"claude-sonnet-4-20250514": {
 		maxTokens: 64_000, // Overridden to 8k if `enableReasoningEffort` is false.
-		contextWindow: 200_000,
+		contextWindow: 1_000_000, // 1M token context window
 		supportsImages: true,
 		supportsComputerUse: true,
 		supportsPromptCache: true,
@@ -20,7 +20,7 @@ export const anthropicModels = {
 	},
 	"claude-opus-4-20250514": {
 		maxTokens: 32_000, // Overridden to 8k if `enableReasoningEffort` is false.
-		contextWindow: 200_000,
+		contextWindow: 1_000_000, // 1M token context window
 		supportsImages: true,
 		supportsComputerUse: true,
 		supportsPromptCache: true,

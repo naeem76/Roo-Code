@@ -51,9 +51,15 @@ export async function getLiteLLMModels(apiKey: string, baseUrl: string): Promise
 					)
 				}
 
+				// Determine default context window based on model
+				let defaultContextWindow = 200000
+				if (litellmModelName.includes("claude-sonnet-4") || litellmModelName.includes("claude-opus-4")) {
+					defaultContextWindow = 1000000 // 1M tokens for Claude 4 models
+				}
+
 				models[modelName] = {
 					maxTokens: modelInfo.max_tokens || 8192,
-					contextWindow: modelInfo.max_input_tokens || 200000,
+					contextWindow: modelInfo.max_input_tokens || defaultContextWindow,
 					supportsImages: Boolean(modelInfo.supports_vision),
 					// litellm_params.model may have a prefix like openrouter/
 					supportsComputerUse,

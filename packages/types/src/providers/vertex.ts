@@ -165,7 +165,7 @@ export const vertexModels = {
 	},
 	"claude-sonnet-4@20250514": {
 		maxTokens: 8192,
-		contextWindow: 200_000,
+		contextWindow: 1_000_000, // 1M token context window
 		supportsImages: true,
 		supportsComputerUse: true,
 		supportsPromptCache: true,
@@ -177,7 +177,7 @@ export const vertexModels = {
 	},
 	"claude-opus-4@20250514": {
 		maxTokens: 8192,
-		contextWindow: 200_000,
+		contextWindow: 1_000_000, // 1M token context window
 		supportsImages: true,
 		supportsComputerUse: true,
 		supportsPromptCache: true,
