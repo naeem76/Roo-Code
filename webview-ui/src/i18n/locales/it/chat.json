@@ -192,16 +192,21 @@
 	},
 	"commandExecution": {
 		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
-		"running": "Running",
+		"running": "In esecuzione",
 		"pid": "PID: {{pid}}",
-		"exited": "Exited ({{exitCode}})",
-		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
+		"exited": "Terminato ({{exitCode}})",
+		"addToAllowedCommands": "Aggiungi ai comandi ad esecuzione automatica consentiti",
 		"manageCommands": "Gestisci autorizzazioni comandi",
 		"commandManagementDescription": "Gestisci autorizzazioni comandi: Clicca ✓ per consentire l'esecuzione automatica, ✗ per negarla. I pattern possono essere attivati/disattivati o rimossi dagli elenchi. <settingsLink>Visualizza tutte le impostazioni</settingsLink>",
 		"addToAllowed": "Aggiungi alla lista consentiti",
 		"removeFromAllowed": "Rimuovi dalla lista consentiti",
 		"addToDenied": "Aggiungi alla lista negati",
-		"removeFromDenied": "Rimuovi dalla lista negati"
+		"removeFromDenied": "Rimuovi dalla lista negati",
+		"abortCommand": "Interrompi esecuzione comando",
+		"expandOutput": "Espandi output",
+		"collapseOutput": "Comprimi output",
+		"expandManagement": "Espandi la sezione di gestione dei comandi",
+		"collapseManagement": "Comprimi la sezione di gestione dei comandi"
 	},
 	"commandOutput": "Output del comando",
 	"response": "Risposta",
@@ -331,18 +336,5 @@
 	},
 	"versionIndicator": {
 		"ariaLabel": "Versione {{version}} - Clicca per visualizzare le note di rilascio"
-	},
-	"commandExecution": {
-		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
-		"running": "Running",
-		"pid": "PID: {{pid}}",
-		"exited": "Exited ({{exitCode}})",
-		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
-		"manageCommands": "Gestisci autorizzazioni comandi",
-		"commandManagementDescription": "Gestisci autorizzazioni comandi: Clicca ✓ per consentire l'esecuzione automatica, ✗ per negarla. I pattern possono essere attivati/disattivati o rimossi dagli elenchi. <settingsLink>Visualizza tutte le impostazioni</settingsLink>",
-		"addToAllowed": "Aggiungi alla lista consentiti",
-		"removeFromAllowed": "Rimuovi dalla lista consentiti",
-		"addToDenied": "Aggiungi alla lista negati",
-		"removeFromDenied": "Rimuovi dalla lista negati"
 	}
 }

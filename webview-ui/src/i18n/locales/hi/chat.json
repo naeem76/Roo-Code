@@ -158,7 +158,7 @@
 	"fileOperations": {
 		"wantsToRead": "Roo इस फ़ाइल को पढ़ना चाहता है:",
 		"wantsToReadOutsideWorkspace": "Roo कार्यक्षेत्र के बाहर इस फ़ाइल को पढ़ना चाहता है:",
-		"didRead": "Roo ने इस फ़ाइल को पढ़ा:",
+		"didRead": "Roo ਨੇ इस फ़ाइल को पढ़ा:",
 		"wantsToEdit": "Roo इस फ़ाइल को संपादित करना चाहता है:",
 		"wantsToEditOutsideWorkspace": "Roo कार्यक्षेत्र के बाहर इस फ़ाइल को संपादित करना चाहता है:",
 		"wantsToEditProtected": "Roo एक सुरक्षित कॉन्फ़िगरेशन फ़ाइल को संपादित करना चाहता है:",
@@ -191,17 +191,22 @@
 		"didViewDefinitionsOutsideWorkspace": "Roo ने इस निर्देशिका (कार्यक्षेत्र के बाहर) में उपयोग किए गए सोर्स कोड परिभाषा नामों को देखा:"
 	},
 	"commandExecution": {
-		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
-		"running": "Running",
-		"pid": "PID: {{pid}}",
-		"exited": "Exited ({{exitCode}})",
-		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
+		"whitelistSuggestions": "स्वतः अनुमोदन के लिए श्वेतसूची में डालने हेतु सुझाए गए पैटर्न:",
+		"running": "चल रहा है",
+		"pid": "पीआईडी: {{pid}}",
+		"exited": "बाहर निकल गया ({{exitCode}})",
+		"addToAllowedCommands": "अनुमत ऑटो-एग्जीक्यूट कमांड में जोड़ें",
 		"manageCommands": "कमांड अनुमतियाँ प्रबंधित करें",
 		"commandManagementDescription": "कमांड अनुमतियाँ प्रबंधित करें: ऑटो-निष्पादन की अनुमति देने के लिए ✓ पर क्लिक करें, निष्पादन से इनकार करने के लिए ✗ पर क्लिक करें। पैटर्न को सूचियों से चालू/बंद या हटाया जा सकता है। <settingsLink>सभी सेटिंग्स देखें</settingsLink>",
 		"addToAllowed": "अनुमत सूची में जोड़ें",
 		"removeFromAllowed": "अनुमत सूची से हटाएं",
 		"addToDenied": "अस्वीकृत सूची में जोड़ें",
-		"removeFromDenied": "अस्वीकृत सूची से हटाएं"
+		"removeFromDenied": "अस्वीकृत सूची से हटाएं",
+		"abortCommand": "कमांड निष्पादन रद्द करें",
+		"expandOutput": "आउटपुट का विस्तार करें",
+		"collapseOutput": "आउटपुट संक्षिप्त करें",
+		"expandManagement": "कमांड प्रबंधन अनुभाग का विस्तार करें",
+		"collapseManagement": "कमांड प्रबंधन अनुभाग संक्षिप्त करें"
 	},
 	"commandOutput": "कमांड आउटपुट",
 	"response": "प्रतिक्रिया",
@@ -331,18 +336,5 @@
 	},
 	"versionIndicator": {
 		"ariaLabel": "संस्करण {{version}} - रिलीज़ नोट्स देखने के लिए क्लिक करें"
-	},
-	"commandExecution": {
-		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
-		"running": "Running",
-		"pid": "PID: {{pid}}",
-		"exited": "Exited ({{exitCode}})",
-		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
-		"manageCommands": "कमांड अनुमतियाँ प्रबंधित करें",
-		"commandManagementDescription": "कमांड अनुमतियाँ प्रबंधित करें: ऑटो-निष्पादन की अनुमति देने के लिए ✓ पर क्लिक करें, निष्पादन से इनकार करने के लिए ✗ पर क्लिक करें। पैटर्न को सूचियों से चालू/बंद या हटाया जा सकता है। <settingsLink>सभी सेटिंग्स देखें</settingsLink>",
-		"addToAllowed": "अनुमत सूची में जोड़ें",
-		"removeFromAllowed": "अनुमत सूची से हटाएं",
-		"addToDenied": "अस्वीकृत सूची में जोड़ें",
-		"removeFromDenied": "अस्वीकृत सूची से हटाएं"
 	}
 }

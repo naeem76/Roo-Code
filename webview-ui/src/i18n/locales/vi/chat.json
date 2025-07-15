@@ -191,17 +191,22 @@
 		"didViewDefinitionsOutsideWorkspace": "Roo đã xem tên định nghĩa mã nguồn được sử dụng trong thư mục này (ngoài không gian làm việc):"
 	},
 	"commandExecution": {
-		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
-		"running": "Running",
+		"whitelistSuggestions": "Các mẫu được đề xuất để đưa vào danh sách trắng để phê duyệt tự động:",
+		"running": "Đang chạy",
 		"pid": "PID: {{pid}}",
-		"exited": "Exited ({{exitCode}})",
-		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
+		"exited": "Đã thoát ({{exitCode}})",
+		"addToAllowedCommands": "Thêm vào các lệnh được phép tự động thực thi",
 		"manageCommands": "Quản lý quyền lệnh",
 		"commandManagementDescription": "Quản lý quyền lệnh: Nhấp ✓ để cho phép tự động thực thi, ✗ để từ chối thực thi. Các mẫu có thể được bật/tắt hoặc xóa khỏi danh sách. <settingsLink>Xem tất cả cài đặt</settingsLink>",
 		"addToAllowed": "Thêm vào danh sách cho phép",
 		"removeFromAllowed": "Xóa khỏi danh sách cho phép",
 		"addToDenied": "Thêm vào danh sách từ chối",
-		"removeFromDenied": "Xóa khỏi danh sách từ chối"
+		"removeFromDenied": "Xóa khỏi danh sách từ chối",
+		"abortCommand": "Hủy bỏ thực thi lệnh",
+		"expandOutput": "Mở rộng đầu ra",
+		"collapseOutput": "Thu gọn đầu ra",
+		"expandManagement": "Mở rộng phần quản lý lệnh",
+		"collapseManagement": "Thu gọn phần quản lý lệnh"
 	},
 	"commandOutput": "Kết quả lệnh",
 	"response": "Phản hồi",
@@ -331,18 +336,5 @@
 	},
 	"versionIndicator": {
 		"ariaLabel": "Phiên bản {{version}} - Nhấp để xem ghi chú phát hành"
-	},
-	"commandExecution": {
-		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
-		"running": "Running",
-		"pid": "PID: {{pid}}",
-		"exited": "Exited ({{exitCode}})",
-		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
-		"manageCommands": "Quản lý quyền lệnh",
-		"commandManagementDescription": "Quản lý quyền lệnh: Nhấp ✓ để cho phép tự động thực thi, ✗ để từ chối thực thi. Các mẫu có thể được bật/tắt hoặc xóa khỏi danh sách. <settingsLink>Xem tất cả cài đặt</settingsLink>",
-		"addToAllowed": "Thêm vào danh sách cho phép",
-		"removeFromAllowed": "Xóa khỏi danh sách cho phép",
-		"addToDenied": "Thêm vào danh sách từ chối",
-		"removeFromDenied": "Xóa khỏi danh sách từ chối"
 	}
 }

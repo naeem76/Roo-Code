@@ -191,17 +191,22 @@
 		"didViewDefinitionsOutsideWorkspace": "Roo hat Quellcode-Definitionsnamen in diesem Verzeichnis (außerhalb des Arbeitsbereichs) angezeigt:"
 	},
 	"commandExecution": {
-		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
-		"running": "Running",
+		"whitelistSuggestions": "Vorgeschlagene Muster zur Freigabe für die automatische Genehmigung:",
+		"running": "Wird ausgeführt",
 		"pid": "PID: {{pid}}",
-		"exited": "Exited ({{exitCode}})",
-		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
+		"exited": "Beendet ({{exitCode}})",
+		"addToAllowedCommands": "Zu den erlaubten automatisch auszuführenden Befehlen hinzufügen",
 		"manageCommands": "Befehlsberechtigungen verwalten",
 		"commandManagementDescription": "Befehlsberechtigungen verwalten: Klicke auf ✓, um die automatische Ausführung zu erlauben, ✗, um die Ausführung zu verweigern. Muster können in Listen ein- und ausgeschaltet oder entfernt werden. <settingsLink>Alle Einstellungen anzeigen</settingsLink>",
 		"addToAllowed": "Zur erlaubten Liste hinzufügen",
 		"removeFromAllowed": "Von erlaubter Liste entfernen",
 		"addToDenied": "Zur verweigerten Liste hinzufügen",
-		"removeFromDenied": "Von verweigerter Liste entfernen"
+		"removeFromDenied": "Von verweigerter Liste entfernen",
+		"abortCommand": "Befehlsausführung abbrechen",
+		"expandOutput": "Ausgabe erweitern",
+		"collapseOutput": "Ausgabe ausblenden",
+		"expandManagement": "Befehlsverwaltungs-Abschnitt erweitern",
+		"collapseManagement": "Befehlsverwaltungs-Abschnitt ausblenden"
 	},
 	"commandOutput": "Befehlsausgabe",
 	"response": "Antwort",
@@ -331,18 +336,5 @@
 	},
 	"versionIndicator": {
 		"ariaLabel": "Version {{version}} - Klicken Sie, um die Versionshinweise anzuzeigen"
-	},
-	"commandExecution": {
-		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
-		"running": "Running",
-		"pid": "PID: {{pid}}",
-		"exited": "Exited ({{exitCode}})",
-		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
-		"manageCommands": "Befehlsberechtigungen verwalten",
-		"commandManagementDescription": "Befehlsberechtigungen verwalten: Klicke auf ✓, um die automatische Ausführung zu erlauben, ✗, um die Ausführung zu verweigern. Muster können in Listen ein- und ausgeschaltet oder entfernt werden. <settingsLink>Alle Einstellungen anzeigen</settingsLink>",
-		"addToAllowed": "Zur erlaubten Liste hinzufügen",
-		"removeFromAllowed": "Von erlaubter Liste entfernen",
-		"addToDenied": "Zur verweigerten Liste hinzufügen",
-		"removeFromDenied": "Von verweigerter Liste entfernen"
 	}
 }

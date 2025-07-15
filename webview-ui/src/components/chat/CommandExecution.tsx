@@ -211,7 +211,7 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 								onClick={() =>
 									vscode.postMessage({ type: "terminalOperation", terminalOperation: "abort" })
 								}
-								aria-label="Abort command execution">
+								aria-label={t("chat:commandExecution.abortCommand")}>
 								<Skull className="size-3.5" />
 							</Button>
 						</div>
@@ -238,7 +238,11 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 						size="icon"
 						className="hover:bg-vscode-toolbar-hoverBackground p-0.5"
 						onClick={() => setIsOutputExpanded(!isOutputExpanded)}
-						aria-label={isOutputExpanded ? "Collapse output" : "Expand output"}
+						aria-label={
+							isOutputExpanded
+								? t("chat:commandExecution.collapseOutput")
+								: t("chat:commandExecution.expandOutput")
+						}
 						aria-expanded={isOutputExpanded}>
 						<ChevronDown
 							className={cn("size-3.5 transition-transform duration-200", {

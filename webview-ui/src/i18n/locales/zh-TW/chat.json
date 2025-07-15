@@ -201,7 +201,12 @@
 		"addToAllowed": "新增至允許清單",
 		"removeFromAllowed": "從允許清單中移除",
 		"addToDenied": "新增至拒絕清單",
-		"removeFromDenied": "從拒絕清單中移除"
+		"removeFromDenied": "從拒絕清單中移除",
+		"abortCommand": "中止命令執行",
+		"expandOutput": "展開輸出",
+		"collapseOutput": "收合輸出",
+		"expandManagement": "展開命令管理區段",
+		"collapseManagement": "收合命令管理區段"
 	},
 	"commandOutput": "命令輸出",
 	"response": "回應",
@@ -331,18 +336,5 @@
 	},
 	"versionIndicator": {
 		"ariaLabel": "版本 {{version}} - 點擊查看發布說明"
-	},
-	"commandExecution": {
-		"whitelistSuggestions": "建議的白名單模式，用於自動核准：",
-		"running": "執行中",
-		"pid": "PID: {{pid}}",
-		"exited": "已結束 ({{exitCode}})",
-		"addToAllowedCommands": "新增至允許的自動執行命令",
-		"manageCommands": "管理命令權限",
-		"commandManagementDescription": "管理命令權限：點擊 ✓ 以允許自動執行，點擊 ✗ 以拒絕執行。可以在清單中切換模式或將其從清單中移除。 <settingsLink>查看所有設定</settingsLink>",
-		"addToAllowed": "新增至允許清單",
-		"removeFromAllowed": "從允許清單中移除",
-		"addToDenied": "新增至拒絕清單",
-		"removeFromDenied": "從拒絕清單中移除"
 	}
 }

@@ -217,7 +217,12 @@
 		"addToAllowed": "Add to allowed list",
 		"removeFromAllowed": "Remove from allowed list",
 		"addToDenied": "Add to denied list",
-		"removeFromDenied": "Remove from denied list"
+		"removeFromDenied": "Remove from denied list",
+		"abortCommand": "Abort command execution",
+		"expandOutput": "Expand output",
+		"collapseOutput": "Collapse output",
+		"expandManagement": "Expand command management section",
+		"collapseManagement": "Collapse command management section"
 	},
 	"commandOutput": "Command Output",
 	"response": "Response",

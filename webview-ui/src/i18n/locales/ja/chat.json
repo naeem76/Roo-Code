@@ -191,17 +191,22 @@
 		"didViewDefinitionsOutsideWorkspace": "Rooはこのディレクトリ（ワークスペース外）で使用されているソースコード定義名を表示しました:"
 	},
 	"commandExecution": {
-		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
-		"running": "Running",
+		"whitelistSuggestions": "自動承認のためにホワイトリストに登録する提案パターン:",
+		"running": "実行中",
 		"pid": "PID: {{pid}}",
-		"exited": "Exited ({{exitCode}})",
-		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
+		"exited": "終了 ({{exitCode}})",
+		"addToAllowedCommands": "許可された自動実行コマンドに追加",
 		"manageCommands": "コマンド権限の管理",
 		"commandManagementDescription": "コマンド権限の管理: ✓ をクリックして自動実行を許可、✗ をクリックして実行を拒否します。パターンはリストでオン/オフを切り替えたり、リストから削除したりできます。<settingsLink>すべての設定を表示</settingsLink>",
 		"addToAllowed": "許可リストに追加",
 		"removeFromAllowed": "許可リストから削除",
 		"addToDenied": "拒否リストに追加",
-		"removeFromDenied": "拒否リストから削除"
+		"removeFromDenied": "拒否リストから削除",
+		"abortCommand": "コマンド実行を中止",
+		"expandOutput": "出力を展開",
+		"collapseOutput": "出力を折りたたむ",
+		"expandManagement": "コマンド管理セクションを展開",
+		"collapseManagement": "コマンド管理セクションを折りたたむ"
 	},
 	"commandOutput": "コマンド出力",
 	"response": "応答",
@@ -331,18 +336,5 @@
 	},
 	"versionIndicator": {
 		"ariaLabel": "バージョン {{version}} - クリックしてリリースノートを表示"
-	},
-	"commandExecution": {
-		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
-		"running": "Running",
-		"pid": "PID: {{pid}}",
-		"exited": "Exited ({{exitCode}})",
-		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
-		"manageCommands": "コマンド権限の管理",
-		"commandManagementDescription": "コマンド権限の管理: ✓ をクリックして自動実行を許可、✗ をクリックして実行を拒否します。パターンはリストでオン/オフを切り替えたり、リストから削除したりできます。<settingsLink>すべての設定を表示</settingsLink>",
-		"addToAllowed": "許可リストに追加",
-		"removeFromAllowed": "許可リストから削除",
-		"addToDenied": "拒否リストに追加",
-		"removeFromDenied": "拒否リストから削除"
 	}
 }

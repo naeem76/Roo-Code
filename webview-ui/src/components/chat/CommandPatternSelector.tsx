@@ -54,7 +54,11 @@ export const CommandPatternSelector = ({
 			<button
 				onClick={() => setIsExpanded(!isExpanded)}
 				className="flex items-center gap-2 w-full px-3 py-2 text-xs text-vscode-descriptionForeground hover:text-vscode-foreground hover:bg-vscode-list-hoverBackground transition-all"
-				aria-label={isExpanded ? "Collapse command management section" : "Expand command management section"}
+				aria-label={
+					isExpanded
+						? t("chat:commandExecution.collapseManagement")
+						: t("chat:commandExecution.expandManagement")
+				}
 				aria-expanded={isExpanded}>
 				<ChevronDown
 					className={cn("size-3 transition-transform duration-200", {
@@ -127,8 +131,8 @@ export const CommandPatternSelector = ({
 											)}
 											aria-label={
 												status === "allowed"
-													? `Remove ${item.pattern} from allowed list`
-													: `Add ${item.pattern} to allowed list`
+													? t("chat:commandExecution.removeFromAllowed")
+													: t("chat:commandExecution.addToAllowed")
 											}>
 											<Check className="size-3.5" />
 										</button>
@@ -149,8 +153,8 @@ export const CommandPatternSelector = ({
 											)}
 											aria-label={
 												status === "denied"
-													? `Remove ${item.pattern} from denied list`
-													: `Add ${item.pattern} to denied list`
+													? t("chat:commandExecution.removeFromDenied")
+													: t("chat:commandExecution.addToDenied")
 											}>
 											<X className="size-3.5" />
 										</button>

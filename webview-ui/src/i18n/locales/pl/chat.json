@@ -191,17 +191,22 @@
 		"didViewDefinitionsOutsideWorkspace": "Roo zobaczył nazwy definicji kodu źródłowego używane w tym katalogu (poza obszarem roboczym):"
 	},
 	"commandExecution": {
-		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
-		"running": "Running",
+		"whitelistSuggestions": "Sugerowane wzorce do dodania do białej listy w celu automatycznej akceptacji:",
+		"running": "Wykonywanie",
 		"pid": "PID: {{pid}}",
-		"exited": "Exited ({{exitCode}})",
-		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
+		"exited": "Zakończono ({{exitCode}})",
+		"addToAllowedCommands": "Dodaj do dozwolonych poleceń automatycznego wykonywania",
 		"manageCommands": "Zarządzaj uprawnieniami poleceń",
 		"commandManagementDescription": "Zarządzaj uprawnieniami poleceń: Kliknij ✓, aby zezwolić na automatyczne wykonywanie, ✗, aby odmówić wykonania. Wzorce można włączać/wyłączać lub usuwać z list. <settingsLink>Zobacz wszystkie ustawienia</settingsLink>",
 		"addToAllowed": "Dodaj do dozwolonych",
 		"removeFromAllowed": "Usuń z dozwolonych",
 		"addToDenied": "Dodaj do odrzuconych",
-		"removeFromDenied": "Usuń z odrzuconych"
+		"removeFromDenied": "Usuń z odrzuconych",
+		"abortCommand": "Przerwij wykonywanie polecenia",
+		"expandOutput": "Rozwiń wyjście",
+		"collapseOutput": "Zwiń wyjście",
+		"expandManagement": "Rozwiń sekcję zarządzania poleceniami",
+		"collapseManagement": "Zwiń sekcję zarządzania poleceniami"
 	},
 	"commandOutput": "Wyjście polecenia",
 	"response": "Odpowiedź",
@@ -331,18 +336,5 @@
 	},
 	"versionIndicator": {
 		"ariaLabel": "Wersja {{version}} - Kliknij, aby wyświetlić informacje o wydaniu"
-	},
-	"commandExecution": {
-		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
-		"running": "Running",
-		"pid": "PID: {{pid}}",
-		"exited": "Exited ({{exitCode}})",
-		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
-		"manageCommands": "Zarządzaj uprawnieniami poleceń",
-		"commandManagementDescription": "Zarządzaj uprawnieniami poleceń: Kliknij ✓, aby zezwolić na automatyczne wykonywanie, ✗, aby odmówić wykonania. Wzorce można włączać/wyłączać lub usuwać z list. <settingsLink>Zobacz wszystkie ustawienia</settingsLink>",
-		"addToAllowed": "Dodaj do dozwolonych",
-		"removeFromAllowed": "Usuń z dozwolonych",
-		"addToDenied": "Dodaj do odrzuconych",
-		"removeFromDenied": "Usuń z odrzuconych"
 	}
 }

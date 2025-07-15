@@ -213,17 +213,22 @@
 		"resultTooltip": "Skor kemiripan: {{score}} (klik untuk membuka file)"
 	},
 	"commandExecution": {
-		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
-		"running": "Running",
+		"whitelistSuggestions": "Pola yang disarankan untuk ditambahkan ke daftar putih untuk persetujuan otomatis:",
+		"running": "Berjalan",
 		"pid": "PID: {{pid}}",
-		"exited": "Exited ({{exitCode}})",
-		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
+		"exited": "Keluar ({{exitCode}})",
+		"addToAllowedCommands": "Tambahkan ke Perintah Eksekusi Otomatis yang Diizinkan",
 		"manageCommands": "Kelola Izin Perintah",
 		"commandManagementDescription": "Kelola izin perintah: Klik ✓ untuk mengizinkan eksekusi otomatis, ✗ untuk menolak eksekusi. Pola dapat diaktifkan/dinonaktifkan atau dihapus dari daftar. <settingsLink>Lihat semua pengaturan</settingsLink>",
 		"addToAllowed": "Tambahkan ke daftar yang diizinkan",
 		"removeFromAllowed": "Hapus dari daftar yang diizinkan",
 		"addToDenied": "Tambahkan ke daftar yang ditolak",
-		"removeFromDenied": "Hapus dari daftar yang ditolak"
+		"removeFromDenied": "Hapus dari daftar yang ditolak",
+		"abortCommand": "Batalkan eksekusi perintah",
+		"expandOutput": "Perluas output",
+		"collapseOutput": "Ciutkan output",
+		"expandManagement": "Perluas bagian manajemen perintah",
+		"collapseManagement": "Ciutkan bagian manajemen perintah"
 	},
 	"commandOutput": "Output Perintah",
 	"response": "Respons",
@@ -337,18 +342,5 @@
 	},
 	"versionIndicator": {
 		"ariaLabel": "Versi {{version}} - Klik untuk melihat catatan rilis"
-	},
-	"commandExecution": {
-		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
-		"running": "Running",
-		"pid": "PID: {{pid}}",
-		"exited": "Exited ({{exitCode}})",
-		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
-		"manageCommands": "Kelola Izin Perintah",
-		"commandManagementDescription": "Kelola izin perintah: Klik ✓ untuk mengizinkan eksekusi otomatis, ✗ untuk menolak eksekusi. Pola dapat diaktifkan/dinonaktifkan atau dihapus dari daftar. <settingsLink>Lihat semua pengaturan</settingsLink>",
-		"addToAllowed": "Tambahkan ke daftar yang diizinkan",
-		"removeFromAllowed": "Hapus dari daftar yang diizinkan",
-		"addToDenied": "Tambahkan ke daftar yang ditolak",
-		"removeFromDenied": "Hapus dari daftar yang ditolak"
 	}
 }

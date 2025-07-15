@@ -191,7 +191,7 @@
 		"didViewDefinitionsOutsideWorkspace": "Roo已查看此目录中使用的源代码定义名称（工作区外）:"
 	},
 	"commandExecution": {
-		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
+		"whitelistSuggestions": "建议的白名单模式，用于自动批准：",
 		"running": "运行中",
 		"pid": "PID: {{pid}}",
 		"exited": "已退出 ({{exitCode}})",
@@ -201,7 +201,12 @@
 		"addToAllowed": "添加到允许列表",
 		"removeFromAllowed": "从允许列表中删除",
 		"addToDenied": "添加到拒绝列表",
-		"removeFromDenied": "从拒绝列表中删除"
+		"removeFromDenied": "从拒绝列表中删除",
+		"abortCommand": "中止命令执行",
+		"expandOutput": "展开输出",
+		"collapseOutput": "收起输出",
+		"expandManagement": "展开命令管理部分",
+		"collapseManagement": "收起命令管理部分"
 	},
 	"commandOutput": "命令输出",
 	"response": "响应",
@@ -331,18 +336,5 @@
 	},
 	"versionIndicator": {
 		"ariaLabel": "版本 {{version}} - 点击查看发布说明"
-	},
-	"commandExecution": {
-		"whitelistSuggestions": "建议的白名单模式，用于自动批准：",
-		"running": "运行中",
-		"pid": "PID: {{pid}}",
-		"exited": "已退出 ({{exitCode}})",
-		"addToAllowedCommands": "添加到允许的自动执行命令",
-		"manageCommands": "管理命令权限",
-		"commandManagementDescription": "管理命令权限：点击 ✓ 以允许自动执行，点击 ✗ 以拒绝执行。可以在列表中切换模式或将其从列表中删除。 <settingsLink>查看所有设置</settingsLink>",
-		"addToAllowed": "添加到允许列表",
-		"removeFromAllowed": "从允许列表中删除",
-		"addToDenied": "添加到拒绝列表",
-		"removeFromDenied": "从拒绝列表中删除"
 	}
 }

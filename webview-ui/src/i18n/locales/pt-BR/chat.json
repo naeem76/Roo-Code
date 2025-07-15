@@ -191,17 +191,22 @@
 		"didViewDefinitionsOutsideWorkspace": "Roo visualizou nomes de definição de código-fonte usados neste diretório (fora do espaço de trabalho):"
 	},
 	"commandExecution": {
-		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
-		"running": "Running",
+		"whitelistSuggestions": "Padrões sugeridos para lista de permissões para aprovação automática:",
+		"running": "Executando",
 		"pid": "PID: {{pid}}",
-		"exited": "Exited ({{exitCode}})",
-		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
+		"exited": "Finalizado ({{exitCode}})",
+		"addToAllowedCommands": "Adicionar aos Comandos de Execução Automática Permitidos",
 		"manageCommands": "Gerenciar Permissões de Comando",
 		"commandManagementDescription": "Gerencie as permissões de comando: Clique em ✓ para permitir a execução automática, ✗ para negar a execução. Os padrões possono ser ativados/desativados ou removidos das listas. <settingsLink>Ver todas as configurações</settingsLink>",
 		"addToAllowed": "Adicionar à lista de permitidos",
 		"removeFromAllowed": "Remover da lista de permitidos",
 		"addToDenied": "Adicionar à lista de negados",
-		"removeFromDenied": "Remover da lista de negados"
+		"removeFromDenied": "Remover da lista de negados",
+		"abortCommand": "Abortar execução do comando",
+		"expandOutput": "Expandir saída",
+		"collapseOutput": "Recolher saída",
+		"expandManagement": "Expandir seção de gerenciamento de comandos",
+		"collapseManagement": "Recolher seção de gerenciamento de comandos"
 	},
 	"commandOutput": "Saída do comando",
 	"response": "Resposta",
@@ -331,18 +336,5 @@
 	},
 	"versionIndicator": {
 		"ariaLabel": "Versão {{version}} - Clique para ver as notas de lançamento"
-	},
-	"commandExecution": {
-		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
-		"running": "Running",
-		"pid": "PID: {{pid}}",
-		"exited": "Exited ({{exitCode}})",
-		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
-		"manageCommands": "Gerenciar Permissões de Comando",
-		"commandManagementDescription": "Gerencie as permissões de comando: Clique em ✓ para permitir a execução automática, ✗ para negar a execução. Os padrões possono ser ativados/desativados ou removidos das listas. <settingsLink>Ver todas as configurações</settingsLink>",
-		"addToAllowed": "Adicionar à lista de permitidos",
-		"removeFromAllowed": "Remover da lista de permitidos",
-		"addToDenied": "Adicionar à lista de negados",
-		"removeFromDenied": "Remover da lista de negados"
 	}
 }

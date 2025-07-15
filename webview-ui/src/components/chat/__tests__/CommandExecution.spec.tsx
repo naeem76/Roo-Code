@@ -17,10 +17,14 @@ vi.mock("react-i18next", () => ({
 	useTranslation: () => ({
 		t: (key: string) => {
 			// Return the actual translated text for the test
-			if (key === "chat:commandExecution.manageCommands") {
-				return "Manage Command Permissions"
+			const translations: Record<string, string> = {
+				"chat:commandExecution.manageCommands": "Manage Command Permissions",
+				"chat:commandExecution.addToAllowed": "Add to allowed list",
+				"chat:commandExecution.removeFromAllowed": "Remove from allowed list",
+				"chat:commandExecution.addToDenied": "Add to denied list",
+				"chat:commandExecution.removeFromDenied": "Remove from denied list",
 			}
-			return key
+			return translations[key] || key
 		},
 	}),
 	Trans: ({ i18nKey, _components }: any) => {
@@ -41,10 +45,14 @@ vi.mock("@src/i18n/TranslationContext", () => ({
 	useAppTranslation: () => ({
 		t: (key: string) => {
 			// Return the actual translated text for the test
-			if (key === "chat:commandExecution.manageCommands") {
-				return "Manage Command Permissions"
+			const translations: Record<string, string> = {
+				"chat:commandExecution.manageCommands": "Manage Command Permissions",
+				"chat:commandExecution.addToAllowed": "Add to allowed list",
+				"chat:commandExecution.removeFromAllowed": "Remove from allowed list",
+				"chat:commandExecution.addToDenied": "Add to denied list",
+				"chat:commandExecution.removeFromDenied": "Remove from denied list",
 			}
-			return key
+			return translations[key] || key
 		},
 	}),
 }))
@@ -181,8 +189,8 @@ describe("CommandExecution", () => {
 		fireEvent.click(sectionHeader)
 
 		// Find and click the allow button for the first suggestion
-		const allowButton = screen.getByLabelText('Add git commit -m "Initial commit" to allowed list')
-		fireEvent.click(allowButton)
+		const allowButtons = screen.getAllByLabelText("Add to allowed list")
+		fireEvent.click(allowButtons[0]) // Click the first one
 
 		await waitFor(() => {
 			expect(mockPostMessage).toHaveBeenCalledWith({
@@ -221,8 +229,8 @@ describe("CommandExecution", () => {
 		fireEvent.click(sectionHeader)
 
 		// Find and click the allow button for the first suggestion (which should remove it since it's already allowed)
-		const removeButton = screen.getByLabelText('Remove git commit -m "Initial commit" from allowed list')
-		fireEvent.click(removeButton)
+		const removeButtons = screen.getAllByLabelText("Remove from allowed list")
+		fireEvent.click(removeButtons[0]) // Click the first one
 
 		await waitFor(() => {
 			expect(mockPostMessage).toHaveBeenCalledWith({
@@ -375,8 +383,8 @@ describe("CommandExecution", () => {
 		fireEvent.click(sectionHeader)
 
 		// Find and click the allow button for the first suggestion
-		const allowButton = screen.getByLabelText("Add git status --short to allowed list")
-		fireEvent.click(allowButton)
+		const allowButtons = screen.getAllByLabelText("Add to allowed list")
+		fireEvent.click(allowButtons[0]) // Click the first one
 
 		await waitFor(() => {
 			expect(mockPostMessage).toHaveBeenCalledWith({
