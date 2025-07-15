@@ -496,20 +496,6 @@ export const ChatRowContent = ({
 									: t("chat:fileOperations.wantsToCreate")}
 							</span>
 						</div>
-						<ToolUseBlock>
-							<ToolUseBlockHeader
-								onClick={() => vscode.postMessage({ type: "openFile", text: tool.path })}>
-								{tool.path?.startsWith(".") && <span>.</span>}
-								<span className="whitespace-nowrap overflow-hidden text-ellipsis text-left mr-2 rtl">
-									{removeLeadingNonAlphanumeric(tool.path ?? "") + "\u200E"}
-								</span>
-								<div style={{ flexGrow: 1 }}></div>
-								<span
-									className={`codicon codicon-link-external`}
-									style={{ fontSize: 13.5, margin: "1px 0" }}
-								/>
-							</ToolUseBlockHeader>
-						</ToolUseBlock>
 						<CodeAccordian
 							path={tool.path}
 							code={tool.content}
@@ -517,6 +503,7 @@ export const ChatRowContent = ({
 							isLoading={message.partial}
 							isExpanded={isExpanded}
 							onToggleExpand={handleToggleExpand}
+							onJumpToFile={() => vscode.postMessage({ type: "openFile", text: tool.path })}
 						/>
 					</>
 				)
