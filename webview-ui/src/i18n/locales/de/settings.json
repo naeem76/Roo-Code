@@ -180,7 +180,11 @@
 			"commandPlaceholder": "Befehlspräfix eingeben (z.B. 'git ')",
 			"deniedCommandPlaceholder": "Befehlspräfix zum Verweigern eingeben (z.B. 'rm -rf')",
 			"addButton": "Hinzufügen",
-			"autoDenied": "Befehle mit dem Präfix `{{prefix}}` wurden vom Benutzer verboten. Umgehe diese Beschränkung nicht durch das Ausführen eines anderen Befehls."
+			"autoDenied": "Befehle mit dem Präfix `{{prefix}}` wurden vom Benutzer verboten. Umgehe diese Beschränkung nicht durch das Ausführen eines anderen Befehls.",
+			"disableLlmSuggestions": {
+				"label": "Disable LLM Command Suggestions",
+				"description": "When enabled, command patterns will be generated programmatically instead of by the LLM, reducing token usage"
+			}
 		},
 		"updateTodoList": {
 			"label": "Todo",

@@ -180,7 +180,11 @@
 			"commandPlaceholder": "Введите префикс команды (например, 'git ')",
 			"deniedCommandPlaceholder": "Введите префикс команды для запрета (например, 'rm -rf')",
 			"addButton": "Добавить",
-			"autoDenied": "Команды с префиксом `{{prefix}}` были запрещены пользователем. Не обходи это ограничение, выполняя другую команду."
+			"autoDenied": "Команды с префиксом `{{prefix}}` были запрещены пользователем. Не обходи это ограничение, выполняя другую команду.",
+			"disableLlmSuggestions": {
+				"label": "Disable LLM Command Suggestions",
+				"description": "When enabled, command patterns will be generated programmatically instead of by the LLM, reducing token usage"
+			}
 		},
 		"updateTodoList": {
 			"label": "Todo",

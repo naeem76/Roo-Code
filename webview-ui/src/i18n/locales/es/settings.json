@@ -180,7 +180,11 @@
 			"commandPlaceholder": "Ingrese prefijo de comando (ej. 'git ')",
 			"deniedCommandPlaceholder": "Ingrese prefijo de comando a denegar (ej. 'rm -rf')",
 			"addButton": "Añadir",
-			"autoDenied": "Los comandos con el prefijo `{{prefix}}` han sido prohibidos por el usuario. No eludes esta restricción ejecutando otro comando."
+			"autoDenied": "Los comandos con el prefijo `{{prefix}}` han sido prohibidos por el usuario. No eludes esta restricción ejecutando otro comando.",
+			"disableLlmSuggestions": {
+				"label": "Disable LLM Command Suggestions",
+				"description": "When enabled, command patterns will be generated programmatically instead of by the LLM, reducing token usage"
+			}
 		},
 		"updateTodoList": {
 			"label": "Todo",

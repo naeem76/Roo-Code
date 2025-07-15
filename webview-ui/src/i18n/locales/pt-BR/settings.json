@@ -180,7 +180,11 @@
 			"commandPlaceholder": "Digite o prefixo do comando (ex. 'git ')",
 			"deniedCommandPlaceholder": "Digite o prefixo do comando para negar (ex. 'rm -rf')",
 			"addButton": "Adicionar",
-			"autoDenied": "Comandos com o prefixo `{{prefix}}` foram proibidos pelo usuário. Não contorne esta restrição executando outro comando."
+			"autoDenied": "Comandos com o prefixo `{{prefix}}` foram proibidos pelo usuário. Não contorne esta restrição executando outro comando.",
+			"disableLlmSuggestions": {
+				"label": "Disable LLM Command Suggestions",
+				"description": "When enabled, command patterns will be generated programmatically instead of by the LLM, reducing token usage"
+			}
 		},
 		"updateTodoList": {
 			"label": "Todo",

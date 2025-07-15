@@ -180,7 +180,11 @@
 			"commandPlaceholder": "Voer commando-prefix in (bijv. 'git ')",
 			"deniedCommandPlaceholder": "Voer te weigeren commando-prefix in (bijv. 'rm -rf')",
 			"addButton": "Toevoegen",
-			"autoDenied": "Commando's met het prefix `{{prefix}}` zijn verboden door de gebruiker. Omzeil deze beperking niet door een ander commando uit te voeren."
+			"autoDenied": "Commando's met het prefix `{{prefix}}` zijn verboden door de gebruiker. Omzeil deze beperking niet door een ander commando uit te voeren.",
+			"disableLlmSuggestions": {
+				"label": "Disable LLM Command Suggestions",
+				"description": "When enabled, command patterns will be generated programmatically instead of by the LLM, reducing token usage"
+			}
 		},
 		"updateTodoList": {
 			"label": "Todo",
