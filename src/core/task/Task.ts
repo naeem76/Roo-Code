@@ -1649,7 +1649,6 @@ export class Task extends EventEmitter<ClineEvents> {
 				maxReadFileLine !== -1,
 				{
 					maxConcurrentFileReads,
-					disableLlmCommandSuggestions: state?.disableLlmCommandSuggestions ?? false,
 				},
 			)
 		})()

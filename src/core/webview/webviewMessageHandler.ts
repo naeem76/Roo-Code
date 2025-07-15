@@ -1273,10 +1273,6 @@ export const webviewMessageHandler = async (
 			await updateGlobalState("followupAutoApproveTimeoutMs", message.value)
 			await provider.postStateToWebview()
 			break
-		case "disableLlmCommandSuggestions":
-			await updateGlobalState("disableLlmCommandSuggestions", message.bool ?? false)
-			await provider.postStateToWebview()
-			break
 		case "browserToolEnabled":
 			await updateGlobalState("browserToolEnabled", message.bool ?? true)
 			await provider.postStateToWebview()
