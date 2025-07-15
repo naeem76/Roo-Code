@@ -73,12 +73,13 @@ export abstract class BaseOpenAiCompatibleProvider<ModelName extends string>
 		} = this.getModel()
 
 		const temperature = this.options.modelTemperature ?? this.defaultTemperature
-
 		// Ensure max_tokens doesn't exceed the model's configured limit
 		// Users can override with modelMaxTokens, but it should not exceed the model's actual API limit
 		const userMaxTokens = this.options.modelMaxTokens
-		const max_tokens = userMaxTokens ? Math.min(userMaxTokens, modelMaxTokens) : modelMaxTokens
-
+		const max_tokens =
+			typeof userMaxTokens === "number" && userMaxTokens > 0 && typeof modelMaxTokens === "number"
+				? Math.min(userMaxTokens, modelMaxTokens)
+				: modelMaxTokens
 		const params: OpenAI.Chat.Completions.ChatCompletionCreateParamsStreaming = {
 			model,
 			max_tokens,
