@@ -2,6 +2,7 @@ import * as path from "path"
 import os from "os"
 import crypto from "crypto"
 import EventEmitter from "events"
+import * as vscode from "vscode"
 
 import { Anthropic } from "@anthropic-ai/sdk"
 import delay from "delay"
@@ -58,6 +59,7 @@ import { TerminalRegistry } from "../../integrations/terminal/TerminalRegistry"
 // utils
 import { calculateApiCostAnthropic } from "../../shared/cost"
 import { getWorkspacePath } from "../../utils/path"
+import { Package } from "../../shared/package"
 
 // prompts
 import { formatResponse } from "../prompts/responses"
