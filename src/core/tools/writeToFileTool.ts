@@ -13,7 +13,6 @@ import { getReadablePath } from "../../utils/path"
 import { isPathOutsideWorkspace } from "../../utils/pathUtils"
 import { detectCodeOmission } from "../../integrations/editor/detect-omission"
 import { unescapeHtmlEntities } from "../../utils/text-normalization"
-import { getDiagnosticSettings } from "./helpers/diagnosticSettings"
 
 export async function writeToFileTool(
 	cline: Task,
@@ -96,12 +95,6 @@ export async function writeToFileTool(
 		isOutsideWorkspace,
 		isProtected: isWriteProtected,
 	}
-
-	// Get diagnostic settings
-	const { includeDiagnosticMessages, maxDiagnosticMessages } = await getDiagnosticSettings(cline)
-
-	// Update DiffViewProvider with diagnostic settings
-	cline.diffViewProvider.updateDiagnosticSettings(includeDiagnosticMessages, maxDiagnosticMessages)
 
 	try {
 		if (block.partial) {
