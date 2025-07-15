@@ -1252,7 +1252,7 @@ export const webviewMessageHandler = async (
 			await provider.postStateToWebview()
 			break
 		case "maxDiagnosticMessages":
-			await updateGlobalState("maxDiagnosticMessages", message.value ?? 100)
+			await updateGlobalState("maxDiagnosticMessages", message.value ?? 50)
 			await provider.postStateToWebview()
 			break
 		case "setHistoryPreviewCollapsed": // Add the new case handler
