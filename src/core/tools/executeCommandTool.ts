@@ -55,64 +55,15 @@ export async function executeCommandTool(
 
 			command = unescapeHtmlEntities(command) // Unescape HTML entities.
 
-			// Get the provider state to check the setting
-			const clineProvider = await cline.providerRef.deref()
-			const clineProviderState = await clineProvider?.getState()
-			const disableLlmSuggestions = clineProviderState?.disableLlmCommandSuggestions ?? false
-
-			// Parse suggestions if provided and not disabled
-			let suggestions: string[] | undefined
-			if (!disableLlmSuggestions && block.params.suggestions) {
-				try {
-					// Handle if suggestions is already an array (from direct tool use)
-					if (Array.isArray(block.params.suggestions)) {
-						suggestions = block.params.suggestions
-					} else if (typeof block.params.suggestions === "string") {
-						const suggestionsString = block.params.suggestions
-
-						// First try to parse as JSON array
-						if (suggestionsString.trim().startsWith("[")) {
-							try {
-								const parsed = JSON.parse(suggestionsString)
-								if (Array.isArray(parsed)) {
-									suggestions = parsed
-								}
-							} catch (jsonError) {
-								// Fall through to XML parsing
-							}
-						}
-
-						// If not JSON or JSON parsing failed, try to parse individual <suggest> tags
-						if (!suggestions) {
-							const individualSuggestMatches = suggestionsString.match(/<suggest>(.*?)<\/suggest>/g)
-							if (individualSuggestMatches) {
-								suggestions = individualSuggestMatches
-									.map((match) => {
-										const content = match.match(/<suggest>(.*?)<\/suggest>/)
-										return content ? content[1].trim() : ""
-									})
-									.filter((suggestion) => suggestion.length > 0)
-							}
-						}
-					}
-				} catch (e) {
-					// If parsing fails, ignore suggestions
-					console.warn("Failed to parse suggestions:", e)
-				}
-			}
-
-			// Pass suggestions as part of the command text in a structured format
-			const commandWithSuggestions = suggestions
-				? `${command}\n<suggestions>${JSON.stringify(suggestions)}</suggestions>`
-				: command
-
-			const didApprove = await askApproval("command", commandWithSuggestions)
+			const didApprove = await askApproval("command", command)
 
 			if (!didApprove) {
 				return
 			}
 
 			const executionId = cline.lastMessageTs?.toString() ?? Date.now().toString()
+			const clineProvider = await cline.providerRef.deref()
+			const clineProviderState = await clineProvider?.getState()
 			const { terminalOutputLineLimit = 500, terminalShellIntegrationDisabled = false } = clineProviderState ?? {}
 
 			// Get command execution timeout from VSCode configuration (in seconds)

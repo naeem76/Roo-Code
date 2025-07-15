@@ -27,7 +27,6 @@ type AutoApproveSettingsProps = HTMLAttributes<HTMLDivElement> & {
 	alwaysAllowFollowupQuestions?: boolean
 	alwaysAllowUpdateTodoList?: boolean
 	followupAutoApproveTimeoutMs?: number
-	disableLlmCommandSuggestions?: boolean
 	allowedCommands?: string[]
 	deniedCommands?: string[]
 	setCachedStateField: SetCachedStateField<
@@ -46,7 +45,6 @@ type AutoApproveSettingsProps = HTMLAttributes<HTMLDivElement> & {
 		| "alwaysAllowExecute"
 		| "alwaysAllowFollowupQuestions"
 		| "followupAutoApproveTimeoutMs"
-		| "disableLlmCommandSuggestions"
 		| "allowedCommands"
 		| "deniedCommands"
 		| "alwaysAllowUpdateTodoList"
@@ -70,7 +68,6 @@ export const AutoApproveSettings = ({
 	alwaysAllowFollowupQuestions,
 	followupAutoApproveTimeoutMs = 60000,
 	alwaysAllowUpdateTodoList,
-	disableLlmCommandSuggestions,
 	allowedCommands,
 	deniedCommands,
 	setCachedStateField,
@@ -262,22 +259,6 @@ export const AutoApproveSettings = ({
 						<div className="flex items-center gap-4 font-bold">
 							<span className="codicon codicon-terminal" />
 							<div>{t("settings:autoApprove.execute.label")}</div>
-						</div>
-
-						<div>
-							<VSCodeCheckbox
-								checked={disableLlmCommandSuggestions}
-								onChange={(e: any) =>
-									setCachedStateField("disableLlmCommandSuggestions", e.target.checked)
-								}
-								data-testid="disable-llm-command-suggestions-checkbox">
-								<span className="font-medium">
-									{t("settings:autoApprove.execute.disableLlmSuggestions.label")}
-								</span>
-							</VSCodeCheckbox>
-							<div className="text-vscode-descriptionForeground text-sm mt-1 mb-4">
-								{t("settings:autoApprove.execute.disableLlmSuggestions.description")}
-							</div>
 						</div>
 
 						<div>

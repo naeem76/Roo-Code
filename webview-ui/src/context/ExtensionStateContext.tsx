@@ -132,8 +132,6 @@ export interface ExtensionStateContextType extends ExtensionState {
 	routerModels?: RouterModels
 	alwaysAllowUpdateTodoList?: boolean
 	setAlwaysAllowUpdateTodoList: (value: boolean) => void
-	disableLlmCommandSuggestions?: boolean
-	setDisableLlmCommandSuggestions: (value: boolean) => void
 }
 
 export const ExtensionStateContext = createContext<ExtensionStateContextType | undefined>(undefined)
@@ -470,10 +468,6 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		alwaysAllowUpdateTodoList: state.alwaysAllowUpdateTodoList,
 		setAlwaysAllowUpdateTodoList: (value) => {
 			setState((prevState) => ({ ...prevState, alwaysAllowUpdateTodoList: value }))
-		},
-		disableLlmCommandSuggestions: state.disableLlmCommandSuggestions,
-		setDisableLlmCommandSuggestions: (value) => {
-			setState((prevState) => ({ ...prevState, disableLlmCommandSuggestions: value }))
 		},
 	}
 

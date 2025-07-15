@@ -8,45 +8,10 @@ describe("getExecuteCommandDescription", () => {
 		supportsComputerUse: false,
 	}
 
-	it("should include suggestions section when disableLlmCommandSuggestions is false", () => {
-		const args: ToolArgs = {
-			...baseArgs,
-			settings: {
-				disableLlmCommandSuggestions: false,
-			},
-		}
-
-		const description = getExecuteCommandDescription(args)
-
-		// Check that the description includes the suggestions parameter
-		expect(description).toContain("<suggestions>")
-		expect(description).toContain("- suggestions: (optional) Command patterns for the user to allow/deny")
-		expect(description).toContain("Suggestion Guidelines")
-		// Check for chained command guidance
-		expect(description).toContain("For chained commands")
-		expect(description).toContain("cd backend && npm install")
-	})
-
-	it("should include suggestions section when disableLlmCommandSuggestions is not set", () => {
+	it("should not include suggestions section", () => {
 		const args: ToolArgs = {
 			...baseArgs,
 			settings: {},
-		}
-
-		const description = getExecuteCommandDescription(args)
-
-		// Check that the description includes the suggestions parameter
-		expect(description).toContain("<suggestions>")
-		expect(description).toContain("- suggestions: (optional) Command patterns for the user to allow/deny")
-		expect(description).toContain("Suggestion Guidelines")
-	})
-
-	it("should exclude suggestions section when disableLlmCommandSuggestions is true", () => {
-		const args: ToolArgs = {
-			...baseArgs,
-			settings: {
-				disableLlmCommandSuggestions: true,
-			},
 		}
 
 		const description = getExecuteCommandDescription(args)
@@ -55,14 +20,13 @@ describe("getExecuteCommandDescription", () => {
 		expect(description).not.toContain("<suggestions>")
 		expect(description).not.toContain("- suggestions: (optional) Command patterns for the user to allow/deny")
 		expect(description).not.toContain("Suggestion Guidelines")
+		expect(description).not.toContain("For chained commands")
 	})
 
-	it("should include basic command and cwd parameters regardless of settings", () => {
+	it("should include basic command and cwd parameters", () => {
 		const args: ToolArgs = {
 			...baseArgs,
-			settings: {
-				disableLlmCommandSuggestions: true,
-			},
+			settings: {},
 		}
 
 		const description = getExecuteCommandDescription(args)
@@ -71,5 +35,21 @@ describe("getExecuteCommandDescription", () => {
 		expect(description).toContain("- command: (required)")
 		expect(description).toContain("- cwd: (optional)")
 		expect(description).toContain("execute_command")
+		expect(description).toContain("/test/path")
+	})
+
+	it("should include usage examples", () => {
+		const args: ToolArgs = {
+			...baseArgs,
+			settings: {},
+		}
+
+		const description = getExecuteCommandDescription(args)
+
+		// Check that usage examples are included
+		expect(description).toContain("Usage:")
+		expect(description).toContain("<execute_command>")
+		expect(description).toContain("Example: Requesting to execute npm run dev")
+		expect(description).toContain("Example: Requesting to execute ls in a specific directory")
 	})
 })
