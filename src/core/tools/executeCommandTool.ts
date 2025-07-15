@@ -55,9 +55,14 @@ export async function executeCommandTool(
 
 			command = unescapeHtmlEntities(command) // Unescape HTML entities.
 
-			// Parse suggestions if provided
+			// Get the setting for disabling LLM suggestions
+			const disableLlmSuggestions = vscode.workspace
+				.getConfiguration(Package.name)
+				.get<boolean>("disableLlmCommandSuggestions", false)
+
+			// Parse suggestions if provided and not disabled
 			let suggestions: string[] | undefined
-			if (block.params.suggestions) {
+			if (!disableLlmSuggestions && block.params.suggestions) {
 				try {
 					// Handle if suggestions is already an array (from direct tool use)
 					if (Array.isArray(block.params.suggestions)) {

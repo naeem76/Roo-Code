@@ -1648,6 +1648,9 @@ export class Task extends EventEmitter<ClineEvents> {
 				maxReadFileLine !== -1,
 				{
 					maxConcurrentFileReads,
+					disableLlmCommandSuggestions: vscode.workspace
+						.getConfiguration(Package.name)
+						.get<boolean>("disableLlmCommandSuggestions", false),
 				},
 			)
 		})()
