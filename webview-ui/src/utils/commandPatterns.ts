@@ -18,9 +18,11 @@ export function extractCommandPatterns(command: string): string[] {
 	const commands = splitByOperators(command, chainOperators)
 
 	for (const cmd of commands) {
-		const pattern = extractSingleCommandPattern(cmd.trim())
-		if (pattern) {
-			patterns.add(pattern)
+		const cmdPatterns = extractSingleCommandPattern(cmd.trim())
+		for (const pattern of cmdPatterns) {
+			if (pattern) {
+				patterns.add(pattern)
+			}
 		}
 	}
 
@@ -100,16 +102,18 @@ function splitByOperators(command: string, operators: string[]): string[] {
 }
 
 /**
- * Extract pattern from a single command (not chained)
+ * Extract patterns from a single command (not chained)
+ * Returns an array of patterns instead of a single pattern
  */
-function extractSingleCommandPattern(command: string): string {
-	if (!command) return ""
+function extractSingleCommandPattern(command: string): string[] {
+	if (!command) return []
 
 	try {
 		const parsed = parse(command)
-		if (parsed.length === 0) return ""
+		if (parsed.length === 0) return []
 
 		const patterns: string[] = []
+		const allPatterns: string[] = []
 		let i = 0
 
 		while (i < parsed.length) {
@@ -159,9 +163,10 @@ function extractSingleCommandPattern(command: string): string {
 					strToken.endsWith(".js") ||
 					strToken.endsWith(".rb")
 				) {
-					return strToken
+					return [strToken]
 				}
 				patterns.push(strToken)
+				allPatterns.push(strToken) // Add base command
 				i++
 				continue
 			}
@@ -185,6 +190,7 @@ function extractSingleCommandPattern(command: string): string {
 					// Include subcommand
 					if (!strToken.startsWith("-") && !strToken.includes("/")) {
 						patterns.push(strToken)
+						allPatterns.push(patterns.join(" "))
 						// For 'run' commands, stop here to allow any script
 						if (strToken === "run") {
 							break
@@ -198,6 +204,7 @@ function extractSingleCommandPattern(command: string): string {
 				else if (baseCmd === "git") {
 					if (!strToken.startsWith("-")) {
 						patterns.push(strToken)
+						allPatterns.push(patterns.join(" "))
 					}
 					break
 				}
@@ -206,6 +213,7 @@ function extractSingleCommandPattern(command: string): string {
 				else if (["docker", "kubectl", "helm"].includes(baseCmd)) {
 					if (!strToken.startsWith("-")) {
 						patterns.push(strToken)
+						allPatterns.push(patterns.join(" "))
 					}
 					break
 				}
@@ -214,6 +222,7 @@ function extractSingleCommandPattern(command: string): string {
 				else if (baseCmd === "make") {
 					if (!strToken.startsWith("-")) {
 						patterns.push(strToken)
+						allPatterns.push(patterns.join(" "))
 					}
 					break
 				}
@@ -257,11 +266,11 @@ function extractSingleCommandPattern(command: string): string {
 			i++
 		}
 
-		return patterns.join(" ")
+		return allPatterns
 	} catch (_error) {
 		// If parsing fails, fall back to simple first token
 		const tokens = command.split(/\s+/)
-		return tokens[0] || ""
+		return tokens[0] ? [tokens[0]] : []
 	}
 }
 
@@ -331,5 +340,6 @@ export function getPatternDescription(pattern: string): string {
  */
 export function extractCommandPattern(command: string): string {
 	const patterns = extractCommandPatterns(command)
-	return patterns[0] || ""
+	// Return the most specific pattern (usually the last one)
+	return patterns[patterns.length - 1] || ""
 }

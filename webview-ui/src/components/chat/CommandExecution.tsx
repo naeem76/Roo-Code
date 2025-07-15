@@ -9,7 +9,7 @@ import { safeJsonParse } from "@roo/safeJsonParse"
 
 import { vscode } from "@src/utils/vscode"
 import { parseCommandAndOutput } from "@src/utils/commandParsing"
-import { extractCommandPattern, getPatternDescription } from "@src/utils/commandPatterns"
+import { extractCommandPatterns, getPatternDescription } from "@src/utils/commandPatterns"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { cn } from "@src/lib/utils"
@@ -61,97 +61,14 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 		// If no LLM suggestions but we have a command, extract patterns programmatically
 		if (!command?.trim()) return []
 
-		// Check if this is a chained command
-		const operators = ["&&", "||", ";", "|"]
-		const patterns: Array<{ pattern: string; description: string }> = []
+		// Use the new extractCommandPatterns function which handles all parsing
+		const extractedPatterns = extractCommandPatterns(command)
 
-		// Split by operators while respecting quotes
-		let inSingleQuote = false
-		let inDoubleQuote = false
-		let escapeNext = false
-		let currentCommand = ""
-		let i = 0
-
-		while (i < command.length) {
-			const char = command[i]
-
-			if (escapeNext) {
-				currentCommand += char
-				escapeNext = false
-				i++
-				continue
-			}
-
-			if (char === "\\") {
-				escapeNext = true
-				currentCommand += char
-				i++
-				continue
-			}
-
-			if (char === "'" && !inDoubleQuote) {
-				inSingleQuote = !inSingleQuote
-				currentCommand += char
-				i++
-				continue
-			}
-
-			if (char === '"' && !inSingleQuote) {
-				inDoubleQuote = !inDoubleQuote
-				currentCommand += char
-				i++
-				continue
-			}
-
-			// Check for operators outside quotes
-			if (!inSingleQuote && !inDoubleQuote) {
-				let foundOperator = false
-				for (const op of operators) {
-					if (command.substring(i, i + op.length) === op) {
-						// Found an operator, process the current command
-						const trimmedCommand = currentCommand.trim()
-						if (trimmedCommand) {
-							// Extract pattern for the command
-							const pattern = extractCommandPattern(trimmedCommand)
-							if (pattern) {
-								patterns.push({
-									pattern,
-									description: getPatternDescription(pattern),
-								})
-							}
-						}
-						currentCommand = ""
-						i += op.length
-						foundOperator = true
-						break
-					}
-				}
-				if (foundOperator) continue
-			}
-
-			currentCommand += char
-			i++
-		}
-
-		// Process the last command
-		const trimmedCommand = currentCommand.trim()
-		if (trimmedCommand) {
-			// Extract pattern for the command
-			const pattern = extractCommandPattern(trimmedCommand)
-			if (pattern) {
-				patterns.push({
-					pattern,
-					description: getPatternDescription(pattern),
-				})
-			}
-		}
-
-		// Remove duplicates
-		const uniquePatterns = patterns.filter(
-			(item, index, self) => index === self.findIndex((p) => p.pattern === item.pattern),
-		)
-
-		return uniquePatterns
+		// Convert to the expected format with descriptions
+		return extractedPatterns.map((pattern) => ({
+			pattern,
+			description: getPatternDescription(pattern),
+		}))
 	}, [command, suggestions])
 
 	// The command's output can either come from the text associated with the
