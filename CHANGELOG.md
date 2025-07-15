@@ -1,5 +1,19 @@
 # Roo Code Changelog
 
+## [3.23.12] - 2025-07-15
+
+- Update the max-token calculation in model-params to better support Kimi K2 and others
+
+## [3.23.11] - 2025-07-14
+
+- Add Kimi K2 model to Groq along with fixes to context condensing math
+- Add Cmd+Shift+. keyboard shortcut for previous mode switching
+
+## [3.23.10] - 2025-07-14
+
+- Prioritize built-in model dimensions over custom dimensions (thanks @daniel-lxs!)
+- Add padding to the index model options
+
 ## [3.23.9] - 2025-07-14
 
 - Enable Claude Code provider to run natively on Windows (thanks @SannidhyaSah!)
