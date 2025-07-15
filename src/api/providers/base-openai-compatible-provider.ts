@@ -69,10 +69,15 @@ export abstract class BaseOpenAiCompatibleProvider<ModelName extends string>
 	): ApiStream {
 		const {
 			id: model,
-			info: { maxTokens: max_tokens },
+			info: { maxTokens: modelMaxTokens },
 		} = this.getModel()
 
 		const temperature = this.options.modelTemperature ?? this.defaultTemperature
+
+		// Ensure max_tokens doesn't exceed the model's configured limit
+		// Users can override with modelMaxTokens, but it should not exceed the model's actual API limit
+		const userMaxTokens = this.options.modelMaxTokens
+		const max_tokens = userMaxTokens ? Math.min(userMaxTokens, modelMaxTokens) : modelMaxTokens
 
 		const params: OpenAI.Chat.Completions.ChatCompletionCreateParamsStreaming = {
 			model,
