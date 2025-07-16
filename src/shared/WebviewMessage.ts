@@ -113,6 +113,7 @@ export interface WebviewMessage {
 		| "deleteMessage"
 		| "submitEditedMessage"
 		| "terminalOutputLineLimit"
+		| "terminalOutputCharacterLimit"
 		| "terminalShellIntegrationTimeout"
 		| "terminalShellIntegrationDisabled"
 		| "terminalCommandDelay"

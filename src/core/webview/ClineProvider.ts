@@ -1392,6 +1392,7 @@ export class ClineProvider
 			cachedChromeHostUrl,
 			writeDelayMs,
 			terminalOutputLineLimit,
+			terminalOutputCharacterLimit,
 			terminalShellIntegrationTimeout,
 			terminalShellIntegrationDisabled,
 			terminalCommandDelay,
@@ -1491,6 +1492,7 @@ export class ClineProvider
 			cachedChromeHostUrl: cachedChromeHostUrl,
 			writeDelayMs: writeDelayMs ?? 1000,
 			terminalOutputLineLimit: terminalOutputLineLimit ?? 500,
+			terminalOutputCharacterLimit: terminalOutputCharacterLimit ?? 100000,
 			terminalShellIntegrationTimeout: terminalShellIntegrationTimeout ?? Terminal.defaultShellIntegrationTimeout,
 			terminalShellIntegrationDisabled: terminalShellIntegrationDisabled ?? false,
 			terminalCommandDelay: terminalCommandDelay ?? 0,
@@ -1658,6 +1660,7 @@ export class ClineProvider
 			fuzzyMatchThreshold: stateValues.fuzzyMatchThreshold ?? 1.0,
 			writeDelayMs: stateValues.writeDelayMs ?? 1000,
 			terminalOutputLineLimit: stateValues.terminalOutputLineLimit ?? 500,
+			terminalOutputCharacterLimit: stateValues.terminalOutputCharacterLimit ?? 100000,
 			terminalShellIntegrationTimeout:
 				stateValues.terminalShellIntegrationTimeout ?? Terminal.defaultShellIntegrationTimeout,
 			terminalShellIntegrationDisabled: stateValues.terminalShellIntegrationDisabled ?? false,
