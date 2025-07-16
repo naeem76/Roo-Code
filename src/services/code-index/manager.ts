@@ -12,6 +12,9 @@ import { CacheManager } from "./cache-manager"
 import fs from "fs/promises"
 import ignore from "ignore"
 import path from "path"
+import { t } from "../../i18n"
+import { TelemetryService } from "@roo-code/telemetry"
+import { TelemetryEventName } from "@roo-code/types"
 
 export class CodeIndexManager {
 	// --- Singleton Implementation ---
@@ -118,7 +121,14 @@ export class CodeIndexManager {
 			return { requiresRestart }
 		}
 
-		// 3. CacheManager Initialization
+		// 3. Check if workspace is available
+		const workspacePath = getWorkspacePath()
+		if (!workspacePath) {
+			this._stateManager.setSystemState("Standby", "No workspace folder open")
+			return { requiresRestart }
+		}
+
+		// 4. CacheManager Initialization
 		if (!this._cacheManager) {
 			this._cacheManager = new CacheManager(this.context, this.workspacePath)
 			await this._cacheManager.initialize()
@@ -215,6 +225,9 @@ export class CodeIndexManager {
 		if (this._orchestrator) {
 			this.stopWatcher()
 		}
+		// Clear existing services to ensure clean state
+		this._orchestrator = undefined
+		this._searchService = undefined
 
 		// (Re)Initialize service factory
 		this._serviceFactory = new CodeIndexServiceFactory(
@@ -224,7 +237,14 @@ export class CodeIndexManager {
 		)
 
 		const ignoreInstance = ignore()
-		const ignorePath = path.join(getWorkspacePath(), ".gitignore")
+		const workspacePath = getWorkspacePath()
+
+		if (!workspacePath) {
+			this._stateManager.setSystemState("Standby", "")
+			return
+		}
+
+		const ignorePath = path.join(workspacePath, ".gitignore")
 		try {
 			const content = await fs.readFile(ignorePath, "utf8")
 			ignoreInstance.add(content)
@@ -232,6 +252,11 @@ export class CodeIndexManager {
 		} catch (error) {
 			// Should never happen: reading file failed even though it exists
 			console.error("Unexpected error loading .gitignore:", error)
+			TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
+				error: error instanceof Error ? error.message : String(error),
+				stack: error instanceof Error ? error.stack : undefined,
+				location: "_recreateServices",
+			})
 		}
 
 		// (Re)Create shared service instances
@@ -240,6 +265,14 @@ export class CodeIndexManager {
 			this._cacheManager!,
 			ignoreInstance,
 		)
+
+		// Validate embedder configuration before proceeding
+		const validationResult = await this._serviceFactory.validateEmbedder(embedder)
+		if (!validationResult.valid) {
+			const errorMessage = validationResult.error || "Embedder configuration validation failed"
+			this._stateManager.setSystemState("Error", errorMessage)
+			throw new Error(errorMessage)
+		}
 
 		// (Re)Initialize orchestrator
 		this._orchestrator = new CodeIndexOrchestrator(
@@ -259,6 +292,9 @@ export class CodeIndexManager {
 			embedder,
 			vectorStore,
 		)
+
+		// Clear any error state after successful recreation
+		this._stateManager.setSystemState("Standby", "")
 	}
 
 	/**
@@ -274,13 +310,38 @@ export class CodeIndexManager {
 			const isFeatureEnabled = this.isFeatureEnabled
 			const isFeatureConfigured = this.isFeatureConfigured
 
-			// If configuration changes require a restart and the manager is initialized, restart the service
-			if (requiresRestart && isFeatureEnabled && isFeatureConfigured && this.isInitialized) {
-				// Recreate services with new configuration
-				await this._recreateServices()
+			// If feature is disabled, stop the service
+			if (!isFeatureEnabled) {
+				// Stop the orchestrator if it exists
+				if (this._orchestrator) {
+					this._orchestrator.stopWatcher()
+				}
+				// Set state to indicate service is disabled
+				this._stateManager.setSystemState("Standby", "Code indexing is disabled")
+				return
+			}
 
-				// Start indexing with new services
-				this.startIndexing()
+			if (requiresRestart && isFeatureEnabled && isFeatureConfigured) {
+				try {
+					// Ensure cacheManager is initialized before recreating services
+					if (!this._cacheManager) {
+						this._cacheManager = new CacheManager(this.context, this.workspacePath)
+						await this._cacheManager.initialize()
+					}
+
+					// Recreate services with new configuration
+					await this._recreateServices()
+				} catch (error) {
+					// Error state already set in _recreateServices
+					console.error("Failed to recreate services:", error)
+					TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
+						error: error instanceof Error ? error.message : String(error),
+						stack: error instanceof Error ? error.stack : undefined,
+						location: "handleSettingsChange",
+					})
+					// Re-throw the error so the caller knows validation failed
+					throw error
+				}
 			}
 		}
 	}

@@ -1,5 +1,6 @@
 import fs from "fs/promises"
 import * as path from "path"
+import * as vscode from "vscode"
 
 import delay from "delay"
 
@@ -15,6 +16,8 @@ import { ExitCodeDetails, RooTerminalCallbacks, RooTerminalProcess } from "../..
 import { TerminalRegistry } from "../../integrations/terminal/TerminalRegistry"
 import { Terminal } from "../../integrations/terminal/Terminal"
 import { ToolExecutionWrapper, TimeoutFallbackHandler } from "../timeout"
+import { Package } from "../../shared/package"
+import { t } from "../../i18n"
 
 const DEFAULT_TOOL_EXECUTION_TIMEOUT_MS = 60000 // 1 minute default
 
@@ -69,6 +72,14 @@ export async function executeCommandTool(
 				toolExecutionTimeoutMs = 60000, // 1 minute default
 			} = clineProviderState ?? {}
 
+			// Get command execution timeout from VSCode configuration (in seconds)
+			const commandExecutionTimeoutSeconds = vscode.workspace
+				.getConfiguration(Package.name)
+				.get<number>("commandExecutionTimeout", 0)
+
+			// Convert seconds to milliseconds for internal use
+			const commandExecutionTimeout = commandExecutionTimeoutSeconds * 1000
+
 			const options: ExecuteCommandOptions = {
 				executionId,
 				command,
@@ -76,6 +87,7 @@ export async function executeCommandTool(
 				terminalShellIntegrationDisabled,
 				terminalOutputLineLimit,
 				timeoutMs: toolExecutionTimeoutMs,
+				commandExecutionTimeout,
 			}
 
 			try {
@@ -122,6 +134,7 @@ export type ExecuteCommandOptions = {
 	terminalShellIntegrationDisabled?: boolean
 	terminalOutputLineLimit?: number
 	timeoutMs?: number
+	commandExecutionTimeout?: number
 }
 
 export async function executeCommand(
@@ -133,6 +146,7 @@ export async function executeCommand(
 		terminalShellIntegrationDisabled = false,
 		terminalOutputLineLimit = 500,
 		timeoutMs,
+		commandExecutionTimeout = 0,
 	}: ExecuteCommandOptions,
 ): Promise<[boolean, ToolResponse]> {
 	// Get timeout from settings if not provided
@@ -142,44 +156,58 @@ export async function executeCommand(
 	const actualTimeoutMs = timeoutMs ?? defaultTimeoutMs
 	const timeoutFallbackEnabled = clineProviderState?.timeoutFallbackEnabled ?? true
 
-	// Wrap the command execution with timeout
-	const timeoutResult = await ToolExecutionWrapper.execute(
-		async (signal: AbortSignal) => {
-			return executeCommandInternal(cline, {
-				executionId,
-				command,
-				customCwd,
-				terminalShellIntegrationDisabled,
-				terminalOutputLineLimit,
-				signal,
-			})
-		},
-		{
-			toolName: "execute_command",
-			taskId: cline.taskId,
-			timeoutMs: actualTimeoutMs,
-			enableFallback: timeoutFallbackEnabled,
-		},
-		actualTimeoutMs,
-	)
-
-	// Handle timeout result
-	if (timeoutResult.timedOut && timeoutResult.fallbackTriggered) {
-		const fallbackResponse = await TimeoutFallbackHandler.createTimeoutResponse(
-			"execute_command",
+	// Use the new timeout wrapper approach if timeoutMs is provided or fallback is enabled
+	if (actualTimeoutMs > 0 && timeoutFallbackEnabled) {
+		// Wrap the command execution with timeout
+		const timeoutResult = await ToolExecutionWrapper.execute(
+			async (signal: AbortSignal) => {
+				return executeCommandInternal(cline, {
+					executionId,
+					command,
+					customCwd,
+					terminalShellIntegrationDisabled,
+					terminalOutputLineLimit,
+					signal,
+					commandExecutionTimeout: 0, // Disable the old timeout when using new approach
+				})
+			},
+			{
+				toolName: "execute_command",
+				taskId: cline.taskId,
+				timeoutMs: actualTimeoutMs,
+				enableFallback: timeoutFallbackEnabled,
+			},
 			actualTimeoutMs,
-			timeoutResult.executionTimeMs,
-			{ command },
-			cline,
 		)
-		return [false, fallbackResponse]
-	}
 
-	if (!timeoutResult.success) {
-		return [false, formatResponse.toolError(timeoutResult.error?.message)]
-	}
+		// Handle timeout result
+		if (timeoutResult.timedOut && timeoutResult.fallbackTriggered) {
+			const fallbackResponse = await TimeoutFallbackHandler.createTimeoutResponse(
+				"execute_command",
+				actualTimeoutMs,
+				timeoutResult.executionTimeMs,
+				{ command },
+				cline,
+			)
+			return [false, fallbackResponse]
+		}
 
-	return timeoutResult.result!
+		if (!timeoutResult.success) {
+			return [false, formatResponse.toolError(timeoutResult.error?.message)]
+		}
+
+		return timeoutResult.result!
+	} else {
+		// Use the legacy timeout approach
+		return executeCommandInternal(cline, {
+			executionId,
+			command,
+			customCwd,
+			terminalShellIntegrationDisabled,
+			terminalOutputLineLimit,
+			commandExecutionTimeout,
+		})
+	}
 }
 
 async function executeCommandInternal(
@@ -191,8 +219,11 @@ async function executeCommandInternal(
 		terminalShellIntegrationDisabled = false,
 		terminalOutputLineLimit = 500,
 		signal,
-	}: ExecuteCommandOptions & { signal: AbortSignal },
+		commandExecutionTimeout = 0,
+	}: ExecuteCommandOptions & { signal?: AbortSignal },
 ): Promise<[boolean, ToolResponse]> {
+	// Convert milliseconds back to seconds for display purposes
+	const commandExecutionTimeoutSeconds = commandExecutionTimeout / 1000
 	let workingDir: string
 
 	if (!customCwd) {
@@ -279,26 +310,79 @@ async function executeCommandInternal(
 	const process = terminal.runCommand(command, callbacks)
 	cline.terminalProcess = process
 
-	// Handle abort signal for timeout cancellation
-	const abortHandler = () => {
-		if (process && typeof process.abort === "function") {
-			process.abort()
+	// Handle abort signal for timeout cancellation (new approach)
+	if (signal) {
+		const abortHandler = () => {
+			if (process && typeof process.abort === "function") {
+				process.abort()
+			}
+			cline.terminalProcess = undefined
 		}
-		cline.terminalProcess = undefined
-	}
 
-	if (signal.aborted) {
-		abortHandler()
-		throw new Error("Command execution was cancelled due to timeout")
-	}
+		if (signal.aborted) {
+			abortHandler()
+			throw new Error("Command execution was cancelled due to timeout")
+		}
 
-	signal.addEventListener("abort", abortHandler)
+		signal.addEventListener("abort", abortHandler)
 
-	try {
-		await process
-	} finally {
-		signal.removeEventListener("abort", abortHandler)
-		cline.terminalProcess = undefined
+		try {
+			await process
+		} finally {
+			signal.removeEventListener("abort", abortHandler)
+			cline.terminalProcess = undefined
+		}
+	} else if (commandExecutionTimeout > 0) {
+		// Implement command execution timeout (legacy approach)
+		let timeoutId: NodeJS.Timeout | undefined
+		let isTimedOut = false
+
+		const timeoutPromise = new Promise<void>((_, reject) => {
+			timeoutId = setTimeout(() => {
+				isTimedOut = true
+				// Try to abort the process
+				if (cline.terminalProcess) {
+					cline.terminalProcess.abort()
+				}
+				reject(new Error(`Command execution timed out after ${commandExecutionTimeout}ms`))
+			}, commandExecutionTimeout)
+		})
+
+		try {
+			await Promise.race([process, timeoutPromise])
+		} catch (error) {
+			if (isTimedOut) {
+				// Handle timeout case
+				const status: CommandExecutionStatus = { executionId, status: "timeout" }
+				clineProvider?.postMessageToWebview({ type: "commandExecutionStatus", text: JSON.stringify(status) })
+
+				// Add visual feedback for timeout
+				await cline.say(
+					"error",
+					t("common:errors:command_timeout", { seconds: commandExecutionTimeoutSeconds }),
+				)
+
+				cline.terminalProcess = undefined
+
+				return [
+					false,
+					`The command was terminated after exceeding a user-configured ${commandExecutionTimeoutSeconds}s timeout. Do not try to re-run the command.`,
+				]
+			}
+			throw error
+		} finally {
+			if (timeoutId) {
+				clearTimeout(timeoutId)
+			}
+			cline.terminalProcess = undefined
+		}
+	} else {
+		// No timeout - just wait for the process to complete
+		try {
+			await process
+		} finally {
+			cline.terminalProcess = undefined
+		}
 	}
 
 	if (shellIntegrationError) {
@@ -353,8 +437,7 @@ async function executeCommandInternal(
 			exitStatus = `Exit code: <undefined, notify user>`
 		}
 
-		let workingDirInfo = ` within working directory '${workingDir.toPosix()}'`
-		const newWorkingDir = terminal.getCurrentWorkingDirectory()
+		let workingDirInfo = ` within working directory '${terminal.getCurrentWorkingDirectory().toPosix()}'`
 
 		return [false, `Command executed in terminal ${workingDirInfo}. ${exitStatus}\nOutput:\n${result}`]
 	} else {
