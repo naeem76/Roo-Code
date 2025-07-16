@@ -6,6 +6,17 @@ import { OpenAICompatibleEmbedder } from "../openai-compatible"
 // Mock the OpenAICompatibleEmbedder
 vitest.mock("../openai-compatible")
 
+// Mock the embedding models module
+vitest.mock("../../../../shared/embeddingModels", () => ({
+	getModelDimension: vitest.fn((provider: string, modelId: string) => {
+		if (provider === "gemini") {
+			if (modelId === "gemini-embedding-001") return 3072
+			if (modelId === "text-embedding-004") return 768
+		}
+		return undefined
+	}),
+}))
+
 // Mock TelemetryService
 vitest.mock("@roo-code/telemetry", () => ({
 	TelemetryService: {
@@ -88,15 +99,37 @@ describe("GeminiEmbedder", () => {
 				MockedOpenAICompatibleEmbedder.prototype.createEmbeddings = mockCreateEmbeddings
 			})
 
-			it("should use instance model when no model parameter provided", async () => {
+			it("should use standard implementation for low-dimensional models (text-embedding-004)", async () => {
 				// Arrange
-				embedder = new GeminiEmbedder("test-api-key")
+				embedder = new GeminiEmbedder("test-api-key", "text-embedding-004")
 				const texts = ["test text 1", "test text 2"]
 				const mockResponse = {
 					embeddings: [
 						[0.1, 0.2],
 						[0.3, 0.4],
 					],
+					usage: { promptTokens: 10, totalTokens: 15 },
+				}
+				mockCreateEmbeddings.mockResolvedValue(mockResponse)
+
+				// Act
+				const result = await embedder.createEmbeddings(texts)
+
+				// Assert
+				expect(mockCreateEmbeddings).toHaveBeenCalledWith(texts, "text-embedding-004")
+				expect(result).toEqual(mockResponse)
+			})
+
+			it("should use custom rate limiting for high-dimensional models (gemini-embedding-001)", async () => {
+				// Arrange
+				embedder = new GeminiEmbedder("test-api-key", "gemini-embedding-001")
+				const texts = ["test text 1", "test text 2"]
+				const mockResponse = {
+					embeddings: [
+						[0.1, 0.2],
+						[0.3, 0.4],
+					],
+					usage: { promptTokens: 10, totalTokens: 15 },
 				}
 				mockCreateEmbeddings.mockResolvedValue(mockResponse)
 
@@ -117,6 +150,7 @@ describe("GeminiEmbedder", () => {
 						[0.1, 0.2],
 						[0.3, 0.4],
 					],
+					usage: { promptTokens: 10, totalTokens: 15 },
 				}
 				mockCreateEmbeddings.mockResolvedValue(mockResponse)
 
@@ -128,15 +162,66 @@ describe("GeminiEmbedder", () => {
 				expect(result).toEqual(mockResponse)
 			})
 
-			it("should handle errors from OpenAICompatibleEmbedder", async () => {
+			it("should use custom rate limiting implementation for high-dimensional models", async () => {
 				// Arrange
-				embedder = new GeminiEmbedder("test-api-key")
+				embedder = new GeminiEmbedder("test-api-key", "gemini-embedding-001")
+				const texts = ["test text"]
+				const mockResponse = {
+					embeddings: [[0.1, 0.2]],
+					usage: { promptTokens: 5, totalTokens: 8 },
+				}
+				mockCreateEmbeddings.mockResolvedValue(mockResponse)
+
+				// Act
+				const result = await embedder.createEmbeddings(texts)
+
+				// Assert
+				// For high-dimensional models, the custom implementation should be used
+				expect(mockCreateEmbeddings).toHaveBeenCalledWith(texts, "gemini-embedding-001")
+				expect(result).toEqual(mockResponse)
+			})
+
+			it("should handle errors from OpenAICompatibleEmbedder for low-dimensional models", async () => {
+				// Arrange
+				embedder = new GeminiEmbedder("test-api-key", "text-embedding-004")
 				const texts = ["test text"]
 				const error = new Error("Embedding failed")
 				mockCreateEmbeddings.mockRejectedValue(error)
 
 				// Act & Assert
 				await expect(embedder.createEmbeddings(texts)).rejects.toThrow("Embedding failed")
+			})
+
+			it("should handle errors from OpenAICompatibleEmbedder for high-dimensional models", async () => {
+				// Arrange
+				embedder = new GeminiEmbedder("test-api-key", "gemini-embedding-001")
+				const texts = ["test text"]
+				const error = new Error("Embedding failed")
+				mockCreateEmbeddings.mockRejectedValue(error)
+
+				// Act & Assert
+				// For high-dimensional models, errors go through custom retry logic
+				await expect(embedder.createEmbeddings(texts)).rejects.toThrow("failedMaxAttempts")
+			})
+
+			it("should handle missing usage data gracefully", async () => {
+				// Arrange
+				embedder = new GeminiEmbedder("test-api-key", "gemini-embedding-001")
+				const texts = ["test text"]
+				const mockResponse = {
+					embeddings: [[0.1, 0.2]],
+					usage: undefined, // Missing usage data
+				}
+				mockCreateEmbeddings.mockResolvedValue(mockResponse)
+
+				// Act
+				const result = await embedder.createEmbeddings(texts)
+
+				// Assert
+				expect(result).toEqual({
+					embeddings: [[0.1, 0.2]],
+					usage: { promptTokens: 0, totalTokens: 0 },
+				})
 			})
 		})
 	})

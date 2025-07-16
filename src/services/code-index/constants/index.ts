@@ -28,3 +28,6 @@ export const BATCH_PROCESSING_CONCURRENCY = 10
 
 /**Gemini Embedder */
 export const GEMINI_MAX_ITEM_TOKENS = 2048
+export const GEMINI_MAX_BATCH_TOKENS = 25000 // Reduced batch size for high-dimensional models
+export const GEMINI_INITIAL_RETRY_DELAY_MS = 1000 // Longer initial delay for Gemini
+export const GEMINI_MAX_BATCH_RETRIES = 5 // More retries for rate-limited requests
