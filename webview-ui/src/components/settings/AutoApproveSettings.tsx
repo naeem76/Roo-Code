@@ -331,7 +331,7 @@ export const AutoApproveSettings = ({
 							min="1000"
 							max="1800000"
 							step="1000"
-							value={toolExecutionTimeoutMs || 300000}
+							value={toolExecutionTimeoutMs || 60000}
 							onChange={(e) => setCachedStateField("toolExecutionTimeoutMs", parseInt(e.target.value))}
 							disabled={!timeoutFallbackEnabled}
 							className="w-32"
