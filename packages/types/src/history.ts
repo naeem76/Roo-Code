@@ -16,6 +16,8 @@ export const historyItemSchema = z.object({
 	totalCost: z.number(),
 	size: z.number().optional(),
 	workspace: z.string().optional(),
+	parentTaskId: z.string().optional(),
+	rootTaskId: z.string().optional(),
 })
 
 export type HistoryItem = z.infer<typeof historyItemSchema>

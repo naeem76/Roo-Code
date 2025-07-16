@@ -584,6 +584,18 @@ export class ClineProvider
 			experiments,
 		} = await this.getState()
 
+		// Restore parent and root task references from history if they exist
+		let parentTask: Task | undefined = historyItem.parentTask
+		let rootTask: Task | undefined = historyItem.rootTask
+
+		// If we have parent/root task IDs but no task objects, try to find them in the current stack
+		if (!parentTask && historyItem.parentTaskId) {
+			parentTask = this.clineStack.find((task) => task.taskId === historyItem.parentTaskId)
+		}
+		if (!rootTask && historyItem.rootTaskId) {
+			rootTask = this.clineStack.find((task) => task.taskId === historyItem.rootTaskId)
+		}
+
 		const cline = new Task({
 			provider: this,
 			apiConfiguration,
@@ -593,8 +605,8 @@ export class ClineProvider
 			consecutiveMistakeLimit: apiConfiguration.consecutiveMistakeLimit,
 			historyItem,
 			experiments,
-			rootTask: historyItem.rootTask,
-			parentTask: historyItem.parentTask,
+			rootTask,
+			parentTask,
 			taskNumber: historyItem.number,
 			onCreated: (cline) => this.emit("clineCreated", cline),
 		})
@@ -604,6 +616,50 @@ export class ClineProvider
 			`[subtasks] ${cline.parentTask ? "child" : "parent"} task ${cline.taskId}.${cline.instanceId} instantiated`,
 		)
 		return cline
+	}
+
+	// Helper method to detect if a task is an orphaned subtask
+	private isOrphanedSubtask(historyItem: HistoryItem): boolean {
+		// A task is orphaned if it has a parentTaskId but the parent is not in the current stack
+		// and not available in the task history
+		if (!historyItem.parentTaskId) {
+			return false
+		}
+
+		// Check if parent is in current stack
+		const parentInStack = this.clineStack.find((task) => task.taskId === historyItem.parentTaskId)
+		if (parentInStack) {
+			return false
+		}
+
+		// Check if parent exists in task history
+		const taskHistory = this.getGlobalState("taskHistory") ?? []
+		const parentInHistory = taskHistory.find((item) => item.id === historyItem.parentTaskId)
+
+		return !parentInHistory
+	}
+
+	// Helper method to find the root task for a given task
+	private async findRootTaskForTask(taskId: string): Promise<HistoryItem | undefined> {
+		const taskHistory = this.getGlobalState("taskHistory") ?? []
+		const task = taskHistory.find((item) => item.id === taskId)
+
+		if (!task) {
+			return undefined
+		}
+
+		// If this task has a rootTaskId, find that task
+		if (task.rootTaskId) {
+			return taskHistory.find((item) => item.id === task.rootTaskId)
+		}
+
+		// If this task has a parentTaskId, recursively find the root
+		if (task.parentTaskId) {
+			return this.findRootTaskForTask(task.parentTaskId)
+		}
+
+		// This task is the root
+		return task
 	}
 
 	public async postMessageToWebview(message: ExtensionMessage) {
@@ -1161,7 +1217,26 @@ export class ClineProvider
 		if (id !== this.getCurrentCline()?.taskId) {
 			// Non-current task.
 			const { historyItem } = await this.getTaskWithId(id)
-			await this.initClineWithHistoryItem(historyItem) // Clears existing task.
+
+			// Check if this is an orphaned subtask
+			if (this.isOrphanedSubtask(historyItem)) {
+				// Find the root task for context
+				const rootTask = await this.findRootTaskForTask(id)
+				const rootTaskName = rootTask ? rootTask.task : "unknown parent task"
+
+				// Show a warning to the user about the orphaned subtask
+				const warningMessage = `Warning: This appears to be a subtask that was part of "${rootTaskName}". The parent task is no longer available. This subtask will run independently and will not return to a parent task when completed.`
+
+				// Add the warning to the history item for display
+				const modifiedHistoryItem = {
+					...historyItem,
+					task: `[ORPHANED SUBTASK] ${historyItem.task}\n\n${warningMessage}`,
+				}
+
+				await this.initClineWithHistoryItem(modifiedHistoryItem)
+			} else {
+				await this.initClineWithHistoryItem(historyItem) // Clears existing task.
+			}
 		}
 
 		await this.postMessageToWebview({ type: "action", action: "chatButtonClicked" })
