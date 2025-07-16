@@ -67,7 +67,12 @@ export async function extractTextFromFile(filePath: string): Promise<string> {
 	const isBinary = await isBinaryFile(filePath).catch(() => false)
 
 	if (!isBinary) {
-		return addLineNumbers(await fs.readFile(filePath, "utf8"))
+		const content = await fs.readFile(filePath, "utf8")
+		// Check if file is empty and provide clear feedback
+		if (content === "") {
+			return "This file is empty"
+		}
+		return addLineNumbers(content)
 	} else {
 		throw new Error(`Cannot read text for file type: ${fileExtension}`)
 	}

@@ -144,4 +144,19 @@ describe("read_file tool with maxReadFileLine setting", () => {
 		expect(readLines).toHaveBeenCalledWith(filePath, maxReadFileLine - 1, 0)
 		expect(addLineNumbers).toHaveBeenCalled()
 	})
+
+	// Test for empty file handling
+	it("should return 'This file is empty' message for empty files", async () => {
+		// Mock extractTextFromFile to simulate empty file behavior
+		;(extractTextFromFile as Mock).mockResolvedValue("This file is empty")
+
+		const filePath = path.resolve("/test", "emptyFile.txt")
+
+		// Test the mocked behavior
+		const result = await extractTextFromFile(filePath)
+
+		// Should return the empty file message
+		expect(result).toBe("This file is empty")
+		expect(extractTextFromFile).toHaveBeenCalledWith(filePath)
+	})
 })

@@ -452,6 +452,14 @@ export async function readFileTool(
 
 				// Handle range reads (bypass maxReadFileLine)
 				if (fileResult.lineRanges && fileResult.lineRanges.length > 0) {
+					// Check if file is empty first
+					if (totalLines === 0) {
+						updateFileResult(relPath, {
+							xmlContent: `<file><path>${relPath}</path>\n<content/><notice>File is empty</notice>\n</file>`,
+						})
+						continue
+					}
+
 					const rangeResults: string[] = []
 					for (const range of fileResult.lineRanges) {
 						const content = addLineNumbers(
@@ -469,6 +477,14 @@ export async function readFileTool(
 
 				// Handle definitions-only mode
 				if (maxReadFileLine === 0) {
+					// Check if file is empty first
+					if (totalLines === 0) {
+						updateFileResult(relPath, {
+							xmlContent: `<file><path>${relPath}</path>\n<content/><notice>File is empty</notice>\n</file>`,
+						})
+						continue
+					}
+
 					try {
 						const defResult = await parseSourceCodeDefinitionsForFile(fullPath, cline.rooIgnoreController)
 						if (defResult) {
@@ -491,6 +507,14 @@ export async function readFileTool(
 
 				// Handle files exceeding line threshold
 				if (maxReadFileLine > 0 && totalLines > maxReadFileLine) {
+					// Check if file is empty first
+					if (totalLines === 0) {
+						updateFileResult(relPath, {
+							xmlContent: `<file><path>${relPath}</path>\n<content/><notice>File is empty</notice>\n</file>`,
+						})
+						continue
+					}
+
 					const content = addLineNumbers(await readLines(fullPath, maxReadFileLine - 1, 0))
 					const lineRangeAttr = ` lines="1-${maxReadFileLine}"`
 					let xmlInfo = `<content${lineRangeAttr}>\n${content}</content>\n`
@@ -519,9 +543,13 @@ export async function readFileTool(
 				// Handle normal file read
 				const content = await extractTextFromFile(fullPath)
 				const lineRangeAttr = ` lines="1-${totalLines}"`
-				let xmlInfo = totalLines > 0 ? `<content${lineRangeAttr}>\n${content}</content>\n` : `<content/>`
 
-				if (totalLines === 0) {
+				// Check if file is empty (either totalLines is 0 or content indicates empty file)
+				const isEmptyFile = totalLines === 0 || content === "This file is empty"
+
+				let xmlInfo = isEmptyFile ? `<content/>` : `<content${lineRangeAttr}>\n${content}</content>\n`
+
+				if (isEmptyFile) {
 					xmlInfo += `<notice>File is empty</notice>\n`
 				}
 

@@ -470,7 +470,7 @@ describe("read_file tool XML output structure", () => {
 		it("should handle empty files correctly", async () => {
 			// Setup
 			mockedCountFileLines.mockResolvedValue(0)
-			mockedExtractTextFromFile.mockResolvedValue("")
+			mockedExtractTextFromFile.mockResolvedValue("This file is empty")
 			mockProvider.getState.mockResolvedValue({ maxReadFileLine: -1 })
 
 			// Execute
@@ -516,6 +516,71 @@ describe("read_file tool XML output structure", () => {
 			// Verify
 			expect(result).toBe(
 				`<files>\n<file><path>${testFilePath}</path><error>Access to ${testFilePath} is blocked by the .rooignore file settings. You must try to continue in the task without using this file, or ask the user to update the .rooignore file.</error></file>\n</files>`,
+			)
+		})
+
+		it("should handle empty files with range reads", async () => {
+			// Setup
+			mockedCountFileLines.mockResolvedValue(0)
+			mockedExtractTextFromFile.mockResolvedValue("This file is empty")
+			mockProvider.getState.mockResolvedValue({ maxReadFileLine: -1 })
+
+			// Create args with range manually since the helper doesn't support it
+			const argsContent = `<file><path>${testFilePath}</path><line_range>1-5</line_range></file>`
+
+			// Create a tool use object directly
+			const toolUse: ReadFileToolUse = {
+				type: "tool_use",
+				name: "read_file",
+				params: { args: argsContent },
+				partial: false,
+			}
+
+			// Execute the tool directly
+			await readFileTool(
+				mockCline,
+				toolUse,
+				mockCline.ask,
+				vi.fn(),
+				(result: ToolResponse) => {
+					toolResult = result
+				},
+				(param: ToolParamName, content?: string) => content ?? "",
+			)
+
+			// Verify - should show empty file notice instead of trying to read range
+			expect(toolResult).toBe(
+				`<files>\n<file><path>${testFilePath}</path>\n<content/><notice>File is empty</notice>\n</file>\n</files>`,
+			)
+		})
+
+		it("should handle empty files in definitions-only mode", async () => {
+			// Setup
+			mockedCountFileLines.mockResolvedValue(0)
+			mockedExtractTextFromFile.mockResolvedValue("This file is empty")
+			mockProvider.getState.mockResolvedValue({ maxReadFileLine: 0 })
+
+			// Execute
+			const result = await executeReadFileTool({}, { totalLines: 0, maxReadFileLine: 0 })
+
+			// Verify - should show empty file notice instead of trying to parse definitions
+			expect(result).toBe(
+				`<files>\n<file><path>${testFilePath}</path>\n<content/><notice>File is empty</notice>\n</file>\n</files>`,
+			)
+		})
+
+		it("should handle empty files when maxReadFileLine exceeds file length", async () => {
+			// Setup
+			mockedCountFileLines.mockResolvedValue(0)
+			mockedExtractTextFromFile.mockResolvedValue("This file is empty")
+			mockProvider.getState.mockResolvedValue({ maxReadFileLine: 10 })
+
+			// Execute
+			const result = await executeReadFileTool({}, { totalLines: 0, maxReadFileLine: 10 })
+
+			// Verify - should show empty file notice
+			expect(result).toBe(
+				`<files>\n<file><path>${testFilePath}</path>\n<content/><notice>File is empty</notice>\n</file>\n</files>`,
 			)
 		})
 	})
