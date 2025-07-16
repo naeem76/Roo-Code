@@ -262,6 +262,8 @@
 		"getXaiApiKey": "Get xAI API Key",
 		"litellmApiKey": "LiteLLM API Key",
 		"litellmBaseUrl": "LiteLLM Base URL",
+		"litellmUsePromptCache": "Use prompt caching",
+		"litellmUsePromptCacheDescription": "Enable prompt caching to improve performance and reduce costs for supported models. Requires a model that supports prompt caching (e.g., Claude 3.7 Sonnet).",
 		"awsCredentials": "AWS Credentials",
 		"awsProfile": "AWS Profile",
 		"awsProfileName": "AWS Profile Name",

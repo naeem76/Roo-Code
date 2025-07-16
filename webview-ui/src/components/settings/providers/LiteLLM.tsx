@@ -1,5 +1,5 @@
 import { useCallback, useState, useEffect, useRef } from "react"
-import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
+import { VSCodeTextField, VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 
 import { type ProviderSettings, type OrganizationAllowList, litellmDefaultModelId } from "@roo-code/types"
 
@@ -109,6 +109,20 @@ export const LiteLLM = ({
 
 			<div className="text-sm text-vscode-descriptionForeground -mt-2">
 				{t("settings:providers.apiKeyStorageNotice")}
+			</div>
+
+			<div className="flex flex-col gap-2 mt-4">
+				<VSCodeCheckbox
+					checked={apiConfiguration?.litellmUsePromptCache || false}
+					onChange={(e: any) => {
+						const isChecked = e.target.checked === true
+						setApiConfigurationField("litellmUsePromptCache", isChecked)
+					}}>
+					{t("settings:providers.litellmUsePromptCache")}
+				</VSCodeCheckbox>
+				<div className="text-sm text-vscode-descriptionForeground ml-6">
+					{t("settings:providers.litellmUsePromptCacheDescription")}
+				</div>
 			</div>
 
 			<Button

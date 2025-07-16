@@ -39,10 +39,15 @@ export class LiteLLMHandler extends RouterProvider implements SingleCompletionHa
 	): ApiStream {
 		const { id: modelId, info } = await this.fetchModel()
 
-		const openAiMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+		const baseOpenAiMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
 			{ role: "system", content: systemPrompt },
 			...convertToOpenAiMessages(messages),
 		]
+
+		// Apply prompt caching if enabled
+		const openAiMessages = this.options.litellmUsePromptCache
+			? this.addCacheControlToMessages(baseOpenAiMessages)
+			: baseOpenAiMessages
 
 		// Required by some providers; others default to max tokens allowed
 		let maxTokens: number | undefined = info.maxTokens ?? undefined
@@ -80,12 +85,21 @@ export class LiteLLMHandler extends RouterProvider implements SingleCompletionHa
 			}
 
 			if (lastUsage) {
+				// Extract cache-related information if available
+				const cacheWriteTokens =
+					lastUsage.cache_creation_input_tokens || lastUsage.prompt_cache_miss_tokens || 0
+				const cacheReadTokens =
+					lastUsage.cache_read_input_tokens ||
+					lastUsage.prompt_cache_hit_tokens ||
+					lastUsage.prompt_tokens_details?.cached_tokens ||
+					0
+
 				const usageData: ApiStreamUsageChunk = {
 					type: "usage",
 					inputTokens: lastUsage.prompt_tokens || 0,
 					outputTokens: lastUsage.completion_tokens || 0,
-					cacheWriteTokens: lastUsage.cache_creation_input_tokens || 0,
-					cacheReadTokens: lastUsage.prompt_tokens_details?.cached_tokens || 0,
+					cacheWriteTokens: cacheWriteTokens > 0 ? cacheWriteTokens : undefined,
+					cacheReadTokens: cacheReadTokens > 0 ? cacheReadTokens : undefined,
 				}
 
 				usageData.totalCost = calculateApiCostOpenAI(
@@ -130,9 +144,45 @@ export class LiteLLMHandler extends RouterProvider implements SingleCompletionHa
 			throw error
 		}
 	}
+
+	/**
+	 * Add cache control metadata to messages for prompt caching
+	 * Based on Cline's implementation: adds cache_control to system message and last two user messages
+	 */
+	private addCacheControlToMessages(
+		messages: OpenAI.Chat.ChatCompletionMessageParam[],
+	): OpenAI.Chat.ChatCompletionMessageParam[] {
+		const cacheControl = { cache_control: { type: "ephemeral" } }
+
+		// Find user message indices
+		const userMsgIndices = messages.reduce(
+			(acc, msg, index) => (msg.role === "user" ? [...acc, index] : acc),
+			[] as number[],
+		)
+
+		const lastUserMsgIndex = userMsgIndices[userMsgIndices.length - 1] ?? -1
+		const secondLastUserMsgIndex = userMsgIndices[userMsgIndices.length - 2] ?? -1
+
+		return messages.map((message, index) => {
+			// Add cache control to system message (first message)
+			if (index === 0 && message.role === "system") {
+				return { ...message, ...cacheControl }
+			}
+
+			// Add cache control to last two user messages
+			if (index === lastUserMsgIndex || index === secondLastUserMsgIndex) {
+				return { ...message, ...cacheControl }
+			}
+
+			return message
+		})
+	}
 }
 
 // LiteLLM usage may include an extra field for Anthropic use cases.
 interface LiteLLMUsage extends OpenAI.CompletionUsage {
 	cache_creation_input_tokens?: number
+	prompt_cache_miss_tokens?: number
+	cache_read_input_tokens?: number
+	prompt_cache_hit_tokens?: number
 }
