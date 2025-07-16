@@ -1883,6 +1883,40 @@ export const webviewMessageHandler = async (
 				})
 			}
 			break
+		case "generateRules":
+			// Generate rules for the current workspace
+			try {
+				const workspacePath = getWorkspacePath()
+				if (!workspacePath) {
+					await provider.postMessageToWebview({
+						type: "rulesGenerationStatus",
+						success: false,
+						error: "No workspace folder open",
+					})
+					break
+				}
+
+				// Import the rules generation service
+				const { generateRulesForWorkspace } = await import("../../services/rules/rulesGenerator")
+
+				// Generate the rules
+				const rulesPath = await generateRulesForWorkspace(workspacePath)
+
+				// Send success message back to webview
+				await provider.postMessageToWebview({
+					type: "rulesGenerationStatus",
+					success: true,
+					text: rulesPath,
+				})
+			} catch (error) {
+				// Send error message back to webview
+				await provider.postMessageToWebview({
+					type: "rulesGenerationStatus",
+					success: false,
+					error: error instanceof Error ? error.message : String(error),
+				})
+			}
+			break
 		case "humanRelayResponse":
 			if (message.requestId && message.text) {
 				vscode.commands.executeCommand(getCommand("handleHumanRelayResponse"), {

@@ -12,6 +12,7 @@ import { SetExperimentEnabled } from "./types"
 import { SectionHeader } from "./SectionHeader"
 import { Section } from "./Section"
 import { ExperimentalFeature } from "./ExperimentalFeature"
+import { RulesSettings } from "./RulesSettings"
 
 type ExperimentalSettingsProps = HTMLAttributes<HTMLDivElement> & {
 	experiments: Experiments
@@ -66,6 +67,8 @@ export const ExperimentalSettings = ({
 						)
 					})}
 			</Section>
+
+			<RulesSettings className="mt-6" />
 		</div>
 	)
 }

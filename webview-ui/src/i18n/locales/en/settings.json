@@ -602,6 +602,23 @@
 			"description": "When enabled, Roo can edit multiple files in a single request. When disabled, Roo must edit files one at a time. Disabling this can help when working with less capable models or when you want more control over file modifications."
 		}
 	},
+	"rules": {
+		"title": "Rules",
+		"description": "Configure automatic rules generation for your codebase. Rules help AI agents understand your project's conventions and best practices.",
+		"generateButton": "Generate Rules",
+		"generateButtonTooltip": "Analyze the codebase and generate rules automatically",
+		"generating": "Generating rules...",
+		"generatingDescription": "Analyzing your codebase to create comprehensive rules. This may take a moment.",
+		"success": "Rules generated successfully!",
+		"successDescription": "Rules have been saved to {{path}}",
+		"error": "Failed to generate rules",
+		"errorDescription": "An error occurred while generating rules: {{error}}",
+		"viewRules": "View Generated Rules",
+		"existingRules": "Existing rules detected",
+		"existingRulesDescription": "Rules already exist at {{path}}. Generating new rules will create a timestamped file to preserve your existing rules.",
+		"noWorkspace": "No workspace folder open",
+		"noWorkspaceDescription": "Please open a workspace folder to generate rules for your project."
+	},
 	"promptCaching": {
 		"label": "Disable prompt caching",
 		"description": "When checked, Roo will not use prompt caching for this model."
