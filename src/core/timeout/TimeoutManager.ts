@@ -1,5 +1,6 @@
 import { EventEmitter } from "events"
 import type { ToolName } from "@roo-code/types"
+import { TelemetryService } from "@roo-code/telemetry"
 
 export interface TimeoutConfig {
 	toolName: ToolName
@@ -36,14 +37,16 @@ export class TimeoutManager extends EventEmitter {
 	 * like "Proceed While Running"
 	 */
 	private lastTimeoutEvent: TimeoutEvent | null = null
+	private logger: (...args: any[]) => void
 
-	private constructor() {
+	private constructor(logger?: (...args: any[]) => void) {
 		super()
+		this.logger = logger || console.log
 	}
 
-	public static getInstance(): TimeoutManager {
+	public static getInstance(logger?: (...args: any[]) => void): TimeoutManager {
 		if (!TimeoutManager.instance) {
-			TimeoutManager.instance = new TimeoutManager()
+			TimeoutManager.instance = new TimeoutManager(logger)
 		}
 		return TimeoutManager.instance
 	}
@@ -58,6 +61,8 @@ export class TimeoutManager extends EventEmitter {
 		const operationId = this.generateOperationId(config.toolName, config.taskId)
 		const controller = new AbortController()
 		const startTime = Date.now()
+
+		this.logger(`[TimeoutManager] Starting operation ${operationId} with timeout ${config.timeoutMs}ms`)
 
 		// Store the controller for potential cancellation
 		this.activeOperations.set(operationId, controller)
@@ -80,6 +85,8 @@ export class TimeoutManager extends EventEmitter {
 			const result = await Promise.race([operation(controller.signal), timeoutPromise])
 
 			const executionTimeMs = Date.now() - startTime
+
+			this.logger(`[TimeoutManager] Operation ${operationId} completed successfully in ${executionTimeMs}ms`)
 
 			return {
 				success: true,
@@ -105,6 +112,21 @@ export class TimeoutManager extends EventEmitter {
 				this.lastTimeoutEvent = timeoutEvent
 				this.emit("timeout", timeoutEvent)
 
+				// Log timeout event
+				this.logger(
+					`[TimeoutManager] Operation ${operationId} timed out after ${executionTimeMs}ms (limit: ${config.timeoutMs}ms)`,
+				)
+
+				// Capture telemetry if TelemetryService is available
+				if (TelemetryService.hasInstance() && config.taskId) {
+					TelemetryService.instance.captureToolTimeout(
+						config.taskId,
+						config.toolName,
+						config.timeoutMs,
+						executionTimeMs,
+					)
+				}
+
 				return {
 					success: false,
 					timedOut: true,
@@ -113,6 +135,11 @@ export class TimeoutManager extends EventEmitter {
 					executionTimeMs,
 				}
 			}
+
+			// Log non-timeout errors
+			this.logger(
+				`[TimeoutManager] Operation ${operationId} failed after ${executionTimeMs}ms: ${error instanceof Error ? error.message : String(error)}`,
+			)
 
 			return {
 				success: false,
@@ -184,6 +211,21 @@ export class TimeoutManager extends EventEmitter {
 
 	private generateOperationId(toolName: ToolName, taskId?: string): string {
 		return `${toolName}:${taskId || "default"}`
+	}
+
+	/**
+	 * Get timeout statistics for monitoring
+	 */
+	public getTimeoutStats(): {
+		lastTimeout: TimeoutEvent | null
+		activeOperations: number
+		operationIds: string[]
+	} {
+		return {
+			lastTimeout: this.lastTimeoutEvent,
+			activeOperations: this.activeOperations.size,
+			operationIds: Array.from(this.activeOperations.keys()),
+		}
 	}
 
 	/**

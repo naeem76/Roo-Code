@@ -2,6 +2,47 @@ import { describe, it, expect } from "vitest"
 import { formatResponse } from "../responses"
 
 describe("timeout fallback responses", () => {
+	describe("toolTimeout", () => {
+		it("should include background operation warning for execute_command", () => {
+			const message = formatResponse.toolTimeout("execute_command", 30000, 35000)
+
+			expect(message).toContain("timed out after 30 seconds")
+			expect(message).toContain(
+				"**Important**: The execute_command operation may still be running in the background",
+			)
+			expect(message).toContain("You might see output or effects from this operation later")
+		})
+
+		it("should include background operation warning for browser_action", () => {
+			const message = formatResponse.toolTimeout("browser_action", 15000, 20000)
+
+			expect(message).toContain("timed out after 15 seconds")
+			expect(message).toContain(
+				"**Important**: The browser_action operation may still be running in the background",
+			)
+			expect(message).toContain("You might see output or effects from this operation later")
+		})
+
+		it("should not include background operation warning for other tools", () => {
+			const message = formatResponse.toolTimeout("read_file", 10000, 12000)
+
+			expect(message).toContain("timed out after 10 seconds")
+			expect(message).not.toContain("may still be running in the background")
+			expect(message).not.toContain("**Important**")
+		})
+
+		it("should format timeout details correctly", () => {
+			const message = formatResponse.toolTimeout("write_to_file", 5000, 6000)
+
+			expect(message).toContain("<timeout_details>")
+			expect(message).toContain("Tool: write_to_file")
+			expect(message).toContain("Configured Timeout: 5s")
+			expect(message).toContain("Execution Time: 6s")
+			expect(message).toContain("Status: Canceled")
+			expect(message).toContain("</timeout_details>")
+		})
+	})
+
 	describe("generateContextualSuggestions", () => {
 		it("should generate execute_command suggestions", () => {
 			const suggestions = formatResponse.timeoutFallbackSuggestions.generateContextualSuggestions(
@@ -11,7 +52,8 @@ describe("timeout fallback responses", () => {
 
 			expect(suggestions).toHaveLength(4)
 			expect(suggestions[0].text).toContain("npm install")
-			expect(suggestions[0].text).toContain("smaller, sequential steps")
+			expect(suggestions[0].text).toContain("still running in the background")
+			expect(suggestions[1].text).toContain("smaller, sequential steps")
 		})
 
 		it("should generate read_file suggestions", () => {
@@ -42,8 +84,9 @@ describe("timeout fallback responses", () => {
 			)
 
 			expect(suggestions).toHaveLength(4)
-			expect(suggestions[0].text).toContain("click")
-			expect(suggestions[0].text).toContain("smaller, more targeted steps")
+			expect(suggestions[0].text).toContain("browser action")
+			expect(suggestions[0].text).toContain("still processing in the background")
+			expect(suggestions[1].text).toContain("smaller, more targeted steps")
 		})
 
 		it("should generate search_files suggestions", () => {
@@ -73,6 +116,7 @@ describe("timeout fallback responses", () => {
 
 			expect(suggestions).toHaveLength(4)
 			expect(suggestions[0].text).toContain("the command")
+			expect(suggestions[0].text).toContain("still running in the background")
 		})
 
 		it("should generate read file suggestions with default file name", () => {
@@ -94,6 +138,7 @@ describe("timeout fallback responses", () => {
 
 			expect(suggestions).toHaveLength(4)
 			expect(suggestions[0].text).toContain("browser action")
+			expect(suggestions[0].text).toContain("still processing in the background")
 		})
 
 		it("should generate search suggestions", () => {

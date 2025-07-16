@@ -1,5 +1,4 @@
 {
-	"toolTimeout": "자동 도구 타임아웃: 대안을 제안하고 있습니다...",
 	"greeting": "Roo Code에 오신 것을 환영합니다",
 	"task": {
 		"title": "작업",
@@ -238,6 +237,11 @@
 		"copyToInput": "입력창에 복사 (또는 Shift + 클릭)",
 		"autoSelectCountdown": "{{count}}초 후 자동 선택",
 		"countdownDisplay": "{{count}}초"
+	},
+	"toolTimeout": {
+		"title": "사용자 구성 도구 타임아웃:",
+		"subtitle": "대안을 제안하는 중...",
+		"backgroundWarning": "참고: 작업이 백그라운드에서 계속 실행 중일 수 있습니다"
 	},
 	"announcement": {
 		"title": "🎉 Roo Code {{version}} 출시",

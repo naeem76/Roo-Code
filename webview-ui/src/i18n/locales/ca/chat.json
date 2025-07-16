@@ -215,7 +215,6 @@
 		"hasQuestion": "Roo té una pregunta:"
 	},
 	"taskCompleted": "Tasca completada",
-	"toolTimeout": "Temps d'espera de l'eina esgotat: Suggerint alternatives...",
 	"powershell": {
 		"issues": "Sembla que estàs tenint problemes amb Windows PowerShell, si us plau consulta aquesta documentació per a més informació."
 	},
@@ -238,6 +237,11 @@
 		"copyToInput": "Copiar a l'entrada (o Shift + clic)",
 		"autoSelectCountdown": "Selecció automàtica en {{count}}s",
 		"countdownDisplay": "{{count}}s"
+	},
+	"toolTimeout": {
+		"title": "Temps d'espera d'eina configurat per l'usuari:",
+		"subtitle": "Suggerint alternatives...",
+		"backgroundWarning": "Nota: l'operació pot seguir executant-se en segon pla"
 	},
 	"announcement": {
 		"title": "🎉 Roo Code {{version}} Llançat",

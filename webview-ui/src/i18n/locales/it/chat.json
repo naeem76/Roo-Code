@@ -1,5 +1,4 @@
 {
-	"toolTimeout": "Timeout automatico dello strumento: Suggerendo alternative...",
 	"greeting": "Benvenuto a Roo Code",
 	"task": {
 		"title": "Attività",
@@ -238,6 +237,11 @@
 		"copyToInput": "Copia nell'input (o Shift + clic)",
 		"autoSelectCountdown": "Selezione automatica in {{count}}s",
 		"countdownDisplay": "{{count}}s"
+	},
+	"toolTimeout": {
+		"title": "Timeout Strumento Configurato dall'Utente:",
+		"subtitle": "Suggerendo alternative...",
+		"backgroundWarning": "Nota: l'operazione potrebbe essere ancora in esecuzione in background"
 	},
 	"announcement": {
 		"title": "🎉 Rilasciato Roo Code {{version}}",

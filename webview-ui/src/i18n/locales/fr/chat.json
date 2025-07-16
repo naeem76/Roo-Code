@@ -1,5 +1,4 @@
 {
-	"toolTimeout": "Délai d'attente de l'outil dépassé : Suggestion d'alternatives...",
 	"greeting": "Bienvenue sur Roo Code",
 	"task": {
 		"title": "Tâche",
@@ -238,6 +237,11 @@
 		"copyToInput": "Copier vers l'entrée (ou Shift + clic)",
 		"autoSelectCountdown": "Sélection automatique dans {{count}}s",
 		"countdownDisplay": "{{count}}s"
+	},
+	"toolTimeout": {
+		"title": "Délai d'expiration d'outil configuré par l'utilisateur :",
+		"subtitle": "Suggestion d'alternatives...",
+		"backgroundWarning": "Note : l'opération peut encore s'exécuter en arrière-plan"
 	},
 	"announcement": {
 		"title": "🎉 Roo Code {{version}} est sortie",

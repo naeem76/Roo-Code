@@ -59,6 +59,7 @@ describe("TimeoutFallbackHandler", () => {
 			expect(result.toolCall?.name).toBe("ask_followup_question")
 			expect(result.toolCall?.params.question).toContain("execute_command")
 			expect(result.toolCall?.params.question).toContain("30 seconds")
+			expect(result.toolCall?.params.question).toContain("may still be running in the background")
 
 			// Check that AI-generated suggestions are included
 			const followUp = result.toolCall?.params.follow_up || ""
@@ -93,11 +94,54 @@ describe("TimeoutFallbackHandler", () => {
 
 			// Should contain static fallback suggestions
 			const followUp = result.toolCall?.params.follow_up || ""
+			expect(followUp).toContain("still running in the background")
 			expect(followUp).toContain('Break "npm test" into smaller')
 			expect(followUp).toContain("background using")
 			expect(followUp).toContain("alternative approach")
-			expect(followUp).toContain("Increase the timeout")
 		})
+
+		test("should timeout AI fallback generation using exact tool timeout", async () => {
+			// Mock AI handler that takes longer than the timeout
+			;(mockApiHandler.completePrompt as any).mockImplementation(() => {
+				return new Promise((resolve) => {
+					// This would resolve after 5 seconds, but should timeout before that
+					setTimeout(() => {
+						resolve("This response should never be used")
+					}, 5000)
+				})
+			})
+
+			const context = {
+				toolName: "execute_command" as const,
+				timeoutMs: 2000, // 2 second timeout for faster testing
+				executionTimeMs: 2500,
+				toolParams: { command: "npm install" },
+			}
+
+			const startTime = Date.now()
+			// The timeout is now taken from context.timeoutMs
+			const result = await TimeoutFallbackHandler.generateAiFallback(context, mockTask as Task)
+			const elapsedTime = Date.now() - startTime
+
+			// Should timeout and fallback to static suggestions
+			expect(result.success).toBe(true)
+			expect(result.toolCall).toBeDefined()
+			expect(result.toolCall?.name).toBe("ask_followup_question")
+
+			// Should have timed out around 2 seconds (exact tool timeout)
+			expect(elapsedTime).toBeGreaterThanOrEqual(1900)
+			expect(elapsedTime).toBeLessThan(2500)
+
+			// Should contain static fallback suggestions since AI timed out
+			const followUp = result.toolCall?.params.follow_up || ""
+			expect(followUp).toContain("still running in the background")
+			expect(followUp).toContain('Break "npm install" into smaller')
+			expect(followUp).toContain("background using")
+			expect(followUp).toContain("alternative approach")
+
+			// Verify AI was called
+			expect(mockApiHandler.completePrompt).toHaveBeenCalled()
+		}, 5000) // Test timeout of 5 seconds
 
 		test("should fallback to static suggestions when API handler is unavailable", async () => {
 			// Task without API handler
@@ -400,9 +444,9 @@ Based on the search_files timeout, here are my recommendations:
 
 			// Should contain static fallback suggestions for browser_action
 			const followUp = result.toolCall?.params.follow_up || ""
+			expect(followUp).toContain("still processing in the background")
 			expect(followUp).toContain('Simplify the "click"')
 			expect(followUp).toContain("Wait for specific elements")
-			expect(followUp).toContain("direct API calls")
 			expect(followUp).toContain("Reset the browser session")
 		})
 	})

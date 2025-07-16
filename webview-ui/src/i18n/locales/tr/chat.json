@@ -1,5 +1,4 @@
 {
-	"toolTimeout": "Otomatik araç zaman aşımı: Alternatifler öneriliyor...",
 	"greeting": "Roo Code'a Hoş Geldiniz",
 	"task": {
 		"title": "Görev",
@@ -238,6 +237,11 @@
 		"copyToInput": "Giriş alanına kopyala (veya Shift + tıklama)",
 		"autoSelectCountdown": "{{count}}s içinde otomatik seçilecek",
 		"countdownDisplay": "{{count}}sn"
+	},
+	"toolTimeout": {
+		"title": "Kullanıcı Tarafından Yapılandırılan Araç Zaman Aşımı:",
+		"subtitle": "Alternatifler öneriliyor...",
+		"backgroundWarning": "Not: işlem hala arka planda çalışıyor olabilir"
 	},
 	"announcement": {
 		"title": "🎉 Roo Code {{version}} Yayınlandı",

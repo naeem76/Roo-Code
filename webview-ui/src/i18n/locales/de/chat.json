@@ -215,7 +215,6 @@
 		"hasQuestion": "Roo hat eine Frage:"
 	},
 	"taskCompleted": "Aufgabe abgeschlossen",
-	"toolTimeout": "Automatische Tool-Zeitüberschreitung: Schlage Alternativen vor...",
 	"powershell": {
 		"issues": "Es scheint, dass du Probleme mit Windows PowerShell hast, bitte sieh dir dies an"
 	},
@@ -238,6 +237,11 @@
 		"copyToInput": "In Eingabefeld kopieren (oder Shift + Klick)",
 		"autoSelectCountdown": "Automatische Auswahl in {{count}}s",
 		"countdownDisplay": "{{count}}s"
+	},
+	"toolTimeout": {
+		"title": "Benutzerdefiniertes Tool-Timeout:",
+		"subtitle": "Alternativen werden vorgeschlagen...",
+		"backgroundWarning": "Hinweis: Der Vorgang läuft möglicherweise noch im Hintergrund"
 	},
 	"announcement": {
 		"title": "🎉 Roo Code {{version}} veröffentlicht",

@@ -16,17 +16,26 @@ export const formatResponse = {
 
 	toolError: (error?: string) => `The tool execution failed with the following error:\n<error>\n${error}\n</error>`,
 
-	toolTimeout: (toolName: string, timeoutMs: number, executionTimeMs: number) =>
-		`The ${toolName} operation timed out after ${Math.round(timeoutMs / 1000)} seconds and was automatically canceled.
+	toolTimeout: (toolName: string, timeoutMs: number, executionTimeMs: number) => {
+		// Determine if this tool might continue running in the background
+		const backgroundOperationTools = ["execute_command", "browser_action"]
+		const mightContinueInBackground = backgroundOperationTools.includes(toolName)
+
+		const backgroundWarning = mightContinueInBackground
+			? `\n\n**Important**: The ${toolName} operation may still be running in the background. You might see output or effects from this operation later.`
+			: ""
+
+		return `The ${toolName} operation timed out after ${Math.round(timeoutMs / 1000)} seconds and was automatically canceled.
 
 <timeout_details>
 Tool: ${toolName}
 Configured Timeout: ${Math.round(timeoutMs / 1000)}s
 Execution Time: ${Math.round(executionTimeMs / 1000)}s
 Status: Canceled
-</timeout_details>
+</timeout_details>${backgroundWarning}
 
-The operation has been terminated to prevent system resource issues. Please consider one of the following approaches to complete your task.`,
+The operation has been terminated to prevent system resource issues. Please consider one of the following approaches to complete your task.`
+	},
 
 	rooIgnoreError: (path: string) =>
 		`Access to ${path} is blocked by the .rooignore file settings. You must try to continue in the task without using this file, or ask the user to update the .rooignore file.`,
@@ -216,6 +225,9 @@ Otherwise, if you have not completed the task and do not need additional informa
 
 			return [
 				{
+					text: `Check if "${command}" is still running in the background and wait for it to complete`,
+				},
+				{
 					text: `Break "${command}" into smaller, sequential steps that can complete faster`,
 				},
 				{
@@ -223,9 +235,6 @@ Otherwise, if you have not completed the task and do not need additional informa
 				},
 				{
 					text: `Try an alternative approach or tool to accomplish the same goal`,
-				},
-				{
-					text: `Increase the timeout setting if this operation legitimately needs more time`,
 				},
 			]
 		},
@@ -273,13 +282,13 @@ Otherwise, if you have not completed the task and do not need additional informa
 
 			return [
 				{
+					text: `Check if the browser action is still processing in the background`,
+				},
+				{
 					text: `Simplify the "${action}" into smaller, more targeted steps`,
 				},
 				{
 					text: `Wait for specific elements to load before proceeding`,
-				},
-				{
-					text: `Use direct API calls instead of browser automation if possible`,
 				},
 				{
 					text: `Reset the browser session and try again`,

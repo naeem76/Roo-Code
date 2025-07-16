@@ -1,5 +1,4 @@
 {
-	"toolTimeout": "Timeout Tool Otomatis: Menyarankan alternatif...",
 	"greeting": "Selamat datang di Roo Code",
 	"task": {
 		"title": "Tugas",
@@ -235,6 +234,11 @@
 	},
 	"questions": {
 		"hasQuestion": "Roo punya pertanyaan:"
+	},
+	"toolTimeout": {
+		"title": "Timeout Tool yang Dikonfigurasi Pengguna:",
+		"subtitle": "Menyarankan alternatif...",
+		"backgroundWarning": "Catatan: operasi mungkin masih berjalan di latar belakang"
 	},
 	"taskCompleted": "Tugas Selesai",
 	"error": "Error",
