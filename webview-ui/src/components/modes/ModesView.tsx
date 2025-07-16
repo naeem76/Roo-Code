@@ -730,25 +730,13 @@ const ModesView = ({ onDone }: ModesViewProps) => {
 											const customMode = findModeBySlug(visualMode, customModes)
 											if (customMode) {
 												const newName = e.target.value.trim()
-												// Only update if the name is not empty
-												if (newName.length > 0) {
-													updateCustomMode(visualMode, {
-														...customMode,
-														name: newName,
-														source: customMode.source || "global",
-													})
-												}
-											}
-										}}
-										onBlur={(e) => {
-											const customMode = findModeBySlug(visualMode, customModes)
-											if (customMode) {
-												const newName = e.target.value.trim()
-												// If the field is empty on blur, restore the original name
-												if (newName.length === 0) {
-													// Force re-render by updating the input value
-													e.target.value = customMode.name
-												}
+												// Allow users to type freely, including emptying the field
+												// The backend validation will handle empty names and show errors
+												updateCustomMode(visualMode, {
+													...customMode,
+													name: newName,
+													source: customMode.source || "global",
+												})
 											}
 										}}
 										className="w-full"
