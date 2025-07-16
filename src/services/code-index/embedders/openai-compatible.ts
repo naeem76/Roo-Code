@@ -296,17 +296,20 @@ export class OpenAICompatibleEmbedder implements IEmbedder {
 
 				const hasMoreAttempts = attempts < MAX_RETRIES - 1
 
-				// Check if it's a rate limit error
+				// Check if it's a retryable error
 				const httpError = error as HttpError
-				if (httpError?.status === 429 && hasMoreAttempts) {
-					const delayMs = INITIAL_DELAY_MS * Math.pow(2, attempts)
-					console.warn(
-						t("embeddings:rateLimitRetry", {
-							delayMs,
-							attempt: attempts + 1,
-							maxRetries: MAX_RETRIES,
-						}),
-					)
+				const isRetryableError = this.isRetryableError(httpError)
+
+				if (isRetryableError && hasMoreAttempts) {
+					// Calculate exponential backoff with jitter
+					const baseDelay = INITIAL_DELAY_MS * Math.pow(2, attempts)
+					// Add jitter: random value between 0% and 20% of base delay
+					const jitter = Math.random() * 0.2 * baseDelay
+					const delayMs = Math.floor(baseDelay + jitter)
+
+					const errorType =
+						httpError?.status === 429 ? "Rate limit" : `Error ${httpError?.status || "unknown"}`
+					console.warn(`${errorType} hit, retrying in ${delayMs}ms (attempt ${attempts + 1}/${MAX_RETRIES})`)
 					await new Promise((resolve) => setTimeout(resolve, delayMs))
 					continue
 				}
@@ -366,6 +369,27 @@ export class OpenAICompatibleEmbedder implements IEmbedder {
 				throw error
 			}
 		}, "openai-compatible")
+	}
+
+	/**
+	 * Determines if an error is retryable based on HTTP status code
+	 * @param error The error to check
+	 * @returns true if the error is retryable, false otherwise
+	 */
+	private isRetryableError(error: HttpError | any): boolean {
+		if (!error || typeof error.status !== "number") {
+			return false
+		}
+
+		const retryableStatuses = [
+			429, // Too Many Requests (rate limit)
+			500, // Internal Server Error
+			502, // Bad Gateway
+			503, // Service Unavailable
+			504, // Gateway Timeout
+		]
+
+		return retryableStatuses.includes(error.status)
 	}
 
 	/**
