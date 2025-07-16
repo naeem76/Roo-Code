@@ -95,8 +95,11 @@ describe("list-files symlink support", () => {
 
 		mockSpawn.mockReturnValue(mockProcess as any)
 
+		// Use a test directory path
+		const testDir = "/test/dir"
+
 		// Call listFiles to trigger ripgrep execution
-		await listFiles("/test/dir", false, 100)
+		await listFiles(testDir, false, 100)
 
 		// Verify that spawn was called with --follow flag (the critical fix)
 		const [rgPath, args] = mockSpawn.mock.calls[0]
@@ -105,9 +108,12 @@ describe("list-files symlink support", () => {
 		expect(args).toContain("--hidden")
 		expect(args).toContain("--follow") // This is the critical assertion - the fix should add this flag
 
-		// Platform-agnostic path check - verify the last argument is the resolved path
-		const expectedPath = path.resolve("/test/dir")
-		expect(args[args.length - 1]).toBe(expectedPath)
+		// Platform-agnostic path check - verify the last argument ends with the expected path
+		const lastArg = args[args.length - 1]
+		// On Windows, the path might be resolved to something like D:\test\dir
+		// On Unix, it would be /test/dir
+		// So we just check that it ends with the expected segments
+		expect(lastArg).toMatch(/[/\\]test[/\\]dir$/)
 	})
 
 	it("should include --follow flag for recursive listings too", async () => {
@@ -136,8 +142,11 @@ describe("list-files symlink support", () => {
 
 		mockSpawn.mockReturnValue(mockProcess as any)
 
+		// Use a test directory path
+		const testDir = "/test/dir"
+
 		// Call listFiles with recursive=true
-		await listFiles("/test/dir", true, 100)
+		await listFiles(testDir, true, 100)
 
 		// Verify that spawn was called with --follow flag (the critical fix)
 		const [rgPath, args] = mockSpawn.mock.calls[0]
@@ -146,9 +155,12 @@ describe("list-files symlink support", () => {
 		expect(args).toContain("--hidden")
 		expect(args).toContain("--follow") // This should be present in recursive mode too
 
-		// Platform-agnostic path check - verify the last argument is the resolved path
-		const expectedPath = path.resolve("/test/dir")
-		expect(args[args.length - 1]).toBe(expectedPath)
+		// Platform-agnostic path check - verify the last argument ends with the expected path
+		const lastArg = args[args.length - 1]
+		// On Windows, the path might be resolved to something like D:\test\dir
+		// On Unix, it would be /test/dir
+		// So we just check that it ends with the expected segments
+		expect(lastArg).toMatch(/[/\\]test[/\\]dir$/)
 	})
 
 	it("should ensure first-level directories are included when limit is reached", async () => {
@@ -171,18 +183,19 @@ describe("list-files symlink support", () => {
 				on: vi.fn((event, callback) => {
 					if (event === "data") {
 						// Return many file paths to trigger the limit
+						// Note: ripgrep returns relative paths
 						const paths =
 							[
-								"/test/dir/a_dir/",
-								"/test/dir/a_dir/subdir1/",
-								"/test/dir/a_dir/subdir1/file1.txt",
-								"/test/dir/a_dir/subdir1/file2.txt",
-								"/test/dir/a_dir/subdir2/",
-								"/test/dir/a_dir/subdir2/file3.txt",
-								"/test/dir/a_dir/file4.txt",
-								"/test/dir/a_dir/file5.txt",
-								"/test/dir/file1.txt",
-								"/test/dir/file2.txt",
+								"a_dir/",
+								"a_dir/subdir1/",
+								"a_dir/subdir1/file1.txt",
+								"a_dir/subdir1/file2.txt",
+								"a_dir/subdir2/",
+								"a_dir/subdir2/file3.txt",
+								"a_dir/file4.txt",
+								"a_dir/file5.txt",
+								"file1.txt",
+								"file2.txt",
 								// Note: b_dir and c_dir are missing from ripgrep output
 							].join("\n") + "\n"
 						setTimeout(() => callback(paths), 10)
@@ -358,9 +371,10 @@ describe("hidden directory exclusion", () => {
 				on: vi.fn((event, callback) => {
 					if (event === "data") {
 						// Simulate files that should be found in .roo/temp
+						// Note: ripgrep returns relative paths
 						setTimeout(() => {
-							callback(".roo/temp/teste1.md\n")
-							callback(".roo/temp/22/test2.md\n")
+							callback("teste1.md\n")
+							callback("22/test2.md\n")
 						}, 10)
 					}
 				}),
@@ -404,5 +418,144 @@ describe("hidden directory exclusion", () => {
 		// Ensure the top-level file is actually included
 		const topLevelFile = files.find((f) => f.endsWith("teste1.md"))
 		expect(topLevelFile).toBeTruthy()
+	})
+})
+
+describe("buildRecursiveArgs edge cases", () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it("should correctly detect hidden directories with trailing slashes", async () => {
+		const mockSpawn = vi.mocked(childProcess.spawn)
+		const mockProcess = {
+			stdout: {
+				on: vi.fn((event, callback) => {
+					if (event === "data") {
+						setTimeout(() => callback("file.txt\n"), 10)
+					}
+				}),
+			},
+			stderr: {
+				on: vi.fn(),
+			},
+			on: vi.fn((event, callback) => {
+				if (event === "close") {
+					setTimeout(() => callback(0), 20)
+				}
+			}),
+			kill: vi.fn(),
+		}
+		mockSpawn.mockReturnValue(mockProcess as any)
+
+		// Test with trailing slash on hidden directory
+		await listFiles("/test/.hidden/", true, 100)
+
+		const [rgPath, args] = mockSpawn.mock.calls[0]
+		// When targeting a hidden directory, these flags should be present
+		expect(args).toContain("--no-ignore-vcs")
+		expect(args).toContain("--no-ignore")
+		expect(args).toContain("-g")
+		const gIndex = args.indexOf("-g")
+		expect(args[gIndex + 1]).toBe("*")
+	})
+
+	it("should correctly detect hidden directories with redundant separators", async () => {
+		const mockSpawn = vi.mocked(childProcess.spawn)
+		const mockProcess = {
+			stdout: {
+				on: vi.fn((event, callback) => {
+					if (event === "data") {
+						setTimeout(() => callback("file.txt\n"), 10)
+					}
+				}),
+			},
+			stderr: {
+				on: vi.fn(),
+			},
+			on: vi.fn((event, callback) => {
+				if (event === "close") {
+					setTimeout(() => callback(0), 20)
+				}
+			}),
+			kill: vi.fn(),
+		}
+		mockSpawn.mockReturnValue(mockProcess as any)
+
+		// Test with redundant separators before hidden directory
+		await listFiles("/test//.hidden", true, 100)
+
+		const [rgPath, args] = mockSpawn.mock.calls[0]
+		// When targeting a hidden directory, these flags should be present
+		expect(args).toContain("--no-ignore-vcs")
+		expect(args).toContain("--no-ignore")
+		expect(args).toContain("-g")
+		const gIndex = args.indexOf("-g")
+		expect(args[gIndex + 1]).toBe("*")
+	})
+
+	it("should correctly detect nested hidden directories with mixed separators", async () => {
+		const mockSpawn = vi.mocked(childProcess.spawn)
+		const mockProcess = {
+			stdout: {
+				on: vi.fn((event, callback) => {
+					if (event === "data") {
+						setTimeout(() => callback("file.txt\n"), 10)
+					}
+				}),
+			},
+			stderr: {
+				on: vi.fn(),
+			},
+			on: vi.fn((event, callback) => {
+				if (event === "close") {
+					setTimeout(() => callback(0), 20)
+				}
+			}),
+			kill: vi.fn(),
+		}
+		mockSpawn.mockReturnValue(mockProcess as any)
+
+		// Test with complex path including hidden directory
+		await listFiles("/test//normal/.hidden//subdir/", true, 100)
+
+		const [rgPath, args] = mockSpawn.mock.calls[0]
+		// When targeting a path containing a hidden directory, these flags should be present
+		expect(args).toContain("--no-ignore-vcs")
+		expect(args).toContain("--no-ignore")
+		expect(args).toContain("-g")
+		const gIndex = args.indexOf("-g")
+		expect(args[gIndex + 1]).toBe("*")
+	})
+
+	it("should not detect hidden directories when path only has dots in filenames", async () => {
+		const mockSpawn = vi.mocked(childProcess.spawn)
+		const mockProcess = {
+			stdout: {
+				on: vi.fn((event, callback) => {
+					if (event === "data") {
+						setTimeout(() => callback("file.txt\n"), 10)
+					}
+				}),
+			},
+			stderr: {
+				on: vi.fn(),
+			},
+			on: vi.fn((event, callback) => {
+				if (event === "close") {
+					setTimeout(() => callback(0), 20)
+				}
+			}),
+			kill: vi.fn(),
+		}
+		mockSpawn.mockReturnValue(mockProcess as any)
+
+		// Test with a path that has dots but no hidden directories
+		await listFiles("/test/file.with.dots/normal", true, 100)
+
+		const [rgPath, args] = mockSpawn.mock.calls[0]
+		// Should NOT have the special flags for hidden directories
+		expect(args).not.toContain("--no-ignore-vcs")
+		expect(args).not.toContain("--no-ignore")
 	})
 })
