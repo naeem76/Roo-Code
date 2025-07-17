@@ -30,7 +30,7 @@ export async function getMetadataContext(cline: Task) {
 		.padStart(2, "0")}:${offsetMinutes.toString().padStart(2, "0")}`
 	const isoDateWithOffset = now.toISOString().replace(/Z$/, offsetString)
 	const time = {
-		"@v": isoDateWithOffset,
+		"@I": isoDateWithOffset,
 	}
 
 	const { totalCost } = getApiMetrics(cline.clineMessages)
