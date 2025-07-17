@@ -12,6 +12,7 @@ import {
 
 import { ApiHandlerOptions } from "../../shared/api"
 import { safeJsonParse } from "../../shared/safeJsonParse"
+import { withGoogleCloudProject, withGoogleCloudProjectSync } from "../../utils/googleCloudEnv"
 
 import { ApiStream } from "../transform/stream"
 import { addCacheBreakpoints } from "../transform/caching/vertex"
@@ -34,27 +35,30 @@ export class AnthropicVertexHandler extends BaseProvider implements SingleComple
 		const projectId = this.options.vertexProjectId ?? "not-provided"
 		const region = this.options.vertexRegion ?? "us-east5"
 
-		if (this.options.vertexJsonCredentials) {
-			this.client = new AnthropicVertex({
-				projectId,
-				region,
-				googleAuth: new GoogleAuth({
-					scopes: ["https://www.googleapis.com/auth/cloud-platform"],
-					credentials: safeJsonParse<JWTInput>(this.options.vertexJsonCredentials, undefined),
-				}),
-			})
-		} else if (this.options.vertexKeyFile) {
-			this.client = new AnthropicVertex({
-				projectId,
-				region,
-				googleAuth: new GoogleAuth({
-					scopes: ["https://www.googleapis.com/auth/cloud-platform"],
-					keyFile: this.options.vertexKeyFile,
-				}),
-			})
-		} else {
-			this.client = new AnthropicVertex({ projectId, region })
-		}
+		// Set GOOGLE_CLOUD_PROJECT environment variable if specified in profile
+		this.client = withGoogleCloudProjectSync(this.options.googleCloudProject, () => {
+			if (this.options.vertexJsonCredentials) {
+				return new AnthropicVertex({
+					projectId,
+					region,
+					googleAuth: new GoogleAuth({
+						scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+						credentials: safeJsonParse<JWTInput>(this.options.vertexJsonCredentials, undefined),
+					}),
+				})
+			} else if (this.options.vertexKeyFile) {
+				return new AnthropicVertex({
+					projectId,
+					region,
+					googleAuth: new GoogleAuth({
+						scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+						keyFile: this.options.vertexKeyFile,
+					}),
+				})
+			} else {
+				return new AnthropicVertex({ projectId, region })
+			}
+		})
 	}
 
 	override async *createMessage(
@@ -62,101 +66,118 @@ export class AnthropicVertexHandler extends BaseProvider implements SingleComple
 		messages: Anthropic.Messages.MessageParam[],
 		metadata?: ApiHandlerCreateMessageMetadata,
 	): ApiStream {
-		let {
-			id,
-			info: { supportsPromptCache },
-			temperature,
-			maxTokens,
-			reasoning: thinking,
-		} = this.getModel()
-
-		/**
-		 * Vertex API has specific limitations for prompt caching:
-		 * 1. Maximum of 4 blocks can have cache_control
-		 * 2. Only text blocks can be cached (images and other content types cannot)
-		 * 3. Cache control can only be applied to user messages, not assistant messages
-		 *
-		 * Our caching strategy:
-		 * - Cache the system prompt (1 block)
-		 * - Cache the last text block of the second-to-last user message (1 block)
-		 * - Cache the last text block of the last user message (1 block)
-		 * This ensures we stay under the 4-block limit while maintaining effective caching
-		 * for the most relevant context.
-		 */
-		const params: Anthropic.Messages.MessageCreateParamsStreaming = {
-			model: id,
-			max_tokens: maxTokens ?? ANTHROPIC_DEFAULT_MAX_TOKENS,
-			temperature,
-			thinking,
-			// Cache the system prompt if caching is enabled.
-			system: supportsPromptCache
-				? [{ text: systemPrompt, type: "text" as const, cache_control: { type: "ephemeral" } }]
-				: systemPrompt,
-			messages: supportsPromptCache ? addCacheBreakpoints(messages) : messages,
-			stream: true,
+		// Set the environment variable before making the API call
+		const originalValue = process.env.GOOGLE_CLOUD_PROJECT
+		if (this.options.googleCloudProject) {
+			process.env.GOOGLE_CLOUD_PROJECT = this.options.googleCloudProject
 		}
 
-		const stream = await this.client.messages.create(params)
+		try {
+			let {
+				id,
+				info: { supportsPromptCache },
+				temperature,
+				maxTokens,
+				reasoning: thinking,
+			} = this.getModel()
 
-		for await (const chunk of stream) {
-			switch (chunk.type) {
-				case "message_start": {
-					const usage = chunk.message!.usage
+			/**
+			 * Vertex API has specific limitations for prompt caching:
+			 * 1. Maximum of 4 blocks can have cache_control
+			 * 2. Only text blocks can be cached (images and other content types cannot)
+			 * 3. Cache control can only be applied to user messages, not assistant messages
+			 *
+			 * Our caching strategy:
+			 * - Cache the system prompt (1 block)
+			 * - Cache the last text block of the second-to-last user message (1 block)
+			 * - Cache the last text block of the last user message (1 block)
+			 * This ensures we stay under the 4-block limit while maintaining effective caching
+			 * for the most relevant context.
+			 */
+			const params: Anthropic.Messages.MessageCreateParamsStreaming = {
+				model: id,
+				max_tokens: maxTokens ?? ANTHROPIC_DEFAULT_MAX_TOKENS,
+				temperature,
+				thinking,
+				// Cache the system prompt if caching is enabled.
+				system: supportsPromptCache
+					? [{ text: systemPrompt, type: "text" as const, cache_control: { type: "ephemeral" } }]
+					: systemPrompt,
+				messages: supportsPromptCache ? addCacheBreakpoints(messages) : messages,
+				stream: true,
+			}
 
-					yield {
-						type: "usage",
-						inputTokens: usage.input_tokens || 0,
-						outputTokens: usage.output_tokens || 0,
-						cacheWriteTokens: usage.cache_creation_input_tokens || undefined,
-						cacheReadTokens: usage.cache_read_input_tokens || undefined,
+			const stream = await this.client.messages.create(params)
+
+			for await (const chunk of stream) {
+				switch (chunk.type) {
+					case "message_start": {
+						const usage = chunk.message!.usage
+
+						yield {
+							type: "usage",
+							inputTokens: usage.input_tokens || 0,
+							outputTokens: usage.output_tokens || 0,
+							cacheWriteTokens: usage.cache_creation_input_tokens || undefined,
+							cacheReadTokens: usage.cache_read_input_tokens || undefined,
+						}
+
+						break
 					}
+					case "message_delta": {
+						yield {
+							type: "usage",
+							inputTokens: 0,
+							outputTokens: chunk.usage!.output_tokens || 0,
+						}
 
-					break
-				}
-				case "message_delta": {
-					yield {
-						type: "usage",
-						inputTokens: 0,
-						outputTokens: chunk.usage!.output_tokens || 0,
+						break
 					}
+					case "content_block_start": {
+						switch (chunk.content_block!.type) {
+							case "text": {
+								if (chunk.index! > 0) {
+									yield { type: "text", text: "\n" }
+								}
 
-					break
-				}
-				case "content_block_start": {
-					switch (chunk.content_block!.type) {
-						case "text": {
-							if (chunk.index! > 0) {
-								yield { type: "text", text: "\n" }
+								yield { type: "text", text: chunk.content_block!.text }
+								break
 							}
+							case "thinking": {
+								if (chunk.index! > 0) {
+									yield { type: "reasoning", text: "\n" }
+								}
 
-							yield { type: "text", text: chunk.content_block!.text }
-							break
-						}
-						case "thinking": {
-							if (chunk.index! > 0) {
-								yield { type: "reasoning", text: "\n" }
+								yield { type: "reasoning", text: (chunk.content_block as any).thinking }
+								break
 							}
-
-							yield { type: "reasoning", text: (chunk.content_block as any).thinking }
-							break
 						}
-					}
 
-					break
+						break
+					}
+					case "content_block_delta": {
+						switch (chunk.delta!.type) {
+							case "text_delta": {
+								yield { type: "text", text: chunk.delta!.text }
+								break
+							}
+							case "thinking_delta": {
+								yield { type: "reasoning", text: (chunk.delta as any).thinking }
+								break
+							}
+						}
+
+						break
+					}
 				}
-				case "content_block_delta": {
-					switch (chunk.delta!.type) {
-						case "text_delta": {
-							yield { type: "text", text: chunk.delta!.text }
-							break
-						}
-						case "thinking_delta": {
-							yield { type: "reasoning", text: (chunk.delta as any).thinking }
-							break
-						}
-					}
-
-					break
+			}
+		} finally {
+			// Restore the original environment variable value
+			if (this.options.googleCloudProject) {
+				if (originalValue !== undefined) {
+					process.env.GOOGLE_CLOUD_PROJECT = originalValue
+				} else {
+					delete process.env.GOOGLE_CLOUD_PROJECT
 				}
 			}
 		}
@@ -176,45 +197,47 @@ export class AnthropicVertexHandler extends BaseProvider implements SingleComple
 	}
 
 	async completePrompt(prompt: string) {
-		try {
-			let {
-				id,
-				info: { supportsPromptCache },
-				temperature,
-				maxTokens = ANTHROPIC_DEFAULT_MAX_TOKENS,
-				reasoning: thinking,
-			} = this.getModel()
+		return await withGoogleCloudProject(this.options.googleCloudProject, async () => {
+			try {
+				let {
+					id,
+					info: { supportsPromptCache },
+					temperature,
+					maxTokens = ANTHROPIC_DEFAULT_MAX_TOKENS,
+					reasoning: thinking,
+				} = this.getModel()
 
-			const params: Anthropic.Messages.MessageCreateParamsNonStreaming = {
-				model: id,
-				max_tokens: maxTokens,
-				temperature,
-				thinking,
-				messages: [
-					{
-						role: "user",
-						content: supportsPromptCache
-							? [{ type: "text" as const, text: prompt, cache_control: { type: "ephemeral" } }]
-							: prompt,
-					},
-				],
-				stream: false,
+				const params: Anthropic.Messages.MessageCreateParamsNonStreaming = {
+					model: id,
+					max_tokens: maxTokens,
+					temperature,
+					thinking,
+					messages: [
+						{
+							role: "user",
+							content: supportsPromptCache
+								? [{ type: "text" as const, text: prompt, cache_control: { type: "ephemeral" } }]
+								: prompt,
+						},
+					],
+					stream: false,
+				}
+
+				const response = await this.client.messages.create(params)
+				const content = response.content[0]
+
+				if (content.type === "text") {
+					return content.text
+				}
+
+				return ""
+			} catch (error) {
+				if (error instanceof Error) {
+					throw new Error(`Vertex completion error: ${error.message}`)
+				}
+
+				throw error
 			}
-
-			const response = await this.client.messages.create(params)
-			const content = response.content[0]
-
-			if (content.type === "text") {
-				return content.text
-			}
-
-			return ""
-		} catch (error) {
-			if (error instanceof Error) {
-				throw new Error(`Vertex completion error: ${error.message}`)
-			}
-
-			throw error
-		}
+		})
 	}
 }

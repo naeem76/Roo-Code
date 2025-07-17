@@ -11,6 +11,7 @@ import { type ModelInfo, type GeminiModelId, geminiDefaultModelId, geminiModels 
 
 import type { ApiHandlerOptions } from "../../shared/api"
 import { safeJsonParse } from "../../shared/safeJsonParse"
+import { withGoogleCloudProject, withGoogleCloudProjectSync } from "../../utils/googleCloudEnv"
 
 import { convertAnthropicContentToGemini, convertAnthropicMessageToGemini } from "../transform/gemini-format"
 import type { ApiStream } from "../transform/stream"
@@ -37,25 +38,28 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 		const location = this.options.vertexRegion ?? "not-provided"
 		const apiKey = this.options.geminiApiKey ?? "not-provided"
 
-		this.client = this.options.vertexJsonCredentials
-			? new GoogleGenAI({
-					vertexai: true,
-					project,
-					location,
-					googleAuthOptions: {
-						credentials: safeJsonParse<JWTInput>(this.options.vertexJsonCredentials, undefined),
-					},
-				})
-			: this.options.vertexKeyFile
+		// Set GOOGLE_CLOUD_PROJECT environment variable if specified in profile
+		this.client = withGoogleCloudProjectSync(this.options.googleCloudProject, () => {
+			return this.options.vertexJsonCredentials
 				? new GoogleGenAI({
 						vertexai: true,
 						project,
 						location,
-						googleAuthOptions: { keyFile: this.options.vertexKeyFile },
+						googleAuthOptions: {
+							credentials: safeJsonParse<JWTInput>(this.options.vertexJsonCredentials, undefined),
+						},
 					})
-				: isVertex
-					? new GoogleGenAI({ vertexai: true, project, location })
-					: new GoogleGenAI({ apiKey })
+				: this.options.vertexKeyFile
+					? new GoogleGenAI({
+							vertexai: true,
+							project,
+							location,
+							googleAuthOptions: { keyFile: this.options.vertexKeyFile },
+						})
+					: isVertex
+						? new GoogleGenAI({ vertexai: true, project, location })
+						: new GoogleGenAI({ apiKey })
+		})
 	}
 
 	async *createMessage(
@@ -63,68 +67,87 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 		messages: Anthropic.Messages.MessageParam[],
 		metadata?: ApiHandlerCreateMessageMetadata,
 	): ApiStream {
-		const { id: model, info, reasoning: thinkingConfig, maxTokens } = this.getModel()
-
-		const contents = messages.map(convertAnthropicMessageToGemini)
-
-		const config: GenerateContentConfig = {
-			systemInstruction,
-			httpOptions: this.options.googleGeminiBaseUrl ? { baseUrl: this.options.googleGeminiBaseUrl } : undefined,
-			thinkingConfig,
-			maxOutputTokens: this.options.modelMaxTokens ?? maxTokens ?? undefined,
-			temperature: this.options.modelTemperature ?? 0,
+		// Set the environment variable before making the API call
+		const originalValue = process.env.GOOGLE_CLOUD_PROJECT
+		if (this.options.googleCloudProject) {
+			process.env.GOOGLE_CLOUD_PROJECT = this.options.googleCloudProject
 		}
 
-		const params: GenerateContentParameters = { model, contents, config }
+		try {
+			const { id: model, info, reasoning: thinkingConfig, maxTokens } = this.getModel()
 
-		const result = await this.client.models.generateContentStream(params)
+			const contents = messages.map(convertAnthropicMessageToGemini)
 
-		let lastUsageMetadata: GenerateContentResponseUsageMetadata | undefined
+			const config: GenerateContentConfig = {
+				systemInstruction,
+				httpOptions: this.options.googleGeminiBaseUrl
+					? { baseUrl: this.options.googleGeminiBaseUrl }
+					: undefined,
+				thinkingConfig,
+				maxOutputTokens: this.options.modelMaxTokens ?? maxTokens ?? undefined,
+				temperature: this.options.modelTemperature ?? 0,
+			}
 
-		for await (const chunk of result) {
-			// Process candidates and their parts to separate thoughts from content
-			if (chunk.candidates && chunk.candidates.length > 0) {
-				const candidate = chunk.candidates[0]
-				if (candidate.content && candidate.content.parts) {
-					for (const part of candidate.content.parts) {
-						if (part.thought) {
-							// This is a thinking/reasoning part
-							if (part.text) {
-								yield { type: "reasoning", text: part.text }
-							}
-						} else {
-							// This is regular content
-							if (part.text) {
-								yield { type: "text", text: part.text }
+			const params: GenerateContentParameters = { model, contents, config }
+
+			const result = await this.client.models.generateContentStream(params)
+
+			let lastUsageMetadata: GenerateContentResponseUsageMetadata | undefined
+
+			for await (const chunk of result) {
+				// Process candidates and their parts to separate thoughts from content
+				if (chunk.candidates && chunk.candidates.length > 0) {
+					const candidate = chunk.candidates[0]
+					if (candidate.content && candidate.content.parts) {
+						for (const part of candidate.content.parts) {
+							if (part.thought) {
+								// This is a thinking/reasoning part
+								if (part.text) {
+									yield { type: "reasoning", text: part.text }
+								}
+							} else {
+								// This is regular content
+								if (part.text) {
+									yield { type: "text", text: part.text }
+								}
 							}
 						}
 					}
 				}
+
+				// Fallback to the original text property if no candidates structure
+				else if (chunk.text) {
+					yield { type: "text", text: chunk.text }
+				}
+
+				if (chunk.usageMetadata) {
+					lastUsageMetadata = chunk.usageMetadata
+				}
 			}
 
-			// Fallback to the original text property if no candidates structure
-			else if (chunk.text) {
-				yield { type: "text", text: chunk.text }
+			if (lastUsageMetadata) {
+				const inputTokens = lastUsageMetadata.promptTokenCount ?? 0
+				const outputTokens = lastUsageMetadata.candidatesTokenCount ?? 0
+				const cacheReadTokens = lastUsageMetadata.cachedContentTokenCount
+				const reasoningTokens = lastUsageMetadata.thoughtsTokenCount
+
+				yield {
+					type: "usage",
+					inputTokens,
+					outputTokens,
+					cacheReadTokens,
+					reasoningTokens,
+					totalCost: this.calculateCost({ info, inputTokens, outputTokens, cacheReadTokens }),
+				}
 			}
-
-			if (chunk.usageMetadata) {
-				lastUsageMetadata = chunk.usageMetadata
-			}
-		}
-
-		if (lastUsageMetadata) {
-			const inputTokens = lastUsageMetadata.promptTokenCount ?? 0
-			const outputTokens = lastUsageMetadata.candidatesTokenCount ?? 0
-			const cacheReadTokens = lastUsageMetadata.cachedContentTokenCount
-			const reasoningTokens = lastUsageMetadata.thoughtsTokenCount
-
-			yield {
-				type: "usage",
-				inputTokens,
-				outputTokens,
-				cacheReadTokens,
-				reasoningTokens,
-				totalCost: this.calculateCost({ info, inputTokens, outputTokens, cacheReadTokens }),
+		} finally {
+			// Restore the original environment variable value
+			if (this.options.googleCloudProject) {
+				if (originalValue !== undefined) {
+					process.env.GOOGLE_CLOUD_PROJECT = originalValue
+				} else {
+					delete process.env.GOOGLE_CLOUD_PROJECT
+				}
 			}
 		}
 	}
@@ -143,49 +166,53 @@ export class GeminiHandler extends BaseProvider implements SingleCompletionHandl
 	}
 
 	async completePrompt(prompt: string): Promise<string> {
-		try {
-			const { id: model } = this.getModel()
+		return await withGoogleCloudProject(this.options.googleCloudProject, async () => {
+			try {
+				const { id: model } = this.getModel()
 
-			const result = await this.client.models.generateContent({
-				model,
-				contents: [{ role: "user", parts: [{ text: prompt }] }],
-				config: {
-					httpOptions: this.options.googleGeminiBaseUrl
-						? { baseUrl: this.options.googleGeminiBaseUrl }
-						: undefined,
-					temperature: this.options.modelTemperature ?? 0,
-				},
-			})
+				const result = await this.client.models.generateContent({
+					model,
+					contents: [{ role: "user", parts: [{ text: prompt }] }],
+					config: {
+						httpOptions: this.options.googleGeminiBaseUrl
+							? { baseUrl: this.options.googleGeminiBaseUrl }
+							: undefined,
+						temperature: this.options.modelTemperature ?? 0,
+					},
+				})
 
-			return result.text ?? ""
-		} catch (error) {
-			if (error instanceof Error) {
-				throw new Error(`Gemini completion error: ${error.message}`)
+				return result.text ?? ""
+			} catch (error) {
+				if (error instanceof Error) {
+					throw new Error(`Gemini completion error: ${error.message}`)
+				}
+
+				throw error
 			}
-
-			throw error
-		}
+		})
 	}
 
 	override async countTokens(content: Array<Anthropic.Messages.ContentBlockParam>): Promise<number> {
-		try {
-			const { id: model } = this.getModel()
+		return await withGoogleCloudProject(this.options.googleCloudProject, async () => {
+			try {
+				const { id: model } = this.getModel()
 
-			const response = await this.client.models.countTokens({
-				model,
-				contents: convertAnthropicContentToGemini(content),
-			})
+				const response = await this.client.models.countTokens({
+					model,
+					contents: convertAnthropicContentToGemini(content),
+				})
 
-			if (response.totalTokens === undefined) {
-				console.warn("Gemini token counting returned undefined, using fallback")
+				if (response.totalTokens === undefined) {
+					console.warn("Gemini token counting returned undefined, using fallback")
+					return super.countTokens(content)
+				}
+
+				return response.totalTokens
+			} catch (error) {
+				console.warn("Gemini token counting failed, using fallback", error)
 				return super.countTokens(content)
 			}
-
-			return response.totalTokens
-		} catch (error) {
-			console.warn("Gemini token counting failed, using fallback", error)
-			return super.countTokens(content)
-		}
+		})
 	}
 
 	public calculateCost({
