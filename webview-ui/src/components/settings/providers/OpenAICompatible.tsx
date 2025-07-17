@@ -12,7 +12,11 @@ import {
 	openAiModelInfoSaneDefaults,
 } from "@roo-code/types"
 
-import { extractApiVersionFromUrl, isAzureOpenAiUrl } from "../../../../../src/utils/azure-url-parser"
+import {
+	extractApiVersionFromUrl,
+	isAzureOpenAiUrl,
+	isValidAzureApiVersion,
+} from "../../../../../src/utils/azure-url-parser"
 
 import { ExtensionMessage } from "@roo/ExtensionMessage"
 
@@ -216,6 +220,17 @@ export const OpenAICompatible = ({
 						onInput={handleInputChange("azureApiVersion")}
 						placeholder={`Default: ${azureOpenAiDefaultApiVersion}`}
 						className="w-full mt-1"
+						style={{
+							borderColor: (() => {
+								const value = apiConfiguration?.azureApiVersion
+								if (!value) {
+									return "var(--vscode-input-border)"
+								}
+								return isValidAzureApiVersion(value)
+									? "var(--vscode-charts-green)"
+									: "var(--vscode-errorForeground)"
+							})(),
+						}}
 					/>
 				)}
 			</div>
