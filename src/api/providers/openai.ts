@@ -13,6 +13,7 @@ import {
 import type { ApiHandlerOptions } from "../../shared/api"
 
 import { XmlMatcher } from "../../utils/xml-matcher"
+import { extractApiVersionFromUrl, isAzureOpenAiUrl, removeApiVersionFromUrl } from "../../utils/azure-url-parser"
 
 import { convertToOpenAiMessages } from "../transform/openai-format"
 import { convertToR1Format } from "../transform/r1-format"
@@ -35,11 +36,24 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 		super()
 		this.options = options
 
-		const baseURL = this.options.openAiBaseUrl ?? "https://api.openai.com/v1"
+		const originalBaseURL = this.options.openAiBaseUrl ?? "https://api.openai.com/v1"
 		const apiKey = this.options.openAiApiKey ?? "not-provided"
 		const isAzureAiInference = this._isAzureAiInference(this.options.openAiBaseUrl)
 		const urlHost = this._getUrlHost(this.options.openAiBaseUrl)
 		const isAzureOpenAi = urlHost === "azure.com" || urlHost.endsWith(".azure.com") || options.openAiUseAzure
+
+		// Extract API version from URL if present and no explicit azureApiVersion is set
+		let effectiveApiVersion = this.options.azureApiVersion
+		let baseURL = originalBaseURL
+
+		if (isAzureOpenAi && !effectiveApiVersion) {
+			const extractedVersion = extractApiVersionFromUrl(originalBaseURL)
+			if (extractedVersion) {
+				effectiveApiVersion = extractedVersion
+				// For AzureOpenAI client, remove api-version from baseURL since it's passed separately
+				baseURL = removeApiVersionFromUrl(originalBaseURL)
+			}
+		}
 
 		const headers = {
 			...DEFAULT_HEADERS,
@@ -49,10 +63,10 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 		if (isAzureAiInference) {
 			// Azure AI Inference Service (e.g., for DeepSeek) uses a different path structure
 			this.client = new OpenAI({
-				baseURL,
+				baseURL: originalBaseURL, // Keep original URL for AI Inference
 				apiKey,
 				defaultHeaders: headers,
-				defaultQuery: { "api-version": this.options.azureApiVersion || "2024-05-01-preview" },
+				defaultQuery: { "api-version": effectiveApiVersion || "2024-05-01-preview" },
 			})
 		} else if (isAzureOpenAi) {
 			// Azure API shape slightly differs from the core API shape:
@@ -60,12 +74,12 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 			this.client = new AzureOpenAI({
 				baseURL,
 				apiKey,
-				apiVersion: this.options.azureApiVersion || azureOpenAiDefaultApiVersion,
+				apiVersion: effectiveApiVersion || azureOpenAiDefaultApiVersion,
 				defaultHeaders: headers,
 			})
 		} else {
 			this.client = new OpenAI({
-				baseURL,
+				baseURL: originalBaseURL,
 				apiKey,
 				defaultHeaders: headers,
 			})

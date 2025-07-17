@@ -12,6 +12,8 @@ import {
 	openAiModelInfoSaneDefaults,
 } from "@roo-code/types"
 
+import { extractApiVersionFromUrl, isAzureOpenAiUrl } from "../../../../../src/utils/azure-url-parser"
+
 import { ExtensionMessage } from "@roo/ExtensionMessage"
 
 import { useAppTranslation } from "@src/i18n/TranslationContext"
@@ -40,6 +42,12 @@ export const OpenAICompatible = ({
 
 	const [azureApiVersionSelected, setAzureApiVersionSelected] = useState(!!apiConfiguration?.azureApiVersion)
 	const [openAiLegacyFormatSelected, setOpenAiLegacyFormatSelected] = useState(!!apiConfiguration?.openAiLegacyFormat)
+
+	// Check if API version can be extracted from the base URL
+	const baseUrl = apiConfiguration?.openAiBaseUrl || ""
+	const extractedApiVersion = extractApiVersionFromUrl(baseUrl)
+	const isAzureUrl = isAzureOpenAiUrl(baseUrl)
+	const showApiVersionExtraction = isAzureUrl && extractedApiVersion && !azureApiVersionSelected
 
 	const [openAiModels, setOpenAiModels] = useState<Record<string, ModelInfo> | null>(null)
 
