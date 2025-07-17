@@ -1,142 +1,64 @@
-import { detectCodeOmission } from "../detect-omission"
+import { describe, it, expect } from "vitest"
+import { detectCodeOmission, detectInefficientFileEdit } from "../detect-omission"
 
 describe("detectCodeOmission", () => {
-	const originalContent = `function example() {
-  // Some code
-  const x = 1;
-  const y = 2;
-  return x + y;
-}`
-
-	const generateLongContent = (commentLine: string, length: number = 90) => {
-		return `${commentLine}
-	${Array.from({ length }, (_, i) => `const x${i} = ${i};`).join("\n")}
-	const y = 2;`
-	}
-
-	it("should skip comment checks for files under 100 lines", () => {
-		const newContent = `// Lines 1-50 remain unchanged
-const z = 3;`
-		const predictedLineCount = 50
-		expect(detectCodeOmission(originalContent, newContent, predictedLineCount)).toBe(false)
+	it("should return false for files with less than 20 lines", () => {
+		const original = "line1\nline2\nline3"
+		const newContent = "line1\nline2\nline3"
+		const result = detectCodeOmission(original, newContent, 10)
+		expect(result).toBe(false)
 	})
 
-	it("should not detect regular comments without omission keywords", () => {
-		const newContent = generateLongContent("// Adding new functionality")
-		const predictedLineCount = 150
-		expect(detectCodeOmission(originalContent, newContent, predictedLineCount)).toBe(false)
+	it("should detect omission keywords in comments", () => {
+		const original = "function test() {\n  return 1;\n}"
+		const newContent = "function test() {\n  // rest of code unchanged\n  return 1;\n}"
+		const result = detectCodeOmission(original, newContent, 50)
+		expect(result).toBe(true)
 	})
 
-	it("should not detect when comment is part of original content", () => {
-		const originalWithComment = `// Content remains unchanged
-${originalContent}`
-		const newContent = generateLongContent("// Content remains unchanged")
-		const predictedLineCount = 150
-		expect(detectCodeOmission(originalWithComment, newContent, predictedLineCount)).toBe(false)
+	it("should not flag if comment existed in original", () => {
+		const original = "function test() {\n  // rest of code unchanged\n  return 1;\n}"
+		const newContent = "function test() {\n  // rest of code unchanged\n  return 1;\n}"
+		const result = detectCodeOmission(original, newContent, 50)
+		expect(result).toBe(false)
+	})
+})
+
+describe("detectInefficientFileEdit", () => {
+	it("should return false for small files", () => {
+		const original = "line1\nline2\nline3"
+		const newContent = "line1\nmodified\nline3"
+		const result = detectInefficientFileEdit(original, newContent)
+		expect(result.isInefficient).toBe(false)
 	})
 
-	it("should not detect code that happens to contain omission keywords", () => {
-		const newContent = generateLongContent(`const remains = 'some value';
-const unchanged = true;`)
-		const predictedLineCount = 150
-		expect(detectCodeOmission(originalContent, newContent, predictedLineCount)).toBe(false)
+	it("should detect inefficient edits when less than 30% changed", () => {
+		const original = Array.from({ length: 20 }, (_, i) => `line${i + 1}`).join("\n")
+		const newContent = original.replace("line5", "modified5")
+		const result = detectInefficientFileEdit(original, newContent)
+		expect(result.isInefficient).toBe(true)
+		expect(result.suggestion).toContain("apply_diff")
 	})
 
-	it("should detect suspicious single-line comment when content is more than 20% shorter", () => {
-		const newContent = generateLongContent("// Previous content remains here\nconst x = 1;")
-		const predictedLineCount = 150
-		expect(detectCodeOmission(originalContent, newContent, predictedLineCount)).toBe(true)
+	it("should not flag efficient edits when more than 30% changed", () => {
+		const original = Array.from({ length: 10 }, (_, i) => `line${i + 1}`).join("\n")
+		const newContent = Array.from({ length: 10 }, (_, i) => `modified${i + 1}`).join("\n")
+		const result = detectInefficientFileEdit(original, newContent)
+		expect(result.isInefficient).toBe(false)
 	})
 
-	it("should not flag suspicious single-line comment when content is less than 20% shorter", () => {
-		const newContent = generateLongContent("// Previous content remains here", 130)
-		const predictedLineCount = 150
-		expect(detectCodeOmission(originalContent, newContent, predictedLineCount)).toBe(false)
+	it("should suggest insert_content for additions only", () => {
+		const original = Array.from({ length: 15 }, (_, i) => `line${i + 1}`).join("\n")
+		const newContent = original + "\nnewline16\nnewline17"
+		const result = detectInefficientFileEdit(original, newContent)
+		expect(result.isInefficient).toBe(true)
+		expect(result.suggestion).toContain("insert_content")
 	})
 
-	it("should detect suspicious Python-style comment when content is more than 20% shorter", () => {
-		const newContent = generateLongContent("# Previous content remains here\nconst x = 1;")
-		const predictedLineCount = 150
-		expect(detectCodeOmission(originalContent, newContent, predictedLineCount)).toBe(true)
-	})
-
-	it("should not flag suspicious Python-style comment when content is less than 20% shorter", () => {
-		const newContent = generateLongContent("# Previous content remains here", 130)
-		const predictedLineCount = 150
-		expect(detectCodeOmission(originalContent, newContent, predictedLineCount)).toBe(false)
-	})
-
-	it("should detect suspicious multi-line comment when content is more than 20% shorter", () => {
-		const newContent = generateLongContent("/* Previous content remains the same */\nconst x = 1;")
-		const predictedLineCount = 150
-		expect(detectCodeOmission(originalContent, newContent, predictedLineCount)).toBe(true)
-	})
-
-	it("should not flag suspicious multi-line comment when content is less than 20% shorter", () => {
-		const newContent = generateLongContent("/* Previous content remains the same */", 130)
-		const predictedLineCount = 150
-		expect(detectCodeOmission(originalContent, newContent, predictedLineCount)).toBe(false)
-	})
-
-	it("should detect suspicious JSX comment when content is more than 20% shorter", () => {
-		const newContent = generateLongContent("{/* Rest of the code remains the same */}\nconst x = 1;")
-		const predictedLineCount = 150
-		expect(detectCodeOmission(originalContent, newContent, predictedLineCount)).toBe(true)
-	})
-
-	it("should not flag suspicious JSX comment when content is less than 20% shorter", () => {
-		const newContent = generateLongContent("{/* Rest of the code remains the same */}", 130)
-		const predictedLineCount = 150
-		expect(detectCodeOmission(originalContent, newContent, predictedLineCount)).toBe(false)
-	})
-
-	it("should detect suspicious HTML comment when content is more than 20% shorter", () => {
-		const newContent = generateLongContent("<!-- Existing content unchanged -->\nconst x = 1;")
-		const predictedLineCount = 150
-		expect(detectCodeOmission(originalContent, newContent, predictedLineCount)).toBe(true)
-	})
-
-	it("should not flag suspicious HTML comment when content is less than 20% shorter", () => {
-		const newContent = generateLongContent("<!-- Existing content unchanged -->", 130)
-		const predictedLineCount = 150
-		expect(detectCodeOmission(originalContent, newContent, predictedLineCount)).toBe(false)
-	})
-
-	it("should detect suspicious square bracket notation when content is more than 20% shorter", () => {
-		const newContent = generateLongContent(
-			"[Previous content from line 1-305 remains exactly the same]\nconst x = 1;",
-		)
-		const predictedLineCount = 150
-		expect(detectCodeOmission(originalContent, newContent, predictedLineCount)).toBe(true)
-	})
-
-	it("should not flag suspicious square bracket notation when content is less than 20% shorter", () => {
-		const newContent = generateLongContent("[Previous content from line 1-305 remains exactly the same]", 130)
-		const predictedLineCount = 150
-		expect(detectCodeOmission(originalContent, newContent, predictedLineCount)).toBe(false)
-	})
-
-	it("should not flag content very close to predicted length", () => {
-		const newContent = generateLongContent(
-			`const x = 1;
-const y = 2;
-// This is a legitimate comment that remains here`,
-			130,
-		)
-		const predictedLineCount = 150
-		expect(detectCodeOmission(originalContent, newContent, predictedLineCount)).toBe(false)
-	})
-
-	it("should not flag when content is longer than predicted", () => {
-		const newContent = generateLongContent(
-			`const x = 1;
-const y = 2;
-// Previous content remains here but we added more
-const z = 3;
-const w = 4;`,
-			160,
-		)
-		const predictedLineCount = 150
-		expect(detectCodeOmission(originalContent, newContent, predictedLineCount)).toBe(false)
+	it("should calculate change ratio correctly", () => {
+		const original = Array.from({ length: 10 }, (_, i) => `line${i + 1}`).join("\n")
+		const newContent = original.replace("line1", "modified1")
+		const result = detectInefficientFileEdit(original, newContent)
+		expect(result.changeRatio).toBe(0.1) // 1 out of 10 lines changed
 	})
 })

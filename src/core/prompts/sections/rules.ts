@@ -34,7 +34,7 @@ function getEditingInstructions(diffStrategy?: DiffStrategy): string {
 
 	if (availableTools.length > 1) {
 		instructions.push(
-			"- You should always prefer using other editing tools over write_to_file when making changes to existing files since write_to_file is much slower and cannot handle large files.",
+			"- **CRITICAL: You MUST avoid using write_to_file for existing files unless doing a complete rewrite.** For existing files, always prefer targeted editing tools (apply_diff, search_and_replace, insert_content) as they are more efficient, use fewer tokens, and create smaller diffs. Using write_to_file for small changes wastes resources and creates unnecessarily large diffs.",
 		)
 	}
 

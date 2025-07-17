@@ -2,7 +2,20 @@ import { ToolArgs } from "./types"
 
 export function getWriteToFileDescription(args: ToolArgs): string {
 	return `## write_to_file
-Description: Request to write content to a file. This tool is primarily used for **creating new files** or for scenarios where a **complete rewrite of an existing file is intentionally required**. If the file exists, it will be overwritten. If it doesn't exist, it will be created. This tool will automatically create any directories needed to write the file.
+Description: Request to write content to a file. This tool is primarily used for **creating new files** or for scenarios where a **complete rewrite of an existing file is intentionally required**.
+
+**⚠️ IMPORTANT: For existing files, avoid using write_to_file for small changes as it:**
+- Rewrites the entire file unnecessarily
+- Uses more tokens and processing time
+- Creates large, hard-to-review diffs
+- Is inefficient for targeted modifications
+
+**Use targeted tools instead:**
+- apply_diff: For replacing specific sections of code
+- search_and_replace: For finding and replacing text patterns
+- insert_content: For adding new content at specific locations
+
+If the file exists, it will be overwritten. If it doesn't exist, it will be created. This tool will automatically create any directories needed to write the file.
 Parameters:
 - path: (required) The path of the file to write to (relative to the current workspace directory ${args.cwd})
 - content: (required) The content to write to the file. When performing a full rewrite of an existing file or creating a new one, ALWAYS provide the COMPLETE intended content of the file, without any truncation or omissions. You MUST include ALL parts of the file, even if they haven't been modified. Do NOT include the line numbers in the content though, just the actual content of the file.

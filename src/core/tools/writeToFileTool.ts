@@ -11,7 +11,7 @@ import { fileExistsAtPath } from "../../utils/fs"
 import { stripLineNumbers, everyLineHasLineNumbers } from "../../integrations/misc/extract-text"
 import { getReadablePath } from "../../utils/path"
 import { isPathOutsideWorkspace } from "../../utils/pathUtils"
-import { detectCodeOmission } from "../../integrations/editor/detect-omission"
+import { detectCodeOmission, detectInefficientFileEdit } from "../../integrations/editor/detect-omission"
 import { unescapeHtmlEntities } from "../../utils/text-normalization"
 
 export async function writeToFileTool(
@@ -197,6 +197,32 @@ export async function writeToFileTool(
 				}
 			}
 
+			// Check for inefficient file editing patterns
+			let inefficientEditSuggestion = ""
+			if (fileExists && cline.diffViewProvider.originalContent) {
+				const inefficientEdit = detectInefficientFileEdit(cline.diffViewProvider.originalContent, newContent)
+				if (inefficientEdit.isInefficient) {
+					// Show warning but don't block the operation
+					vscode.window
+						.showWarningMessage(
+							`Inefficient file editing detected: Only ${Math.round((inefficientEdit.changeRatio || 0) * 100)}% of the file changed. Consider using targeted editing tools for better efficiency.`,
+							"Learn More",
+						)
+						.then((selection) => {
+							if (selection === "Learn More") {
+								vscode.env.openExternal(
+									vscode.Uri.parse(
+										"https://github.com/RooCodeInc/Roo-Code/wiki/Efficient-File-Editing",
+									),
+								)
+							}
+						})
+
+					// Prepare suggestion message to append to the result
+					inefficientEditSuggestion = `\n\n⚠️ EFFICIENCY NOTICE: This write_to_file operation modified only ${Math.round((inefficientEdit.changeRatio || 0) * 100)}% of the file content.\n\n${inefficientEdit.suggestion}\n\nUsing targeted editing tools would be more efficient and create smaller, easier-to-review diffs.`
+				}
+			}
+
 			const completeMessage = JSON.stringify({
 				...sharedMessageProps,
 				content: fileExists ? undefined : newContent,
@@ -225,7 +251,7 @@ export async function writeToFileTool(
 			// Get the formatted response message
 			const message = await cline.diffViewProvider.pushToolWriteResult(cline, cline.cwd, !fileExists)
 
-			pushToolResult(message)
+			pushToolResult(message + inefficientEditSuggestion)
 
 			await cline.diffViewProvider.reset()
 

@@ -48,21 +48,23 @@ Otherwise, if you have not completed the task and do not need additional informa
 			`3. Then use insert_content to append additional chunks\n`
 
 		let existingFileApproaches = [
-			`1. Try again with the line_count parameter in your response if you forgot to include it`,
+			`1. **AVOID write_to_file for existing files** - it rewrites the entire file unnecessarily`,
 		]
 
 		if (diffStrategyEnabled) {
-			existingFileApproaches.push(`2. Or try using apply_diff instead of write_to_file for targeted changes`)
+			existingFileApproaches.push(`2. **PREFERRED: Use apply_diff** for targeted changes to specific sections`)
 		}
 
 		existingFileApproaches.push(
-			`${diffStrategyEnabled ? "3" : "2"}. Or use search_and_replace for specific text replacements`,
-			`${diffStrategyEnabled ? "4" : "3"}. Or use insert_content to add specific content at particular lines`,
+			`${diffStrategyEnabled ? "3" : "2"}. **Use search_and_replace** for finding and replacing specific text patterns`,
+			`${diffStrategyEnabled ? "4" : "3"}. **Use insert_content** to add content at specific line numbers`,
+			`${diffStrategyEnabled ? "5" : "4"}. Only use write_to_file if you need to completely rewrite the entire file`,
 		)
 
 		const existingFileGuidance =
 			`This appears to be content for an existing file.\n` +
 			`${truncationMessage}\n\n` +
+			`⚠️ **EFFICIENCY WARNING**: Using write_to_file for existing files is inefficient and creates large diffs.\n\n` +
 			`RECOMMENDED APPROACH:\n` +
 			`${existingFileApproaches.join("\n")}\n`
 
