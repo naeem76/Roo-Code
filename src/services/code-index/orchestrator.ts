@@ -219,7 +219,32 @@ export class CodeIndexOrchestrator {
 
 			await this.cacheManager.clearCacheFile()
 
-			this.stateManager.setSystemState("Error", `Failed during initial scan: ${error.message || "Unknown error"}`)
+			// Provide more detailed error messages based on the error type
+			let errorMessage = "Unknown error"
+			if (error instanceof Error) {
+				errorMessage = error.message
+				
+				// Check for specific error patterns and provide more helpful messages
+				if (errorMessage.includes("fetch failed")) {
+					errorMessage = "Network connection failed. Please check your internet connection and verify that the embedding service (Gemini, OpenAI, etc.) is accessible."
+				} else if (errorMessage.includes("ECONNREFUSED")) {
+					errorMessage = "Connection refused. Please ensure Qdrant is running at the configured URL and check your firewall settings."
+				} else if (errorMessage.includes("ENOTFOUND")) {
+					errorMessage = "Service not found. Please verify the URLs for both your embedding service and Qdrant are correct."
+				} else if (errorMessage.includes("Authentication failed") || errorMessage.includes("401")) {
+					errorMessage = "Authentication failed. Please check your API key configuration."
+				} else if (errorMessage.includes("403")) {
+					errorMessage = "Access denied. Please verify your API key has the necessary permissions."
+				} else if (errorMessage.includes("404")) {
+					errorMessage = "Service or model not found. Please check your configuration settings."
+				} else if (errorMessage.includes("Failed to connect to Qdrant")) {
+					errorMessage = "Cannot connect to Qdrant vector database. Please ensure Qdrant is running and accessible."
+				} else if (errorMessage.includes("vector dimension")) {
+					errorMessage = "Vector dimension mismatch. Please clear the index and try again, or check your model configuration."
+				}
+			}
+
+			this.stateManager.setSystemState("Error", `Failed during initial scan: ${errorMessage}`)
 			this.stopWatcher()
 		} finally {
 			this._isProcessing = false

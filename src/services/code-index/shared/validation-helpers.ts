@@ -183,6 +183,29 @@ export function handleValidationError(
 			return { valid: false, error: t("embeddings:validation.connectionFailed") }
 		}
 
+		// Handle "fetch failed" errors with more specific context
+		if (errorMessage.includes("fetch failed")) {
+			// Check if it's likely a network connectivity issue
+			if (errorMessage.includes("ECONNREFUSED") || errorMessage.includes("ENOTFOUND")) {
+				return { valid: false, error: t("embeddings:validation.connectionFailed") }
+			}
+			// Check if it's likely an SSL/TLS issue
+			if (errorMessage.includes("certificate") || errorMessage.includes("SSL") || errorMessage.includes("TLS")) {
+				return { valid: false, error: t("embeddings:validation.sslError") }
+			}
+			// Check if it's likely a DNS issue
+			if (errorMessage.includes("getaddrinfo") || errorMessage.includes("ENOTFOUND")) {
+				return { valid: false, error: t("embeddings:validation.dnsError") }
+			}
+			// Generic fetch failed error with more helpful message
+			return {
+				valid: false,
+				error: t("embeddings:validation.fetchFailed", {
+					details: sanitizeErrorMessage(errorMessage)
+				})
+			}
+		}
+
 		if (errorMessage.includes("Failed to parse response JSON")) {
 			return { valid: false, error: t("embeddings:validation.invalidResponse") }
 		}

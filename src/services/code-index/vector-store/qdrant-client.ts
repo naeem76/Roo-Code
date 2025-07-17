@@ -199,10 +199,28 @@ export class QdrantVectorStore implements IVectorStore {
 				throw error
 			}
 
+			// Provide more specific error messages based on the error type
+			let userFriendlyMessage = ""
+			if (typeof errorMessage === "string") {
+				if (errorMessage.includes("fetch failed") || errorMessage.includes("ECONNREFUSED")) {
+					userFriendlyMessage = `Cannot connect to Qdrant at ${this.qdrantUrl}. Please ensure Qdrant is running and accessible. If using Docker, verify the container is started with: docker run -p 6333:6333 qdrant/qdrant`
+				} else if (errorMessage.includes("ENOTFOUND")) {
+					userFriendlyMessage = `Qdrant server not found at ${this.qdrantUrl}. Please check the URL is correct and the server is running.`
+				} else if (errorMessage.includes("ETIMEDOUT")) {
+					userFriendlyMessage = `Connection to Qdrant at ${this.qdrantUrl} timed out. Please check your network connection and firewall settings.`
+				} else if (errorMessage.includes("401") || errorMessage.includes("403")) {
+					userFriendlyMessage = `Authentication failed for Qdrant at ${this.qdrantUrl}. Please check your API key configuration.`
+				} else if (errorMessage.includes("404")) {
+					userFriendlyMessage = `Qdrant endpoint not found at ${this.qdrantUrl}. Please verify the URL is correct.`
+				} else {
+					userFriendlyMessage = t("embeddings:vectorStore.qdrantConnectionFailed", { qdrantUrl: this.qdrantUrl, errorMessage })
+				}
+			} else {
+				userFriendlyMessage = t("embeddings:vectorStore.qdrantConnectionFailed", { qdrantUrl: this.qdrantUrl, errorMessage })
+			}
+
 			// Otherwise, provide a more user-friendly error message that includes the original error
-			throw new Error(
-				t("embeddings:vectorStore.qdrantConnectionFailed", { qdrantUrl: this.qdrantUrl, errorMessage }),
-			)
+			throw new Error(userFriendlyMessage)
 		}
 	}
 

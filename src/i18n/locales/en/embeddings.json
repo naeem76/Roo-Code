@@ -39,7 +39,10 @@
 		"invalidModel": "Invalid model. Please check your model configuration.",
 		"invalidResponse": "Invalid response from embedder service. Please check your configuration.",
 		"apiKeyRequired": "API key is required for this embedder",
-		"baseUrlRequired": "Base URL is required for this embedder"
+		"baseUrlRequired": "Base URL is required for this embedder",
+		"fetchFailed": "Network request failed: {{details}}. Please check your internet connection and service availability.",
+		"sslError": "SSL/TLS certificate error. Please check your connection security settings or contact your network administrator.",
+		"dnsError": "DNS resolution failed. Please check your internet connection and verify the service URL is correct."
 	},
 	"serviceFactory": {
 		"openAiConfigMissing": "OpenAI configuration missing for embedder creation",

@@ -70,7 +70,41 @@ export class GeminiEmbedder implements IEmbedder {
 		try {
 			// Delegate validation to the OpenAI-compatible embedder
 			// The error messages will be specific to Gemini since we're using Gemini's base URL
-			return await this.openAICompatibleEmbedder.validateConfiguration()
+			const result = await this.openAICompatibleEmbedder.validateConfiguration()
+			
+			// If validation failed, enhance the error message with Gemini-specific context
+			if (!result.valid && result.error) {
+				// Check for common Gemini-specific issues
+				if (result.error.includes("fetch failed") || result.error.includes("Network request failed")) {
+					return {
+						valid: false,
+						error: t("embeddings:validation.connectionFailed") + " Please verify your Gemini API key is valid and you have internet connectivity to Google's services."
+					}
+				}
+				
+				if (result.error.includes("Authentication failed") || result.error.includes("401")) {
+					return {
+						valid: false,
+						error: "Invalid Gemini API key. Please check your API key in Google AI Studio (https://aistudio.google.com/app/apikey) and ensure it's correctly entered in the settings."
+					}
+				}
+				
+				if (result.error.includes("403")) {
+					return {
+						valid: false,
+						error: "Access denied to Gemini API. Please ensure your API key has the necessary permissions and your account has access to the embedding models."
+					}
+				}
+				
+				if (result.error.includes("404")) {
+					return {
+						valid: false,
+						error: `Gemini model '${this.modelId}' not found. Please verify the model ID is correct and available in your region.`
+					}
+				}
+			}
+			
+			return result
 		} catch (error) {
 			TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
 				error: error instanceof Error ? error.message : String(error),
