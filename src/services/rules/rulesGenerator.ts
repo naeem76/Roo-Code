@@ -1,8 +1,10 @@
 import * as fs from "fs/promises"
 import * as path from "path"
 import * as vscode from "vscode"
+import type { ProviderSettings } from "@roo-code/types"
 import { fileExistsAtPath } from "../../utils/fs"
 import { getProjectRooDirectoryForCwd } from "../roo-config/index"
+import { singleCompletionHandler } from "../../utils/single-completion-handler"
 
 interface ProjectConfig {
 	type: "typescript" | "javascript" | "python" | "java" | "go" | "rust" | "unknown"
@@ -110,9 +112,166 @@ async function analyzeProjectConfig(workspacePath: string): Promise<ProjectConfi
 }
 
 /**
- * Generates rules content based on project analysis
+ * Generates a summary of the codebase for LLM analysis
  */
-function generateRulesContent(config: ProjectConfig, workspacePath: string): string {
+async function generateCodebaseSummary(workspacePath: string, config: ProjectConfig): Promise<string> {
+	const summary: string[] = []
+
+	// Project structure overview
+	summary.push("# Codebase Analysis")
+	summary.push("")
+	summary.push(`**Project Type**: ${config.type}`)
+	summary.push(`**Package Manager**: ${config.packageManager || "none"}`)
+	summary.push("")
+
+	// Configuration files
+	summary.push("## Configuration Files Found:")
+	const configFiles: string[] = []
+
+	if (await fileExistsAtPath(path.join(workspacePath, "package.json"))) {
+		configFiles.push("package.json")
+	}
+	if (await fileExistsAtPath(path.join(workspacePath, "tsconfig.json"))) {
+		configFiles.push("tsconfig.json")
+	}
+	if (await fileExistsAtPath(path.join(workspacePath, ".eslintrc.js"))) {
+		configFiles.push(".eslintrc.js")
+	}
+	if (await fileExistsAtPath(path.join(workspacePath, ".eslintrc.json"))) {
+		configFiles.push(".eslintrc.json")
+	}
+	if (await fileExistsAtPath(path.join(workspacePath, ".prettierrc"))) {
+		configFiles.push(".prettierrc")
+	}
+	if (await fileExistsAtPath(path.join(workspacePath, "jest.config.js"))) {
+		configFiles.push("jest.config.js")
+	}
+	if (await fileExistsAtPath(path.join(workspacePath, "vitest.config.ts"))) {
+		configFiles.push("vitest.config.ts")
+	}
+	if (await fileExistsAtPath(path.join(workspacePath, "pyproject.toml"))) {
+		configFiles.push("pyproject.toml")
+	}
+	if (await fileExistsAtPath(path.join(workspacePath, "Cargo.toml"))) {
+		configFiles.push("Cargo.toml")
+	}
+	if (await fileExistsAtPath(path.join(workspacePath, "go.mod"))) {
+		configFiles.push("go.mod")
+	}
+
+	configFiles.forEach((file) => summary.push(`- ${file}`))
+	summary.push("")
+
+	// Dependencies
+	if (config.dependencies.length > 0) {
+		summary.push("## Key Dependencies:")
+		config.dependencies.slice(0, 10).forEach((dep) => summary.push(`- ${dep}`))
+		summary.push("")
+	}
+
+	if (config.devDependencies.length > 0) {
+		summary.push("## Dev Dependencies:")
+		config.devDependencies.slice(0, 10).forEach((dep) => summary.push(`- ${dep}`))
+		summary.push("")
+	}
+
+	// Scripts
+	if (Object.keys(config.scripts).length > 0) {
+		summary.push("## Available Scripts:")
+		Object.entries(config.scripts).forEach(([name, command]) => {
+			summary.push(`- **${name}**: \`${command}\``)
+		})
+		summary.push("")
+	}
+
+	// Tools detected
+	summary.push("## Tools Detected:")
+	const tools: string[] = []
+	if (config.hasTypeScript) tools.push("TypeScript")
+	if (config.hasESLint) tools.push("ESLint")
+	if (config.hasPrettier) tools.push("Prettier")
+	if (config.hasJest) tools.push("Jest")
+	if (config.hasVitest) tools.push("Vitest")
+	if (config.hasPytest) tools.push("Pytest")
+
+	tools.forEach((tool) => summary.push(`- ${tool}`))
+	summary.push("")
+
+	// Check for existing rules files
+	const existingRulesFiles: string[] = []
+	if (await fileExistsAtPath(path.join(workspacePath, "CLAUDE.md"))) {
+		existingRulesFiles.push("CLAUDE.md")
+	}
+	if (await fileExistsAtPath(path.join(workspacePath, ".cursorrules"))) {
+		existingRulesFiles.push(".cursorrules")
+	}
+	if (await fileExistsAtPath(path.join(workspacePath, ".cursor", "rules"))) {
+		existingRulesFiles.push(".cursor/rules")
+	}
+	if (await fileExistsAtPath(path.join(workspacePath, ".github", "copilot-instructions.md"))) {
+		existingRulesFiles.push(".github/copilot-instructions.md")
+	}
+
+	if (existingRulesFiles.length > 0) {
+		summary.push("## Existing Rules Files:")
+		existingRulesFiles.forEach((file) => summary.push(`- ${file}`))
+		summary.push("")
+	}
+
+	return summary.join("\n")
+}
+
+/**
+ * Generates rules content using LLM analysis with fallback to deterministic approach
+ */
+async function generateRulesWithLLM(
+	workspacePath: string,
+	config: ProjectConfig,
+	apiConfiguration?: ProviderSettings,
+): Promise<string> {
+	if (!apiConfiguration) {
+		// Fallback to deterministic generation
+		return generateDeterministicRules(config, workspacePath)
+	}
+
+	try {
+		const codebaseSummary = await generateCodebaseSummary(workspacePath, config)
+
+		const prompt = `Please analyze this codebase and create a comprehensive rules file containing:
+
+1. Build/lint/test commands - especially for running a single test
+2. Code style guidelines including imports, formatting, types, naming conventions, error handling, etc.
+3. Project-specific conventions and best practices
+
+The file you create will be given to agentic coding agents that operate in this repository. Make it about 20 lines long and focus on the most important rules for this specific project.
+
+If there are existing rules files mentioned below, make sure to incorporate and improve upon them.
+
+Here's the codebase analysis:
+
+${codebaseSummary}
+
+Please respond with only the rules content in markdown format, starting with "# Project Rules".`
+
+		const llmResponse = await singleCompletionHandler(apiConfiguration, prompt)
+
+		// Validate that we got a reasonable response
+		if (llmResponse && llmResponse.trim().length > 100 && llmResponse.includes("# Project Rules")) {
+			return llmResponse.trim()
+		} else {
+			console.warn("LLM response was invalid, falling back to deterministic generation")
+			return generateDeterministicRules(config, workspacePath)
+		}
+	} catch (error) {
+		console.error("Error generating rules with LLM, falling back to deterministic generation:", error)
+		return generateDeterministicRules(config, workspacePath)
+	}
+}
+
+/**
+ * Generates rules content deterministically (fallback approach)
+ */
+function generateDeterministicRules(config: ProjectConfig, workspacePath: string): string {
 	const sections: string[] = []
 
 	// Header
@@ -196,37 +355,6 @@ function generateRulesContent(config: ProjectConfig, workspacePath: string): str
 
 	sections.push("")
 
-	// Project Structure
-	sections.push("## Project Structure")
-	sections.push("")
-	sections.push("- Follow the existing project structure and naming conventions")
-	sections.push("- Place new files in appropriate directories")
-	sections.push("- Use consistent file naming (kebab-case, camelCase, or PascalCase as per project convention)")
-
-	sections.push("")
-
-	// Language-specific rules
-	if (config.type === "typescript" || config.type === "javascript") {
-		sections.push("## JavaScript/TypeScript Guidelines")
-		sections.push("")
-		sections.push("- Use ES6+ syntax (const/let, arrow functions, destructuring, etc.)")
-		sections.push("- Prefer functional programming patterns where appropriate")
-		sections.push("- Handle errors properly with try/catch blocks")
-		sections.push("- Use async/await for asynchronous operations")
-		sections.push("- Follow existing import/export patterns")
-		sections.push("")
-	}
-
-	if (config.type === "python") {
-		sections.push("## Python Guidelines")
-		sections.push("")
-		sections.push("- Follow PEP 8 style guide")
-		sections.push("- Use type hints where appropriate")
-		sections.push("- Write docstrings for functions and classes")
-		sections.push("- Use virtual environments for dependency management")
-		sections.push("")
-	}
-
 	// General Best Practices
 	sections.push("## General Best Practices")
 	sections.push("")
@@ -238,35 +366,21 @@ function generateRulesContent(config: ProjectConfig, workspacePath: string): str
 	sections.push("- Write meaningful commit messages")
 	sections.push("")
 
-	// Dependencies
-	if (config.dependencies.length > 0 || config.devDependencies.length > 0) {
-		sections.push("## Key Dependencies")
-		sections.push("")
-
-		// List some key dependencies
-		const keyDeps = [...config.dependencies, ...config.devDependencies]
-			.filter((dep) => !dep.startsWith("@types/"))
-			.slice(0, 10)
-
-		keyDeps.forEach((dep) => {
-			sections.push(`- ${dep}`)
-		})
-
-		sections.push("")
-	}
-
 	return sections.join("\n")
 }
 
 /**
  * Generates rules for the workspace and saves them to a file
  */
-export async function generateRulesForWorkspace(workspacePath: string): Promise<string> {
+export async function generateRulesForWorkspace(
+	workspacePath: string,
+	apiConfiguration?: ProviderSettings,
+): Promise<string> {
 	// Analyze the project
 	const config = await analyzeProjectConfig(workspacePath)
 
-	// Generate rules content
-	const rulesContent = generateRulesContent(config, workspacePath)
+	// Generate rules content using LLM with fallback
+	const rulesContent = await generateRulesWithLLM(workspacePath, config, apiConfiguration)
 
 	// Ensure .roo/rules directory exists
 	const rooDir = getProjectRooDirectoryForCwd(workspacePath)

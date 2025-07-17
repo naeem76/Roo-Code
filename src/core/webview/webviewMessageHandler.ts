@@ -1896,11 +1896,14 @@ export const webviewMessageHandler = async (
 					break
 				}
 
+				// Get the current API configuration
+				const { apiConfiguration } = await provider.getState()
+
 				// Import the rules generation service
 				const { generateRulesForWorkspace } = await import("../../services/rules/rulesGenerator")
 
-				// Generate the rules
-				const rulesPath = await generateRulesForWorkspace(workspacePath)
+				// Generate the rules with LLM support
+				const rulesPath = await generateRulesForWorkspace(workspacePath, apiConfiguration)
 
 				// Send success message back to webview
 				await provider.postMessageToWebview({
