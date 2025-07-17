@@ -11,15 +11,15 @@ vi.mock("@src/i18n/TranslationContext", () => ({
 	useAppTranslation: () => ({
 		t: (key: string) => {
 			const translations: Record<string, string> = {
-				"common:confirmation.delete_message": "Delete Message",
-				"common:confirmation.edit_message": "Edit Message",
-				"common:confirmation.delete_question_with_checkpoint":
+				"common:confirmation.deleteMessage": "Delete Message",
+				"common:confirmation.editMessage": "Edit Message",
+				"common:confirmation.deleteQuestionWithCheckpoint":
 					"Deleting this message will delete all subsequent messages in the conversation. Do you want to proceed?",
-				"common:confirmation.edit_question_with_checkpoint":
+				"common:confirmation.editQuestionWithCheckpoint":
 					"Editing this message will delete all subsequent messages in the conversation. Do you want to proceed?",
-				"common:confirmation.edit_only": "Edit Only",
-				"common:confirmation.delete_only": "Delete Only",
-				"common:confirmation.restore_to_checkpoint": "Restore to Checkpoint",
+				"common:confirmation.editOnly": "Edit Only",
+				"common:confirmation.deleteOnly": "Delete Only",
+				"common:confirmation.restoreToCeckpoint": "Restore to Checkpoint",
 				"common:answers.cancel": "Cancel",
 			}
 			return translations[key] || key

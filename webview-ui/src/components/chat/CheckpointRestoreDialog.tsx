@@ -29,10 +29,10 @@ export const CheckpointRestoreDialog: React.FC<CheckpointRestoreDialogProps> = (
 	const { t } = useAppTranslation()
 
 	const isEdit = type === "edit"
-	const title = isEdit ? t("common:confirmation.edit_message") : t("common:confirmation.delete_message")
+	const title = isEdit ? t("common:confirmation.editMessage") : t("common:confirmation.deleteMessage")
 	const description = isEdit
-		? t("common:confirmation.edit_question_with_checkpoint")
-		: t("common:confirmation.delete_question_with_checkpoint")
+		? t("common:confirmation.editQuestionWithCheckpoint")
+		: t("common:confirmation.deleteQuestionWithCheckpoint")
 
 	const handleConfirmWithRestore = () => {
 		onConfirm(true)
@@ -58,13 +58,13 @@ export const CheckpointRestoreDialog: React.FC<CheckpointRestoreDialogProps> = (
 					<AlertDialogAction
 						onClick={handleConfirmWithoutRestore}
 						className="bg-vscode-button-background hover:bg-vscode-button-hoverBackground text-vscode-button-foreground border-vscode-button-border">
-						{isEdit ? t("common:confirmation.edit_only") : t("common:confirmation.delete_only")}
+						{isEdit ? t("common:confirmation.editOnly") : t("common:confirmation.deleteOnly")}
 					</AlertDialogAction>
 					{hasCheckpoint && (
 						<AlertDialogAction
 							onClick={handleConfirmWithRestore}
 							className="bg-vscode-button-background hover:bg-vscode-button-hoverBackground text-vscode-button-foreground border-vscode-button-border">
-							{t("common:confirmation.restore_to_checkpoint")}
+							{t("common:confirmation.restoreToCeckpoint")}
 						</AlertDialogAction>
 					)}
 				</AlertDialogFooter>
