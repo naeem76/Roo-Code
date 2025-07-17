@@ -315,6 +315,34 @@
 				"description": "Menyesuaikan suhu, top-p, dan pengaturan lanjutan lainnya."
 			}
 		},
+		"geminiSections": {
+			"modelParameters": {
+				"title": "Kontrol Output",
+				"description": "Menyesuaikan topP, topK, dan maxOutputTokens"
+			}
+		},
+		"geminiParameters": {
+			"topK": {
+				"title": "Top K",
+				"description": "Nilai rendah membuat teks lebih dapat diprediksi, sedangkan nilai tinggi membuatnya lebih kreatif."
+			},
+			"topP": {
+				"title": "Top P",
+				"description": "Nilai rendah menghasilkan teks yang lebih terfokus, sedangkan nilai tinggi menghasilkan hasil yang lebih beragam."
+			},
+			"maxOutputTokens": {
+				"title": "Token Output Maks",
+				"description": "Parameter ini menetapkan panjang maksimum respons yang diizinkan untuk dibuat oleh model."
+			},
+			"urlContext": {
+				"title": "Aktifkan Konteks URL",
+				"description": "Memungkinkan Gemini membaca halaman tertaut untuk mengekstrak, membandingkan, dan mensintesis kontennya menjadi respons yang terinformasi."
+			},
+			"groundingSearch": {
+				"title": "Aktifkan Grounding dengan Google Search",
+				"description": "Menghubungkan Gemini ke data web real-time untuk jawaban yang akurat dan terkini dengan kutipan yang dapat diverifikasi."
+			}
+		},
 		"googleCloudSetup": {
 			"title": "Untuk menggunakan Google Cloud Vertex AI, kamu perlu:",
 			"step1": "1. Buat akun Google Cloud, aktifkan Vertex AI API & aktifkan model Claude yang diinginkan.",

@@ -311,6 +311,34 @@
 				"description": "Pas de temperatuur, top-p en andere geavanceerde instellingen aan."
 			}
 		},
+		"geminiSections": {
+			"modelParameters": {
+				"title": "Uitvoerregelaars",
+				"description": "Verfijn topP, topK en maxOutputTokens"
+			}
+		},
+		"geminiParameters": {
+			"topK": {
+				"title": "Top K",
+				"description": "Een lage waarde maakt de tekst voorspelbaarder, terwijl een hoge waarde deze creatiever maakt."
+			},
+			"topP": {
+				"title": "Top P",
+				"description": "Een lage waarde leidt tot meer gerichte tekst, terwijl een hoge waarde resulteert in meer diverse resultaten."
+			},
+			"maxOutputTokens": {
+				"title": "Max. uitvoertokens",
+				"description": "Deze parameter stelt de maximale lengte in van de respons die het model mag genereren."
+			},
+			"urlContext": {
+				"title": "URL-context inschakelen",
+				"description": "Laat Gemini gelinkte pagina's lezen om hun inhoud te extraheren, te vergelijken en te synthetiseren tot geïnformeerde antwoorden."
+			},
+			"groundingSearch": {
+				"title": "Aarding met Google Zoeken inschakelen",
+				"description": "Verbindt Gemini met realtime webgegevens voor nauwkeurige, up-to-date antwoorden met verifieerbare citaten."
+			}
+		},
 		"googleCloudSetup": {
 			"title": "Om Google Cloud Vertex AI te gebruiken, moet je:",
 			"step1": "1. Maak een Google Cloud-account aan, schakel de Vertex AI API in en activeer de gewenste Claude-modellen.",
