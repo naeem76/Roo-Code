@@ -1,10 +1,6 @@
 import * as fs from "fs/promises"
 import * as path from "path"
-import * as vscode from "vscode"
-import type { ProviderSettings } from "@roo-code/types"
 import { fileExistsAtPath } from "../../utils/fs"
-import { getProjectRooDirectoryForCwd } from "../roo-config/index"
-import { singleCompletionHandler } from "../../utils/single-completion-handler"
 
 interface ProjectConfig {
 	type: "typescript" | "javascript" | "python" | "java" | "go" | "rust" | "unknown"
@@ -60,24 +56,32 @@ async function analyzeProjectConfig(workspacePath: string): Promise<ProjectConfi
 			config.devDependencies = Object.keys(packageJson.devDependencies || {})
 			config.scripts = packageJson.scripts || {}
 
-			// Check for specific tools
-			const allDeps = [...config.dependencies, ...config.devDependencies]
-			config.hasTypeScript =
-				allDeps.includes("typescript") || (await fileExistsAtPath(path.join(workspacePath, "tsconfig.json")))
-			config.hasESLint =
-				allDeps.includes("eslint") ||
-				(await fileExistsAtPath(path.join(workspacePath, ".eslintrc.js"))) ||
-				(await fileExistsAtPath(path.join(workspacePath, ".eslintrc.json")))
-			config.hasPrettier =
-				allDeps.includes("prettier") || (await fileExistsAtPath(path.join(workspacePath, ".prettierrc")))
-			config.hasJest = allDeps.includes("jest")
-			config.hasVitest = allDeps.includes("vitest")
-
-			// Determine project type
-			if (config.hasTypeScript) {
+			// Check for TypeScript
+			if (
+				config.devDependencies.includes("typescript") ||
+				config.dependencies.includes("typescript") ||
+				(await fileExistsAtPath(path.join(workspacePath, "tsconfig.json")))
+			) {
+				config.hasTypeScript = true
 				config.type = "typescript"
 			} else {
 				config.type = "javascript"
+			}
+
+			// Check for testing frameworks
+			if (config.devDependencies.includes("jest") || config.dependencies.includes("jest")) {
+				config.hasJest = true
+			}
+			if (config.devDependencies.includes("vitest") || config.dependencies.includes("vitest")) {
+				config.hasVitest = true
+			}
+
+			// Check for linting/formatting
+			if (config.devDependencies.includes("eslint") || config.dependencies.includes("eslint")) {
+				config.hasESLint = true
+			}
+			if (config.devDependencies.includes("prettier") || config.dependencies.includes("prettier")) {
+				config.hasPrettier = true
 			}
 		} catch (error) {
 			console.error("Error parsing package.json:", error)
@@ -85,15 +89,21 @@ async function analyzeProjectConfig(workspacePath: string): Promise<ProjectConfi
 	}
 
 	// Check for Python project
-	if (
-		(await fileExistsAtPath(path.join(workspacePath, "pyproject.toml"))) ||
-		(await fileExistsAtPath(path.join(workspacePath, "setup.py"))) ||
-		(await fileExistsAtPath(path.join(workspacePath, "requirements.txt")))
-	) {
+	if (await fileExistsAtPath(path.join(workspacePath, "requirements.txt"))) {
 		config.type = "python"
-		config.hasPytest =
-			(await fileExistsAtPath(path.join(workspacePath, "pytest.ini"))) ||
-			(await fileExistsAtPath(path.join(workspacePath, "pyproject.toml")))
+	} else if (await fileExistsAtPath(path.join(workspacePath, "pyproject.toml"))) {
+		config.type = "python"
+		// Check for pytest
+		try {
+			const pyprojectContent = await fs.readFile(path.join(workspacePath, "pyproject.toml"), "utf-8")
+			if (pyprojectContent.includes("pytest")) {
+				config.hasPytest = true
+			}
+		} catch (error) {
+			console.error("Error reading pyproject.toml:", error)
+		}
+	} else if (await fileExistsAtPath(path.join(workspacePath, "setup.py"))) {
+		config.type = "python"
 	}
 
 	// Check for other project types
@@ -101,10 +111,7 @@ async function analyzeProjectConfig(workspacePath: string): Promise<ProjectConfi
 		config.type = "go"
 	} else if (await fileExistsAtPath(path.join(workspacePath, "Cargo.toml"))) {
 		config.type = "rust"
-	} else if (
-		(await fileExistsAtPath(path.join(workspacePath, "pom.xml"))) ||
-		(await fileExistsAtPath(path.join(workspacePath, "build.gradle")))
-	) {
+	} else if (await fileExistsAtPath(path.join(workspacePath, "pom.xml"))) {
 		config.type = "java"
 	}
 
@@ -117,75 +124,44 @@ async function analyzeProjectConfig(workspacePath: string): Promise<ProjectConfi
 async function generateCodebaseSummary(workspacePath: string, config: ProjectConfig): Promise<string> {
 	const summary: string[] = []
 
-	// Project structure overview
-	summary.push("# Codebase Analysis")
+	summary.push("## Project Configuration Analysis")
 	summary.push("")
-	summary.push(`**Project Type**: ${config.type}`)
-	summary.push(`**Package Manager**: ${config.packageManager || "none"}`)
-	summary.push("")
-
-	// Configuration files
-	summary.push("## Configuration Files Found:")
-	const configFiles: string[] = []
-
-	if (await fileExistsAtPath(path.join(workspacePath, "package.json"))) {
-		configFiles.push("package.json")
-	}
-	if (await fileExistsAtPath(path.join(workspacePath, "tsconfig.json"))) {
-		configFiles.push("tsconfig.json")
-	}
-	if (await fileExistsAtPath(path.join(workspacePath, ".eslintrc.js"))) {
-		configFiles.push(".eslintrc.js")
-	}
-	if (await fileExistsAtPath(path.join(workspacePath, ".eslintrc.json"))) {
-		configFiles.push(".eslintrc.json")
-	}
-	if (await fileExistsAtPath(path.join(workspacePath, ".prettierrc"))) {
-		configFiles.push(".prettierrc")
-	}
-	if (await fileExistsAtPath(path.join(workspacePath, "jest.config.js"))) {
-		configFiles.push("jest.config.js")
-	}
-	if (await fileExistsAtPath(path.join(workspacePath, "vitest.config.ts"))) {
-		configFiles.push("vitest.config.ts")
-	}
-	if (await fileExistsAtPath(path.join(workspacePath, "pyproject.toml"))) {
-		configFiles.push("pyproject.toml")
-	}
-	if (await fileExistsAtPath(path.join(workspacePath, "Cargo.toml"))) {
-		configFiles.push("Cargo.toml")
-	}
-	if (await fileExistsAtPath(path.join(workspacePath, "go.mod"))) {
-		configFiles.push("go.mod")
-	}
-
-	configFiles.forEach((file) => summary.push(`- ${file}`))
+	summary.push(`**Project Type:** ${config.type}`)
+	summary.push(`**Package Manager:** ${config.packageManager || "None detected"}`)
 	summary.push("")
 
-	// Dependencies
+	// List key dependencies
 	if (config.dependencies.length > 0) {
-		summary.push("## Key Dependencies:")
-		config.dependencies.slice(0, 10).forEach((dep) => summary.push(`- ${dep}`))
+		summary.push("### Key Dependencies:")
+		const keyDeps = config.dependencies.slice(0, 10)
+		keyDeps.forEach((dep) => summary.push(`- ${dep}`))
+		if (config.dependencies.length > 10) {
+			summary.push(`- ... and ${config.dependencies.length - 10} more`)
+		}
 		summary.push("")
 	}
 
+	// List dev dependencies
 	if (config.devDependencies.length > 0) {
-		summary.push("## Dev Dependencies:")
-		config.devDependencies.slice(0, 10).forEach((dep) => summary.push(`- ${dep}`))
+		summary.push("### Development Dependencies:")
+		const keyDevDeps = config.devDependencies.slice(0, 10)
+		keyDevDeps.forEach((dep) => summary.push(`- ${dep}`))
+		if (config.devDependencies.length > 10) {
+			summary.push(`- ... and ${config.devDependencies.length - 10} more`)
+		}
 		summary.push("")
 	}
 
-	// Scripts
-	if (Object.keys(config.scripts).length > 0) {
-		summary.push("## Available Scripts:")
-		Object.entries(config.scripts).forEach(([name, command]) => {
-			summary.push(`- **${name}**: \`${command}\``)
-		})
+	// List available scripts
+	const scriptKeys = Object.keys(config.scripts)
+	if (scriptKeys.length > 0) {
+		summary.push("### Available Scripts:")
+		scriptKeys.forEach((script) => summary.push(`- ${script}: ${config.scripts[script]}`))
 		summary.push("")
 	}
 
-	// Tools detected
-	summary.push("## Tools Detected:")
+	// List detected tools
+	summary.push("### Detected Tools and Frameworks:")
 	const tools: string[] = []
 	if (config.hasTypeScript) tools.push("TypeScript")
 	if (config.hasESLint) tools.push("ESLint")
@@ -193,6 +169,10 @@ async function generateCodebaseSummary(workspacePath: string, config: ProjectCon
 	if (config.hasJest) tools.push("Jest")
 	if (config.hasVitest) tools.push("Vitest")
 	if (config.hasPytest) tools.push("Pytest")
+
+	if (tools.length === 0) {
+		tools.push("No specific tools detected")
+	}
 
 	tools.forEach((tool) => summary.push(`- ${tool}`))
 	summary.push("")
@@ -222,182 +202,49 @@ async function generateCodebaseSummary(workspacePath: string, config: ProjectCon
 }
 
 /**
- * Generates rules content using LLM analysis with fallback to deterministic approach
+ * Creates a comprehensive task message for rules generation that can be used with initClineWithTask
  */
-async function generateRulesWithLLM(
-	workspacePath: string,
-	config: ProjectConfig,
-	apiConfiguration?: ProviderSettings,
-): Promise<string> {
-	if (!apiConfiguration) {
-		// Fallback to deterministic generation
-		return generateDeterministicRules(config, workspacePath)
+export async function createRulesGenerationTaskMessage(workspacePath: string): Promise<string> {
+	// Analyze the project to get context
+	const config = await analyzeProjectConfig(workspacePath)
+	const codebaseSummary = await generateCodebaseSummary(workspacePath, config)
+
+	// Ensure .roo/rules directory exists at project root
+	const rooRulesDir = path.join(workspacePath, ".roo", "rules")
+	try {
+		await fs.mkdir(rooRulesDir, { recursive: true })
+	} catch (error) {
+		// Directory might already exist, which is fine
 	}
 
-	try {
-		const codebaseSummary = await generateCodebaseSummary(workspacePath, config)
+	// Create a comprehensive message for the rules generation task
+	const taskMessage = `Analyze this codebase and generate comprehensive rules for AI agents working in this repository.
 
-		const prompt = `Please analyze this codebase and create a comprehensive rules file containing:
+Your task is to:
 
-1. Build/lint/test commands - especially for running a single test
-2. Code style guidelines including imports, formatting, types, naming conventions, error handling, etc.
-3. Project-specific conventions and best practices
-
-The file you create will be given to agentic coding agents that operate in this repository. Make it about 20 lines long and focus on the most important rules for this specific project.
-
-If there are existing rules files mentioned below, make sure to incorporate and improve upon them.
-
-Here's the codebase analysis:
+1. **Analyze the project structure** - The codebase has been analyzed and here's what was found:
 
 ${codebaseSummary}
 
-Please respond with only the rules content in markdown format, starting with "# Project Rules".`
+2. **Create comprehensive rules** that include:
+   - Build/lint/test commands (especially for running single tests)
+   - Code style guidelines including imports, formatting, types, naming conventions
+   - Error handling patterns
+   - Project-specific conventions and best practices
+   - File organization patterns
 
-		const llmResponse = await singleCompletionHandler(apiConfiguration, prompt)
+3. **Save the rules** to the file at exactly this path: .roo/rules/coding-standards.md
+   - The .roo/rules directory has already been created for you
+   - Always overwrite the existing file if it exists
+   - Use the \`write_to_file\` tool to save the content
 
-		// Validate that we got a reasonable response
-		if (llmResponse && llmResponse.trim().length > 100 && llmResponse.includes("# Project Rules")) {
-			return llmResponse.trim()
-		} else {
-			console.warn("LLM response was invalid, falling back to deterministic generation")
-			return generateDeterministicRules(config, workspacePath)
-		}
-	} catch (error) {
-		console.error("Error generating rules with LLM, falling back to deterministic generation:", error)
-		return generateDeterministicRules(config, workspacePath)
-	}
-}
+4. **Open the generated file** in the editor for review
 
-/**
- * Generates rules content deterministically (fallback approach)
- */
-function generateDeterministicRules(config: ProjectConfig, workspacePath: string): string {
-	const sections: string[] = []
+The rules should be about 20-30 lines long and focus on the most important guidelines for this specific project. Make them actionable and specific to help AI agents work effectively in this codebase.
 
-	// Header
-	sections.push("# Project Rules")
-	sections.push("")
-	sections.push(`Generated on: ${new Date().toISOString()}`)
-	sections.push(`Project type: ${config.type}`)
-	sections.push("")
+If there are existing rules files (like CLAUDE.md, .cursorrules, .cursor/rules, .github/copilot-instructions.md), incorporate and improve upon them.
 
-	// Build and Development
-	sections.push("## Build and Development")
-	sections.push("")
+Use the \`safeWriteJson\` utility from \`src/utils/safeWriteJson.ts\` for any JSON file operations to ensure atomic writes.`
 
-	if (config.packageManager) {
-		sections.push(`- Package manager: ${config.packageManager}`)
-		sections.push(`- Install dependencies: \`${config.packageManager} install\``)
-
-		if (config.scripts.build) {
-			sections.push(`- Build command: \`${config.packageManager} run build\``)
-		}
-		if (config.scripts.test) {
-			sections.push(`- Test command: \`${config.packageManager} run test\``)
-		}
-		if (config.scripts.dev || config.scripts.start) {
-			const devScript = config.scripts.dev || config.scripts.start
-			sections.push(
-				`- Development server: \`${config.packageManager} run ${config.scripts.dev ? "dev" : "start"}\``,
-			)
-		}
-	}
-
-	sections.push("")
-
-	// Code Style and Linting
-	sections.push("## Code Style and Linting")
-	sections.push("")
-
-	if (config.hasESLint) {
-		sections.push("- ESLint is configured for this project")
-		sections.push("- Run linting: `npm run lint` (if configured)")
-		sections.push("- Follow ESLint rules and fix any linting errors before committing")
-	}
-
-	if (config.hasPrettier) {
-		sections.push("- Prettier is configured for code formatting")
-		sections.push("- Format code before committing")
-		sections.push("- Run formatting: `npm run format` (if configured)")
-	}
-
-	if (config.hasTypeScript) {
-		sections.push("- TypeScript is used in this project")
-		sections.push("- Ensure all TypeScript errors are resolved before committing")
-		sections.push("- Use proper type annotations and avoid `any` types")
-		sections.push("- Run type checking: `npm run type-check` or `tsc --noEmit`")
-	}
-
-	sections.push("")
-
-	// Testing
-	sections.push("## Testing")
-	sections.push("")
-
-	if (config.hasJest || config.hasVitest) {
-		const testFramework = config.hasVitest ? "Vitest" : "Jest"
-		sections.push(`- ${testFramework} is used for testing`)
-		sections.push("- Write tests for new features and bug fixes")
-		sections.push("- Ensure all tests pass before committing")
-		sections.push(`- Run tests: \`${config.packageManager || "npm"} run test\``)
-
-		if (config.hasVitest) {
-			sections.push("- Vitest specific: Test files should use `.test.ts` or `.spec.ts` extensions")
-			sections.push("- The `describe`, `test`, `it` functions are globally available")
-		}
-	}
-
-	if (config.hasPytest && config.type === "python") {
-		sections.push("- Pytest is used for testing")
-		sections.push("- Write tests in `test_*.py` or `*_test.py` files")
-		sections.push("- Run tests: `pytest`")
-	}
-
-	sections.push("")
-
-	// General Best Practices
-	sections.push("## General Best Practices")
-	sections.push("")
-	sections.push("- Write clear, self-documenting code")
-	sections.push("- Add comments for complex logic")
-	sections.push("- Keep functions small and focused")
-	sections.push("- Follow DRY (Don't Repeat Yourself) principle")
-	sections.push("- Handle edge cases and errors gracefully")
-	sections.push("- Write meaningful commit messages")
-	sections.push("")
-
-	return sections.join("\n")
-}
-
-/**
- * Generates rules for the workspace and saves them to a file
- */
-export async function generateRulesForWorkspace(
-	workspacePath: string,
-	apiConfiguration?: ProviderSettings,
-): Promise<string> {
-	// Analyze the project
-	const config = await analyzeProjectConfig(workspacePath)
-
-	// Generate rules content using LLM with fallback
-	const rulesContent = await generateRulesWithLLM(workspacePath, config, apiConfiguration)
-
-	// Ensure .roo/rules directory exists
-	const rooDir = getProjectRooDirectoryForCwd(workspacePath)
-	const rulesDir = path.join(rooDir, "rules")
-	await fs.mkdir(rulesDir, { recursive: true })
-
-	// Generate filename with timestamp
-	const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5)
-	const rulesFileName = `generated-rules-${timestamp}.md`
-	const rulesPath = path.join(rulesDir, rulesFileName)
-
-	// Write rules file
-	await fs.writeFile(rulesPath, rulesContent, "utf-8")
-
-	// Open the file in VSCode
-	const doc = await vscode.workspace.openTextDocument(rulesPath)
-	await vscode.window.showTextDocument(doc)
-
-	return rulesPath
+	return taskMessage
 }

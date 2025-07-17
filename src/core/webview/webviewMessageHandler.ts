@@ -1884,7 +1884,7 @@ export const webviewMessageHandler = async (
 			}
 			break
 		case "generateRules":
-			// Generate rules for the current workspace
+			// Generate rules for the current workspace by spawning a new task
 			try {
 				const workspacePath = getWorkspacePath()
 				if (!workspacePath) {
@@ -1896,20 +1896,27 @@ export const webviewMessageHandler = async (
 					break
 				}
 
-				// Get the current API configuration
-				const { apiConfiguration } = await provider.getState()
-
 				// Import the rules generation service
-				const { generateRulesForWorkspace } = await import("../../services/rules/rulesGenerator")
+				const { createRulesGenerationTaskMessage } = await import("../../services/rules/rulesGenerator")
 
-				// Generate the rules with LLM support
-				const rulesPath = await generateRulesForWorkspace(workspacePath, apiConfiguration)
+				// Create a comprehensive message for the rules generation task using existing analysis logic
+				const rulesGenerationMessage = await createRulesGenerationTaskMessage(workspacePath)
 
-				// Send success message back to webview
+				// Spawn a new task in code mode to generate the rules
+				await provider.initClineWithTask(rulesGenerationMessage)
+
+				// Send success message back to webview indicating task was created
 				await provider.postMessageToWebview({
 					type: "rulesGenerationStatus",
 					success: true,
-					text: rulesPath,
+					text: "Rules generation task created successfully. The new task will analyze your codebase and generate comprehensive rules.",
+				})
+
+				// Automatically navigate to the chat tab to show the new task
+				await provider.postMessageToWebview({
+					type: "action",
+					action: "switchTab",
+					tab: "chat",
 				})
 			} catch (error) {
 				// Send error message back to webview

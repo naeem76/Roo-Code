@@ -84,16 +84,14 @@ export const RulesSettings = ({ className, ...props }: RulesSettingsProps) => {
 
 						{isGenerating && (
 							<p className="text-vscode-descriptionForeground text-sm">
-								{t("settings:rules.generatingDescription")}
+								{t("settings:rules.creatingTaskDescription")}
 							</p>
 						)}
 
 						{generationStatus.type === "success" && (
 							<div className="text-vscode-testing-iconPassed text-sm">
-								<p>{t("settings:rules.success")}</p>
-								<p className="text-vscode-descriptionForeground">
-									{t("settings:rules.successDescription", { path: generationStatus.message })}
-								</p>
+								<p>{t("settings:rules.taskCreated")}</p>
+								<p className="text-vscode-descriptionForeground">{generationStatus.message}</p>
 							</div>
 						)}
 
