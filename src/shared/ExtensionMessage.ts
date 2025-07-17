@@ -106,8 +106,10 @@ export interface ExtensionMessage {
 		| "codeIndexSettingsSaved"
 		| "codeIndexSecretStatus"
 		| "rulesGenerationStatus"
+		| "existingRuleFiles"
 	text?: string
 	payload?: any // Add a generic payload for now, can refine later
+	files?: string[] // For existingRuleFiles
 	action?:
 		| "chatButtonClicked"
 		| "mcpButtonClicked"

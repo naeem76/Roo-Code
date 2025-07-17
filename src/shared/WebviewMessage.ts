@@ -195,6 +195,7 @@ export interface WebviewMessage {
 		| "saveCodeIndexSettingsAtomic"
 		| "requestCodeIndexSecretStatus"
 		| "generateRules"
+		| "checkExistingRuleFiles"
 	text?: string
 	editedMessageContent?: string
 	tab?: "settings" | "history" | "mcp" | "modes" | "chat" | "marketplace" | "account"
@@ -236,6 +237,11 @@ export interface WebviewMessage {
 	visibility?: ShareVisibility // For share visibility
 	hasContent?: boolean // For checkRulesDirectoryResult
 	checkOnly?: boolean // For deleteCustomMode check
+	selectedRuleTypes?: string[] // For generateRules
+	addToGitignore?: boolean // For generateRules
+	alwaysAllowWriteProtected?: boolean // For generateRules
+	apiConfigName?: string // For generateRules
+	files?: string[] // For existingRuleFiles response
 	codeIndexSettings?: {
 		// Global state settings
 		codebaseIndexEnabled: boolean

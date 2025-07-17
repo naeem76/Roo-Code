@@ -1899,11 +1899,37 @@ export const webviewMessageHandler = async (
 				// Import the rules generation service
 				const { createRulesGenerationTaskMessage } = await import("../../services/rules/rulesGenerator")
 
+				// Get selected rule types and options from the message
+				const selectedRuleTypes = message.selectedRuleTypes || ["general"]
+				const addToGitignore = message.addToGitignore || false
+				const alwaysAllowWriteProtected = message.alwaysAllowWriteProtected || false
+				const apiConfigName = message.apiConfigName
+
+				// Save current API config to restore later
+				const currentApiConfig = getGlobalState("currentApiConfigName")
+
+				// Temporarily switch to the selected API config if provided
+				if (apiConfigName && apiConfigName !== currentApiConfig) {
+					await updateGlobalState("currentApiConfigName", apiConfigName)
+					await provider.postStateToWebview()
+				}
+
 				// Create a comprehensive message for the rules generation task using existing analysis logic
-				const rulesGenerationMessage = await createRulesGenerationTaskMessage(workspacePath)
+				const rulesGenerationMessage = await createRulesGenerationTaskMessage(
+					workspacePath,
+					selectedRuleTypes,
+					addToGitignore,
+					alwaysAllowWriteProtected,
+				)
 
 				// Spawn a new task in code mode to generate the rules
 				await provider.initClineWithTask(rulesGenerationMessage)
+
+				// Restore the original API config
+				if (apiConfigName && apiConfigName !== currentApiConfig) {
+					await updateGlobalState("currentApiConfigName", currentApiConfig)
+					await provider.postStateToWebview()
+				}
 
 				// Send success message back to webview indicating task was created
 				await provider.postMessageToWebview({
@@ -1925,6 +1951,45 @@ export const webviewMessageHandler = async (
 					success: false,
 					error: error instanceof Error ? error.message : String(error),
 				})
+			}
+			break
+		case "checkExistingRuleFiles":
+			// Check which rule files already exist
+			try {
+				const workspacePath = getWorkspacePath()
+				if (!workspacePath) {
+					break
+				}
+
+				const { fileExistsAtPath } = await import("../../utils/fs")
+				const path = await import("path")
+
+				const ruleTypeToPath: Record<string, string> = {
+					general: path.join(workspacePath, ".roo", "rules", "coding-standards.md"),
+					code: path.join(workspacePath, ".roo", "rules-code", "implementation-rules.md"),
+					architect: path.join(workspacePath, ".roo", "rules-architect", "architecture-rules.md"),
+					debug: path.join(workspacePath, ".roo", "rules-debug", "debugging-rules.md"),
+					"docs-extractor": path.join(
+						workspacePath,
+						".roo",
+						"rules-docs-extractor",
+						"documentation-rules.md",
+					),
+				}
+
+				const existingFiles: string[] = []
+				for (const [type, filePath] of Object.entries(ruleTypeToPath)) {
+					if (await fileExistsAtPath(filePath)) {
+						existingFiles.push(type)
+					}
+				}
+
+				await provider.postMessageToWebview({
+					type: "existingRuleFiles",
+					files: existingFiles,
+				})
+			} catch (error) {
+				// Silently fail - not critical
 			}
 			break
 		case "humanRelayResponse":

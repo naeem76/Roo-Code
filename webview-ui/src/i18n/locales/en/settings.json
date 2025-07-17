@@ -619,7 +619,40 @@
 		"existingRules": "Existing rules detected",
 		"existingRulesDescription": "Rules already exist at {{path}}. Generating new rules will create a timestamped file to preserve your existing rules.",
 		"noWorkspace": "No workspace folder open",
-		"noWorkspaceDescription": "Please open a workspace folder to generate rules for your project."
+		"noWorkspaceDescription": "Please open a workspace folder to generate rules for your project.",
+		"selectTypes": "Select rule types to generate:",
+		"noRulesSelected": "Please select at least one rule type to generate",
+		"types": {
+			"general": {
+				"label": "General Rules",
+				"description": "General coding standards applied to all modes"
+			},
+			"code": {
+				"label": "Code Mode Rules",
+				"description": "Specific rules for code syntax, implementation details, and best practices"
+			},
+			"architect": {
+				"label": "Architect Mode Rules",
+				"description": "Rules for high-level system design, file organization, and architecture patterns"
+			},
+			"debug": {
+				"label": "Debug Mode Rules",
+				"description": "Rules for debugging workflows, error handling, and troubleshooting approaches"
+			},
+			"docsExtractor": {
+				"label": "Documentation Rules",
+				"description": "Rules for documentation extraction and formatting standards"
+			}
+		},
+		"fileExists": "File exists",
+		"overwriteWarning": "Warning: The following rule files already exist and will be overwritten:",
+		"addToGitignore": "Add to .gitignore",
+		"addToGitignoreDescription": "Automatically add the generated rule files to .gitignore to prevent them from being committed to version control",
+		"autoApproveProtected": "Auto-approve protected file writes",
+		"autoApproveProtectedDescription": "Allow Roo to write to .roo directory without requiring manual approval",
+		"autoApproveRecommendation": "For the best experience generating rules, we recommend enabling auto-approve for both read and write operations in the Auto-Approve settings above.",
+		"apiConfigLabel": "API Configuration",
+		"selectApiConfig": "Select API configuration"
 	},
 	"promptCaching": {
 		"label": "Disable prompt caching",

@@ -204,18 +204,72 @@ async function generateCodebaseSummary(workspacePath: string, config: ProjectCon
 /**
  * Creates a comprehensive task message for rules generation that can be used with initClineWithTask
  */
-export async function createRulesGenerationTaskMessage(workspacePath: string): Promise<string> {
+export async function createRulesGenerationTaskMessage(
+	workspacePath: string,
+	selectedRuleTypes: string[],
+	addToGitignore: boolean,
+	alwaysAllowWriteProtected: boolean = false,
+): Promise<string> {
 	// Analyze the project to get context
 	const config = await analyzeProjectConfig(workspacePath)
 	const codebaseSummary = await generateCodebaseSummary(workspacePath, config)
 
-	// Ensure .roo/rules directory exists at project root
-	const rooRulesDir = path.join(workspacePath, ".roo", "rules")
-	try {
-		await fs.mkdir(rooRulesDir, { recursive: true })
-	} catch (error) {
-		// Directory might already exist, which is fine
+	// Ensure all necessary directories exist at project root
+	const directoriesToCreate = [
+		path.join(workspacePath, ".roo", "rules"),
+		path.join(workspacePath, ".roo", "rules-code"),
+		path.join(workspacePath, ".roo", "rules-architect"),
+		path.join(workspacePath, ".roo", "rules-debug"),
+		path.join(workspacePath, ".roo", "rules-docs-extractor"),
+	]
+
+	for (const dir of directoriesToCreate) {
+		try {
+			await fs.mkdir(dir, { recursive: true })
+		} catch (error) {
+			// Directory might already exist, which is fine
+		}
 	}
+
+	// Create rule-specific instructions based on selected types
+	interface RuleInstruction {
+		path: string
+		focus: string
+	}
+
+	const ruleInstructions: RuleInstruction[] = selectedRuleTypes
+		.map((type) => {
+			switch (type) {
+				case "general":
+					return {
+						path: ".roo/rules/coding-standards.md",
+						focus: "General coding standards that apply to all modes, including naming conventions, file organization, and general best practices",
+					}
+				case "code":
+					return {
+						path: ".roo/rules-code/implementation-rules.md",
+						focus: "Specific rules for code implementation, focusing on syntax patterns, code structure, error handling, testing approaches, and detailed implementation guidelines",
+					}
+				case "architect":
+					return {
+						path: ".roo/rules-architect/architecture-rules.md",
+						focus: "High-level system design rules, focusing on file layout, module organization, architectural patterns, and system-wide design principles",
+					}
+				case "debug":
+					return {
+						path: ".roo/rules-debug/debugging-rules.md",
+						focus: "Debugging workflow rules, including error investigation approaches, logging strategies, troubleshooting patterns, and debugging best practices",
+					}
+				case "docs-extractor":
+					return {
+						path: ".roo/rules-docs-extractor/documentation-rules.md",
+						focus: "Documentation extraction and formatting rules, including documentation style guides, API documentation patterns, and content organization",
+					}
+				default:
+					return null
+			}
+		})
+		.filter((rule): rule is RuleInstruction => rule !== null)
 
 	// Create a comprehensive message for the rules generation task
 	const taskMessage = `Analyze this codebase and generate comprehensive rules for AI agents working in this repository.
@@ -233,10 +287,17 @@ ${codebaseSummary}
    - Project-specific conventions and best practices
    - File organization patterns
 
-3. **Save the rules** to the file at exactly this path: .roo/rules/coding-standards.md
-   - The .roo/rules directory has already been created for you
-   - Always overwrite the existing file if it exists
-   - Use the \`write_to_file\` tool to save the content
+3. **Generate and save the following rule files**:
+${ruleInstructions
+	.map(
+		(rule, index) => `
+   ${index + 1}. **${rule.path}**
+      - Focus: ${rule.focus}
+      - The directory has already been created for you
+      - Always overwrite the existing file if it exists
+      - Use the \`write_to_file\` tool to save the content${alwaysAllowWriteProtected ? "\n       - Note: Auto-approval for protected file writes is enabled, so you can write to .roo directories without manual approval" : ""}`,
+	)
+	.join("\n")}
 
 4. **Open the generated file** in the editor for review
 
@@ -244,7 +305,17 @@ The rules should be about 20-30 lines long and focus on the most important guide
 
 If there are existing rules files (like CLAUDE.md, .cursorrules, .cursor/rules, .github/copilot-instructions.md), incorporate and improve upon them.
 
-Use the \`safeWriteJson\` utility from \`src/utils/safeWriteJson.ts\` for any JSON file operations to ensure atomic writes.`
+Use the \`safeWriteJson\` utility from \`src/utils/safeWriteJson.ts\` for any JSON file operations to ensure atomic writes.
+
+${
+	addToGitignore
+		? `5. **Add the generated files to .gitignore**:
+   - After generating all rule files, add entries to .gitignore to prevent them from being committed
+   - Add each generated file path to .gitignore (e.g., .roo/rules/coding-standards.md)
+   - If .gitignore doesn't exist, create it
+   - If the entries already exist in .gitignore, don't duplicate them`
+		: ""
+}`
 
 	return taskMessage
 }
