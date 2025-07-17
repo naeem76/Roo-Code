@@ -301,11 +301,11 @@
 			},
 			"urlContext": {
 				"title": "Enable URL Context",
-				"description": "Allows Gemini to access and process URLs for additional context when generating responses. Useful for tasks requiring web content analysis."
+				"description": "Lets Gemini read linked pages to extract, compare, and synthesize their content into informed responses."
 			},
 			"groundingSearch": {
 				"title": "Enable Grounding with Google Search",
-				"description": "Enables Gemini to search Google for current information and ground responses in real-time data. Useful for queries requiring up-to-date information."
+				"description": "Connects Gemini to real‑time web data for accurate, up‑to‑date answers with verifiable citations."
 			}
 		},
 		"googleCloudSetup": {
