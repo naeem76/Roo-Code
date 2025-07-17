@@ -61,7 +61,7 @@
 		"deleteQuestionWithCheckpoint": "Excluir esta mensagem irá excluir todas as mensagens posteriores na conversa. Você também deseja desfazer todas as alterações de código até este checkpoint?",
 		"editOnly": "Não, apenas editar a mensagem",
 		"deleteOnly": "Não, apenas excluir a mensagem",
-		"restoreToCeckpoint": "Sim, restaurar código para o checkpoint",
+		"restoreToCheckpoint": "Sim, restaurar código para o checkpoint",
 		"proceed": "Prosseguir",
 		"dontShowAgain": "Não mostrar novamente"
 	}

@@ -61,7 +61,7 @@
 		"deleteQuestionWithCheckpoint": "Menghapus pesan ini akan menghapus semua pesan selanjutnya dalam percakapan. Apakah kamu juga ingin membatalkan semua perubahan kode kembali ke checkpoint ini?",
 		"editOnly": "Tidak, edit pesan saja",
 		"deleteOnly": "Tidak, hapus pesan saja",
-		"restoreToCeckpoint": "Ya, pulihkan kode ke checkpoint",
+		"restoreToCheckpoint": "Ya, pulihkan kode ke checkpoint",
 		"proceed": "Lanjutkan",
 		"dontShowAgain": "Jangan tampilkan lagi"
 	}

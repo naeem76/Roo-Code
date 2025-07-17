@@ -61,7 +61,7 @@
 		"deleteQuestionWithCheckpoint": "Deleting this message will delete all later messages in the conversation. Do you also want to undo all code changes back to this checkpoint?",
 		"editOnly": "No, edit message only",
 		"deleteOnly": "No, delete message only",
-		"restoreToCeckpoint": "Yes, restore code to checkpoint",
+		"restoreToCheckpoint": "Yes, restore code to checkpoint",
 		"proceed": "Proceed",
 		"dontShowAgain": "Don't show this again"
 	}

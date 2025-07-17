@@ -61,7 +61,7 @@
 		"deleteQuestionWithCheckpoint": "Supprimer ce message supprimera tous les messages ultérieurs dans la conversation. Voulez-vous aussi annuler tous les changements de code jusqu'à ce point de contrôle ?",
 		"editOnly": "Non, modifier le message seulement",
 		"deleteOnly": "Non, supprimer le message seulement",
-		"restoreToCeckpoint": "Oui, restaurer le code au point de contrôle",
+		"restoreToCheckpoint": "Oui, restaurer le code au point de contrôle",
 		"proceed": "Continuer",
 		"dontShowAgain": "Ne plus afficher ceci"
 	}

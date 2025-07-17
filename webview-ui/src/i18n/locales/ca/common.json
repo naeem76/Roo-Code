@@ -61,7 +61,7 @@
 		"deleteQuestionWithCheckpoint": "Eliminar aquest missatge eliminarà tots els missatges posteriors de la conversa. També vols desfer tots els canvis de codi fins a aquest punt de control?",
 		"editOnly": "No, només editar el missatge",
 		"deleteOnly": "No, només eliminar el missatge",
-		"restoreToCeckpoint": "Sí, restaurar el codi al punt de control",
+		"restoreToCheckpoint": "Sí, restaurar el codi al punt de control",
 		"proceed": "Continuar",
 		"dontShowAgain": "No tornis a mostrar això"
 	}

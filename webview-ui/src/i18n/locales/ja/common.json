@@ -61,7 +61,7 @@
 		"deleteQuestionWithCheckpoint": "このメッセージを削除すると、会話内の後続のメッセージもすべて削除されます。このチェックポイントまでのすべてのコード変更も元に戻しますか？",
 		"editOnly": "いいえ、メッセージのみ編集",
 		"deleteOnly": "いいえ、メッセージのみ削除",
-		"restoreToCeckpoint": "はい、コードをチェックポイントに復元",
+		"restoreToCheckpoint": "はい、コードをチェックポイントに復元",
 		"proceed": "続行",
 		"dontShowAgain": "今後表示しない"
 	}

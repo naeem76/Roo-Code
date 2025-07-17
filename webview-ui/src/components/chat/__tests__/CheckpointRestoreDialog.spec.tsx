@@ -19,7 +19,7 @@ vi.mock("@src/i18n/TranslationContext", () => ({
 					"Editing this message will delete all subsequent messages in the conversation. Do you want to proceed?",
 				"common:confirmation.editOnly": "Edit Only",
 				"common:confirmation.deleteOnly": "Delete Only",
-				"common:confirmation.restoreToCeckpoint": "Restore to Checkpoint",
+				"common:confirmation.restoreToCheckpoint": "Restore to Checkpoint",
 				"common:answers.cancel": "Cancel",
 			}
 			return translations[key] || key

@@ -61,7 +61,7 @@
 		"deleteQuestionWithCheckpoint": "Das Löschen dieser Nachricht wird alle späteren Nachrichten in der Unterhaltung löschen. Möchtest du auch alle Code-Änderungen bis zu diesem Checkpoint rückgängig machen?",
 		"editOnly": "Nein, nur Nachricht bearbeiten",
 		"deleteOnly": "Nein, nur Nachricht löschen",
-		"restoreToCeckpoint": "Ja, Code zum Checkpoint wiederherstellen",
+		"restoreToCheckpoint": "Ja, Code zum Checkpoint wiederherstellen",
 		"proceed": "Fortfahren",
 		"dontShowAgain": "Nicht mehr anzeigen"
 	}

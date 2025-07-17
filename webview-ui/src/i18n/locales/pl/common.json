@@ -61,7 +61,7 @@
 		"deleteQuestionWithCheckpoint": "Usunięcie tej wiadomości spowoduje usunięcie wszystkich późniejszych wiadomości w rozmowie. Czy chcesz również cofnąć wszystkie zmiany w kodzie do tego punktu kontrolnego?",
 		"editOnly": "Nie, tylko edytuj wiadomość",
 		"deleteOnly": "Nie, tylko usuń wiadomość",
-		"restoreToCeckpoint": "Tak, przywróć kod do punktu kontrolnego",
+		"restoreToCheckpoint": "Tak, przywróć kod do punktu kontrolnego",
 		"proceed": "Kontynuuj",
 		"dontShowAgain": "Nie pokazuj ponownie"
 	}

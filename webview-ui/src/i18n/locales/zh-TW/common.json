@@ -61,7 +61,7 @@
 		"deleteQuestionWithCheckpoint": "刪除此訊息將刪除對話中的所有後續訊息。是否同時將程式碼變更撤銷到此存檔點？",
 		"editOnly": "否，僅編輯訊息",
 		"deleteOnly": "否，僅刪除訊息",
-		"restoreToCeckpoint": "是，恢復程式碼到存檔點",
+		"restoreToCheckpoint": "是，恢復程式碼到存檔點",
 		"proceed": "繼續",
 		"dontShowAgain": "不再顯示"
 	}

@@ -64,7 +64,7 @@ export const CheckpointRestoreDialog: React.FC<CheckpointRestoreDialogProps> = (
 						<AlertDialogAction
 							onClick={handleConfirmWithRestore}
 							className="bg-vscode-button-background hover:bg-vscode-button-hoverBackground text-vscode-button-foreground border-vscode-button-border">
-							{t("common:confirmation.restoreToCeckpoint")}
+							{t("common:confirmation.restoreToCheckpoint")}
 						</AlertDialogAction>
 					)}
 				</AlertDialogFooter>

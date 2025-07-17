@@ -61,7 +61,7 @@
 		"deleteQuestionWithCheckpoint": "Xóa tin nhắn này sẽ xóa tất cả các tin nhắn sau đó trong cuộc trò chuyện. Bạn có muốn hoàn tác tất cả các thay đổi mã về checkpoint này không?",
 		"editOnly": "Không, chỉ chỉnh sửa tin nhắn",
 		"deleteOnly": "Không, chỉ xóa tin nhắn",
-		"restoreToCeckpoint": "Có, khôi phục mã về checkpoint",
+		"restoreToCheckpoint": "Có, khôi phục mã về checkpoint",
 		"proceed": "Tiếp Tục",
 		"dontShowAgain": "Không hiển thị lại"
 	}
