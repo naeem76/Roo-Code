@@ -96,7 +96,14 @@ export class OpenAICompatibleEmbedder implements IEmbedder {
 					const prefixedText = `${queryPrefix}${text}`
 					const estimatedTokens = Math.ceil(prefixedText.length / 4)
 					if (estimatedTokens > MAX_ITEM_TOKENS) {
-						// Silently skip prefix if it would exceed limit
+						console.warn(
+							t("embeddings:textWithPrefixExceedsTokenLimit", {
+								index,
+								estimatedTokens,
+								maxTokens: MAX_ITEM_TOKENS,
+							}),
+						)
+						// Return original text if adding prefix would exceed limit
 						return text
 					}
 					return prefixedText
@@ -117,7 +124,13 @@ export class OpenAICompatibleEmbedder implements IEmbedder {
 				const itemTokens = Math.ceil(text.length / 4)
 
 				if (itemTokens > this.maxItemTokens) {
-					// Silently skip texts that exceed token limit
+					console.warn(
+						t("embeddings:textExceedsTokenLimit", {
+							index: i,
+							itemTokens,
+							maxTokens: this.maxItemTokens,
+						}),
+					)
 					processedIndices.push(i)
 					continue
 				}
@@ -309,19 +322,20 @@ export class OpenAICompatibleEmbedder implements IEmbedder {
 						const globalDelay = await this.getGlobalRateLimitDelay()
 						const delayMs = Math.max(baseDelay, globalDelay)
 
-						// Silent retry - no logging to prevent flooding
+						console.warn(
+							t("embeddings:rateLimitRetry", {
+								delayMs,
+								attempt: attempts + 1,
+								maxRetries: MAX_RETRIES,
+							}),
+						)
 						await new Promise((resolve) => setTimeout(resolve, delayMs))
 						continue
 					}
 				}
 
-				// Only log error on final attempt
-				if (!hasMoreAttempts) {
-					console.error(
-						`OpenAI Compatible embedder error after ${MAX_RETRIES} attempts:`,
-						error.message || error,
-					)
-				}
+				// Log the error for debugging
+				console.error(`OpenAI Compatible embedder error (attempt ${attempts + 1}/${MAX_RETRIES}):`, error)
 
 				// Format and throw the error
 				throw formatEmbeddingError(error, MAX_RETRIES)

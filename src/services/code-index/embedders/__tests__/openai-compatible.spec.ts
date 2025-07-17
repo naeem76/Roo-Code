@@ -341,7 +341,9 @@ describe("OpenAICompatibleEmbedder", () => {
 
 				await embedder.createEmbeddings(testTexts)
 
-				// Should silently skip oversized text - no logging to prevent flooding
+				// Should warn about oversized text
+				expect(console.warn).toHaveBeenCalledWith(expect.stringContaining("exceeds maximum token limit"))
+
 				// Should only process normal texts (1 call for 2 normal texts batched together)
 				expect(mockEmbeddingsCreate).toHaveBeenCalledTimes(1)
 			})
@@ -408,7 +410,7 @@ describe("OpenAICompatibleEmbedder", () => {
 				const result = await resultPromise
 
 				expect(mockEmbeddingsCreate).toHaveBeenCalledTimes(3)
-				// No rate limit logging expected - removed to prevent log flooding
+				expect(console.warn).toHaveBeenCalledWith(expect.stringContaining("Rate limit hit, retrying in"))
 				expect(result).toEqual({
 					embeddings: [[0.25, 0.5, 0.75]],
 					usage: { promptTokens: 10, totalTokens: 15 },
@@ -459,7 +461,10 @@ describe("OpenAICompatibleEmbedder", () => {
 					"Failed to create embeddings after 3 attempts: API connection failed",
 				)
 
-				// Error logging only on final attempt - removed intermediate logging
+				expect(console.error).toHaveBeenCalledWith(
+					expect.stringContaining("OpenAI Compatible embedder error"),
+					apiError,
+				)
 			})
 
 			it("should handle batch processing errors", async () => {
@@ -472,7 +477,10 @@ describe("OpenAICompatibleEmbedder", () => {
 					"Failed to create embeddings after 3 attempts: Batch processing failed",
 				)
 
-				// Error logging only on final attempt - removed intermediate logging
+				expect(console.error).toHaveBeenCalledWith(
+					expect.stringContaining("OpenAI Compatible embedder error"),
+					expect.any(Error),
+				)
 			})
 
 			it("should handle empty text arrays", async () => {
@@ -817,7 +825,8 @@ describe("OpenAICompatibleEmbedder", () => {
 					const result = await resultPromise
 
 					expect(global.fetch).toHaveBeenCalledTimes(3)
-					// No rate limit logging expected - removed to prevent log flooding
+					// Check that rate limit warnings were logged
+					expect(console.warn).toHaveBeenCalledWith(expect.stringContaining("Rate limit hit"))
 					expectEmbeddingValues(result.embeddings[0], [0.1, 0.2, 0.3])
 					vitest.useRealTimers()
 				})
