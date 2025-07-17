@@ -82,7 +82,7 @@ export async function presentAssistantMessage(cline: Task) {
 
 	switch (block.type) {
 		case "text": {
-			if (cline.didRejectTool || cline.didAlreadyUseTool) {
+			if (cline.didRejectTool) {
 				break
 			}
 
