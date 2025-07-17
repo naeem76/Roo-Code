@@ -203,11 +203,12 @@ export const OpenAICompatible = ({
 					{t("settings:modelInfo.azureApiVersion")}
 				</Checkbox>
 				{showApiVersionExtraction && (
-					<div className="text-sm text-vscode-descriptionForeground ml-6 mb-2">
-						API version detected in Base URL: <strong>{extractedApiVersion}</strong>
-						<br />
-						This will be used automatically. Enable the checkbox above to override.
-					</div>
+					<div
+						className="text-sm text-vscode-descriptionForeground ml-6 mb-2"
+						dangerouslySetInnerHTML={{
+							__html: t("settings:modelInfo.azureApiVersionDetected", { version: extractedApiVersion }),
+						}}
+					/>
 				)}
 				{azureApiVersionSelected && (
 					<VSCodeTextField
