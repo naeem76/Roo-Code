@@ -60,6 +60,16 @@ describe("OpenAICompatibleEmbedder", () => {
 		}
 
 		MockedOpenAI.mockImplementation(() => mockOpenAIInstance)
+
+		// Reset global rate limit state to prevent interference between tests
+		const tempEmbedder = new OpenAICompatibleEmbedder(testBaseUrl, testApiKey, testModelId)
+		;(tempEmbedder as any).constructor.globalRateLimitState = {
+			isRateLimited: false,
+			rateLimitResetTime: 0,
+			consecutiveRateLimitErrors: 0,
+			lastRateLimitError: 0,
+			mutex: (tempEmbedder as any).constructor.globalRateLimitState.mutex,
+		}
 	})
 
 	afterEach(() => {
@@ -331,9 +341,7 @@ describe("OpenAICompatibleEmbedder", () => {
 
 				await embedder.createEmbeddings(testTexts)
 
-				// Should warn about oversized text
-				expect(console.warn).toHaveBeenCalledWith(expect.stringContaining("exceeds maximum token limit"))
-
+				// Should silently skip oversized text - no logging to prevent flooding
 				// Should only process normal texts (1 call for 2 normal texts batched together)
 				expect(mockEmbeddingsCreate).toHaveBeenCalledTimes(1)
 			})
@@ -385,14 +393,22 @@ describe("OpenAICompatibleEmbedder", () => {
 
 				const resultPromise = embedder.createEmbeddings(testTexts)
 
-				// Fast-forward through the delays
-				await vitest.advanceTimersByTimeAsync(INITIAL_RETRY_DELAY_MS) // First retry delay
-				await vitest.advanceTimersByTimeAsync(INITIAL_RETRY_DELAY_MS * 2) // Second retry delay
+				// First attempt fails immediately, triggering global rate limit (5s)
+				await vitest.advanceTimersByTimeAsync(100)
+
+				// Wait for global rate limit delay
+				await vitest.advanceTimersByTimeAsync(5000)
+
+				// Second attempt also fails, increasing delay
+				await vitest.advanceTimersByTimeAsync(100)
+
+				// Wait for increased global rate limit delay (10s)
+				await vitest.advanceTimersByTimeAsync(10000)
 
 				const result = await resultPromise
 
 				expect(mockEmbeddingsCreate).toHaveBeenCalledTimes(3)
-				expect(console.warn).toHaveBeenCalledWith(expect.stringContaining("Rate limit hit, retrying in"))
+				// No rate limit logging expected - removed to prevent log flooding
 				expect(result).toEqual({
 					embeddings: [[0.25, 0.5, 0.75]],
 					usage: { promptTokens: 10, totalTokens: 15 },
@@ -443,10 +459,7 @@ describe("OpenAICompatibleEmbedder", () => {
 					"Failed to create embeddings after 3 attempts: API connection failed",
 				)
 
-				expect(console.error).toHaveBeenCalledWith(
-					expect.stringContaining("OpenAI Compatible embedder error"),
-					expect.any(Error),
-				)
+				// Error logging only on final attempt - removed intermediate logging
 			})
 
 			it("should handle batch processing errors", async () => {
@@ -459,10 +472,7 @@ describe("OpenAICompatibleEmbedder", () => {
 					"Failed to create embeddings after 3 attempts: Batch processing failed",
 				)
 
-				expect(console.error).toHaveBeenCalledWith(
-					expect.stringContaining("OpenAI Compatible embedder error"),
-					batchError,
-				)
+				// Error logging only on final attempt - removed intermediate logging
 			})
 
 			it("should handle empty text arrays", async () => {
@@ -791,11 +801,23 @@ describe("OpenAICompatibleEmbedder", () => {
 						)
 
 					const resultPromise = embedder.createEmbeddings(["test"])
-					await vitest.advanceTimersByTimeAsync(INITIAL_RETRY_DELAY_MS * 3)
+
+					// First attempt fails, triggering global rate limit
+					await vitest.advanceTimersByTimeAsync(100)
+
+					// Wait for global rate limit (5s)
+					await vitest.advanceTimersByTimeAsync(5000)
+
+					// Second attempt also fails
+					await vitest.advanceTimersByTimeAsync(100)
+
+					// Wait for increased global rate limit (10s)
+					await vitest.advanceTimersByTimeAsync(10000)
+
 					const result = await resultPromise
 
 					expect(global.fetch).toHaveBeenCalledTimes(3)
-					expect(console.warn).toHaveBeenCalledWith(expect.stringContaining("Rate limit hit"))
+					// No rate limit logging expected - removed to prevent log flooding
 					expectEmbeddingValues(result.embeddings[0], [0.1, 0.2, 0.3])
 					vitest.useRealTimers()
 				})
