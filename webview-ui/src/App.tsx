@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, useMemo } from "react"
+import React, { useCallback, useEffect, useRef, useState, useMemo } from "react"
 import { useEvent } from "react-use"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 
@@ -26,6 +26,32 @@ import { TooltipProvider } from "./components/ui/tooltip"
 import { STANDARD_TOOLTIP_DELAY } from "./components/ui/standard-tooltip"
 
 type Tab = "settings" | "history" | "mcp" | "modes" | "chat" | "marketplace" | "account"
+
+interface HumanRelayDialogState {
+	isOpen: boolean
+	requestId: string
+	promptText: string
+}
+
+interface DeleteMessageDialogState {
+	isOpen: boolean
+	messageTs: number
+	hasCheckpoint: boolean
+}
+
+interface EditMessageDialogState {
+	isOpen: boolean
+	messageTs: number
+	text: string
+	hasCheckpoint: boolean
+	images?: string[]
+}
+
+// Memoize dialog components to prevent unnecessary re-renders
+const MemoizedDeleteMessageDialog = React.memo(DeleteMessageDialog)
+const MemoizedEditMessageDialog = React.memo(EditMessageDialog)
+const MemoizedCheckpointRestoreDialog = React.memo(CheckpointRestoreDialog)
+const MemoizedHumanRelayDialog = React.memo(HumanRelayDialog)
 
 const tabsByMessageAction: Partial<Record<NonNullable<ExtensionMessage["action"]>, Tab>> = {
 	chatButtonClicked: "chat",
@@ -58,33 +84,19 @@ const App = () => {
 	const [showAnnouncement, setShowAnnouncement] = useState(false)
 	const [tab, setTab] = useState<Tab>("chat")
 
-	const [humanRelayDialogState, setHumanRelayDialogState] = useState<{
-		isOpen: boolean
-		requestId: string
-		promptText: string
-	}>({
+	const [humanRelayDialogState, setHumanRelayDialogState] = useState<HumanRelayDialogState>({
 		isOpen: false,
 		requestId: "",
 		promptText: "",
 	})
 
-	const [deleteMessageDialogState, setDeleteMessageDialogState] = useState<{
-		isOpen: boolean
-		messageTs: number
-		hasCheckpoint: boolean
-	}>({
+	const [deleteMessageDialogState, setDeleteMessageDialogState] = useState<DeleteMessageDialogState>({
 		isOpen: false,
 		messageTs: 0,
 		hasCheckpoint: false,
 	})
 
-	const [editMessageDialogState, setEditMessageDialogState] = useState<{
-		isOpen: boolean
-		messageTs: number
-		text: string
-		hasCheckpoint: boolean
-		images?: string[]
-	}>({
+	const [editMessageDialogState, setEditMessageDialogState] = useState<EditMessageDialogState>({
 		isOpen: false,
 		messageTs: 0,
 		text: "",
@@ -243,7 +255,7 @@ const App = () => {
 				showAnnouncement={showAnnouncement}
 				hideAnnouncement={() => setShowAnnouncement(false)}
 			/>
-			<HumanRelayDialog
+			<MemoizedHumanRelayDialog
 				isOpen={humanRelayDialogState.isOpen}
 				requestId={humanRelayDialogState.requestId}
 				promptText={humanRelayDialogState.promptText}
@@ -252,7 +264,7 @@ const App = () => {
 				onCancel={(requestId) => vscode.postMessage({ type: "humanRelayCancel", requestId })}
 			/>
 			{deleteMessageDialogState.hasCheckpoint ? (
-				<CheckpointRestoreDialog
+				<MemoizedCheckpointRestoreDialog
 					open={deleteMessageDialogState.isOpen}
 					type="delete"
 					hasCheckpoint={deleteMessageDialogState.hasCheckpoint}
@@ -267,7 +279,7 @@ const App = () => {
 					}}
 				/>
 			) : (
-				<DeleteMessageDialog
+				<MemoizedDeleteMessageDialog
 					open={deleteMessageDialogState.isOpen}
 					onOpenChange={(open: boolean) => setDeleteMessageDialogState((prev) => ({ ...prev, isOpen: open }))}
 					onConfirm={() => {
@@ -280,7 +292,7 @@ const App = () => {
 				/>
 			)}
 			{editMessageDialogState.hasCheckpoint ? (
-				<CheckpointRestoreDialog
+				<MemoizedCheckpointRestoreDialog
 					open={editMessageDialogState.isOpen}
 					type="edit"
 					hasCheckpoint={editMessageDialogState.hasCheckpoint}
@@ -296,7 +308,7 @@ const App = () => {
 					}}
 				/>
 			) : (
-				<EditMessageDialog
+				<MemoizedEditMessageDialog
 					open={editMessageDialogState.isOpen}
 					onOpenChange={(open: boolean) => setEditMessageDialogState((prev) => ({ ...prev, isOpen: open }))}
 					onConfirm={() => {

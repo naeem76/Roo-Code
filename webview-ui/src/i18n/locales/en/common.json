@@ -53,16 +53,16 @@
 		}
 	},
 	"confirmation": {
-		"delete_message": "Delete Message",
-		"delete_warning": "Deleting this message will delete all subsequent messages in the conversation. Do you want to proceed?",
-		"edit_message": "Edit Message",
-		"edit_warning": "Editing this message will delete all subsequent messages in the conversation. Do you want to proceed?",
-		"edit_question_with_checkpoint": "Editing this message will delete all later messages in the conversation. Do you also want to undo all code changes back to this checkpoint?",
-		"delete_question_with_checkpoint": "Deleting this message will delete all later messages in the conversation. Do you also want to undo all code changes back to this checkpoint?",
-		"edit_only": "No, edit message only",
-		"delete_only": "No, delete message only",
-		"restore_to_checkpoint": "Yes, restore code to checkpoint",
+		"deleteMessage": "Delete Message",
+		"deleteWarning": "Deleting this message will delete all subsequent messages in the conversation. Do you want to proceed?",
+		"editMessage": "Edit Message",
+		"editWarning": "Editing this message will delete all subsequent messages in the conversation. Do you want to proceed?",
+		"editQuestionWithCheckpoint": "Editing this message will delete all later messages in the conversation. Do you also want to undo all code changes back to this checkpoint?",
+		"deleteQuestionWithCheckpoint": "Deleting this message will delete all later messages in the conversation. Do you also want to undo all code changes back to this checkpoint?",
+		"editOnly": "No, edit message only",
+		"deleteOnly": "No, delete message only",
+		"restoreToCeckpoint": "Yes, restore code to checkpoint",
 		"proceed": "Proceed",
-		"dont_show_again": "Don't show this again"
+		"dontShowAgain": "Don't show this again"
 	}
 }

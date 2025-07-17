@@ -53,16 +53,16 @@
 		}
 	},
 	"confirmation": {
-		"delete_message": "Eliminar missatge",
-		"delete_warning": "Eliminar aquest missatge eliminarà tots els missatges posteriors de la conversa. Vols continuar?",
-		"edit_message": "Editar missatge",
-		"edit_warning": "Editar aquest missatge eliminarà tots els missatges posteriors de la conversa. Vols continuar?",
-		"edit_question_with_checkpoint": "Editar aquest missatge eliminarà tots els missatges posteriors de la conversa. També vols desfer tots els canvis de codi fins a aquest punt de control?",
-		"delete_question_with_checkpoint": "Eliminar aquest missatge eliminarà tots els missatges posteriors de la conversa. També vols desfer tots els canvis de codi fins a aquest punt de control?",
-		"edit_only": "No, només editar el missatge",
-		"delete_only": "No, només eliminar el missatge",
-		"restore_to_checkpoint": "Sí, restaurar el codi al punt de control",
+		"deleteMessage": "Eliminar missatge",
+		"deleteWarning": "Eliminar aquest missatge eliminarà tots els missatges posteriors de la conversa. Vols continuar?",
+		"editMessage": "Editar missatge",
+		"editWarning": "Editar aquest missatge eliminarà tots els missatges posteriors de la conversa. Vols continuar?",
+		"editQuestionWithCheckpoint": "Editar aquest missatge eliminarà tots els missatges posteriors de la conversa. També vols desfer tots els canvis de codi fins a aquest punt de control?",
+		"deleteQuestionWithCheckpoint": "Eliminar aquest missatge eliminarà tots els missatges posteriors de la conversa. També vols desfer tots els canvis de codi fins a aquest punt de control?",
+		"editOnly": "No, només editar el missatge",
+		"deleteOnly": "No, només eliminar el missatge",
+		"restoreToCeckpoint": "Sí, restaurar el codi al punt de control",
 		"proceed": "Continuar",
-		"dont_show_again": "No tornis a mostrar això"
+		"dontShowAgain": "No tornis a mostrar això"
 	}
 }

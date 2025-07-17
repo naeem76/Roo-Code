@@ -29,6 +29,7 @@ import { VolumeX, Pin, Check, Image, WandSparkles, SendHorizontal } from "lucide
 import { IndexingStatusBadge } from "./IndexingStatusBadge"
 import { cn } from "@/lib/utils"
 import { usePromptHistory } from "./hooks/usePromptHistory"
+import { EditModeControls } from "./EditModeControls"
 
 interface ChatTextAreaProps {
 	inputValue: string
@@ -120,8 +121,25 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				const message = event.data
 
 				if (message.type === "enhancedPrompt") {
-					if (message.text) {
-						setInputValue(message.text)
+					if (message.text && textAreaRef.current) {
+						try {
+							// Use execCommand to replace text while preserving undo history
+							if (document.execCommand) {
+								// Use native browser methods to preserve undo stack
+								const textarea = textAreaRef.current
+
+								// Focus the textarea to ensure it's the active element
+								textarea.focus()
+
+								// Select all text first
+								textarea.select()
+								document.execCommand("insertText", false, message.text)
+							} else {
+								setInputValue(message.text)
+							}
+						} catch {
+							setInputValue(message.text)
+						}
 					}
 
 					setIsEnhancingPrompt(false)
@@ -806,77 +824,6 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			/>
 		)
 
-		// Helper function to render edit mode controls
-		const renderEditModeControls = () => (
-			<div
-				className={cn(
-					"flex",
-					"items-center",
-					"justify-between",
-					"absolute",
-					"bottom-2",
-					"left-2",
-					"right-2",
-					"z-30",
-				)}>
-				<div className={cn("flex", "items-center", "gap-1", "flex-1", "min-w-0")}>
-					<div className="shrink-0">{renderModeSelector()}</div>
-				</div>
-				<div className={cn("flex", "items-center", "gap-0.5", "shrink-0", "ml-2")}>
-					<Button
-						variant="secondary"
-						size="sm"
-						onClick={onCancel}
-						disabled={sendingDisabled}
-						className="text-xs bg-vscode-toolbar-hoverBackground hover:bg-vscode-button-secondaryBackground text-vscode-button-secondaryForeground">
-						Cancel
-					</Button>
-					<StandardTooltip content={t("chat:addImages")}>
-						<button
-							aria-label={t("chat:addImages")}
-							disabled={shouldDisableImages}
-							onClick={!shouldDisableImages ? onSelectImages : undefined}
-							className={cn(
-								"relative inline-flex items-center justify-center",
-								"bg-transparent border-none p-1.5",
-								"rounded-md min-w-[28px] min-h-[28px]",
-								"opacity-60 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
-								"transition-all duration-150",
-								"hover:bg-[rgba(255,255,255,0.03)] hover:border-[rgba(255,255,255,0.15)]",
-								"focus:outline-none focus-visible:ring-1 focus-visible:ring-vscode-focusBorder",
-								"active:bg-[rgba(255,255,255,0.1)]",
-								!shouldDisableImages && "cursor-pointer",
-								shouldDisableImages &&
-									"opacity-40 cursor-not-allowed grayscale-[30%] hover:bg-transparent hover:border-[rgba(255,255,255,0.08)] active:bg-transparent",
-							)}>
-							<Image className="w-4 h-4" />
-						</button>
-					</StandardTooltip>
-					<StandardTooltip content={t("chat:save.tooltip")}>
-						<button
-							aria-label={t("chat:save.tooltip")}
-							disabled={sendingDisabled}
-							onClick={!sendingDisabled ? onSend : undefined}
-							className={cn(
-								"relative inline-flex items-center justify-center",
-								"bg-transparent border-none p-1.5",
-								"rounded-md min-w-[28px] min-h-[28px]",
-								"opacity-60 hover:opacity-100 text-vscode-descriptionForeground hover:text-vscode-foreground",
-								"transition-all duration-150",
-								"hover:bg-[rgba(255,255,255,0.03)] hover:border-[rgba(255,255,255,0.15)]",
-								"focus:outline-none focus-visible:ring-1 focus-visible:ring-vscode-focusBorder",
-								"active:bg-[rgba(255,255,255,0.1)]",
-								!sendingDisabled && "cursor-pointer",
-								sendingDisabled &&
-									"opacity-40 cursor-not-allowed grayscale-[30%] hover:bg-transparent hover:border-[rgba(255,255,255,0.08)] active:bg-transparent",
-							)}>
-							<SendHorizontal className="w-4 h-4" />
-						</button>
-					</StandardTooltip>
-				</div>
-			</div>
-		)
-
 		// Helper function to get API config dropdown options
 		const getApiConfigOptions = useMemo(() => {
 			const pinnedConfigs = (listApiConfigMeta || [])
@@ -1235,12 +1182,12 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					"flex-col",
 					"gap-1",
 					"bg-editor-background",
-					"px-1.5",
+					isEditMode ? "px-0" : "px-1.5",
 					"pb-1",
 					"outline-none",
 					"border",
 					"border-none",
-					"w-[calc(100%-16px)]",
+					isEditMode ? "w-full" : "w-[calc(100%-16px)]",
 					"ml-auto",
 					"mr-auto",
 					"box-border",
@@ -1305,7 +1252,20 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						{renderTextAreaSection()}
 					</div>
 
-					{isEditMode && renderEditModeControls()}
+					{isEditMode && (
+						<EditModeControls
+							mode={mode}
+							onModeChange={handleModeChange}
+							modeShortcutText={modeShortcutText}
+							customModes={customModes}
+							customModePrompts={customModePrompts}
+							onCancel={onCancel}
+							onSend={onSend}
+							onSelectImages={onSelectImages}
+							sendingDisabled={sendingDisabled}
+							shouldDisableImages={shouldDisableImages}
+						/>
+					)}
 				</div>
 
 				{selectedImages.length > 0 && (

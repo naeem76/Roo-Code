@@ -53,16 +53,16 @@
 		}
 	},
 	"confirmation": {
-		"delete_message": "Mesajı Sil",
-		"delete_warning": "Bu mesajı silmek, konuşmadaki sonraki tüm mesajları da silecektir. Devam etmek istiyor musun?",
-		"edit_message": "Mesajı Düzenle",
-		"edit_warning": "Bu mesajı düzenlemek, konuşmadaki sonraki tüm mesajları da silecektir. Devam etmek istiyor musun?",
-		"edit_question_with_checkpoint": "Bu mesajı düzenlemek, konuşmadaki sonraki tüm mesajları da silecektir. Bu kontrol noktasına kadar olan tüm kod değişikliklerini de geri almak istiyor musun?",
-		"delete_question_with_checkpoint": "Bu mesajı silmek, konuşmadaki sonraki tüm mesajları da silecektir. Bu kontrol noktasına kadar olan tüm kod değişikliklerini de geri almak istiyor musun?",
-		"edit_only": "Hayır, sadece mesajı düzenle",
-		"delete_only": "Hayır, sadece mesajı sil",
-		"restore_to_checkpoint": "Evet, kodu kontrol noktasına geri yükle",
+		"deleteMessage": "Mesajı Sil",
+		"deleteWarning": "Bu mesajı silmek, konuşmadaki sonraki tüm mesajları da silecektir. Devam etmek istiyor musun?",
+		"editMessage": "Mesajı Düzenle",
+		"editWarning": "Bu mesajı düzenlemek, konuşmadaki sonraki tüm mesajları da silecektir. Devam etmek istiyor musun?",
+		"editQuestionWithCheckpoint": "Bu mesajı düzenlemek, konuşmadaki sonraki tüm mesajları da silecektir. Bu kontrol noktasına kadar olan tüm kod değişikliklerini de geri almak istiyor musun?",
+		"deleteQuestionWithCheckpoint": "Bu mesajı silmek, konuşmadaki sonraki tüm mesajları da silecektir. Bu kontrol noktasına kadar olan tüm kod değişikliklerini de geri almak istiyor musun?",
+		"editOnly": "Hayır, sadece mesajı düzenle",
+		"deleteOnly": "Hayır, sadece mesajı sil",
+		"restoreToCeckpoint": "Evet, kodu kontrol noktasına geri yükle",
 		"proceed": "Devam Et",
-		"dont_show_again": "Tekrar gösterme"
+		"dontShowAgain": "Tekrar gösterme"
 	}
 }

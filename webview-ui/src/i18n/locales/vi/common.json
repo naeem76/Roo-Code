@@ -53,16 +53,16 @@
 		}
 	},
 	"confirmation": {
-		"delete_message": "Xóa Tin Nhắn",
-		"delete_warning": "Xóa tin nhắn này sẽ xóa tất cả các tin nhắn tiếp theo trong cuộc trò chuyện. Bạn có muốn tiếp tục không?",
-		"edit_message": "Chỉnh Sửa Tin Nhắn",
-		"edit_warning": "Chỉnh sửa tin nhắn này sẽ xóa tất cả các tin nhắn tiếp theo trong cuộc trò chuyện. Bạn có muốn tiếp tục không?",
-		"edit_question_with_checkpoint": "Chỉnh sửa tin nhắn này sẽ xóa tất cả các tin nhắn sau đó trong cuộc trò chuyện. Bạn có muốn hoàn tác tất cả các thay đổi mã về checkpoint này không?",
-		"delete_question_with_checkpoint": "Xóa tin nhắn này sẽ xóa tất cả các tin nhắn sau đó trong cuộc trò chuyện. Bạn có muốn hoàn tác tất cả các thay đổi mã về checkpoint này không?",
-		"edit_only": "Không, chỉ chỉnh sửa tin nhắn",
-		"delete_only": "Không, chỉ xóa tin nhắn",
-		"restore_to_checkpoint": "Có, khôi phục mã về checkpoint",
+		"deleteMessage": "Xóa Tin Nhắn",
+		"deleteWarning": "Xóa tin nhắn này sẽ xóa tất cả các tin nhắn tiếp theo trong cuộc trò chuyện. Bạn có muốn tiếp tục không?",
+		"editMessage": "Chỉnh Sửa Tin Nhắn",
+		"editWarning": "Chỉnh sửa tin nhắn này sẽ xóa tất cả các tin nhắn tiếp theo trong cuộc trò chuyện. Bạn có muốn tiếp tục không?",
+		"editQuestionWithCheckpoint": "Chỉnh sửa tin nhắn này sẽ xóa tất cả các tin nhắn sau đó trong cuộc trò chuyện. Bạn có muốn hoàn tác tất cả các thay đổi mã về checkpoint này không?",
+		"deleteQuestionWithCheckpoint": "Xóa tin nhắn này sẽ xóa tất cả các tin nhắn sau đó trong cuộc trò chuyện. Bạn có muốn hoàn tác tất cả các thay đổi mã về checkpoint này không?",
+		"editOnly": "Không, chỉ chỉnh sửa tin nhắn",
+		"deleteOnly": "Không, chỉ xóa tin nhắn",
+		"restoreToCeckpoint": "Có, khôi phục mã về checkpoint",
 		"proceed": "Tiếp Tục",
-		"dont_show_again": "Không hiển thị lại"
+		"dontShowAgain": "Không hiển thị lại"
 	}
 }

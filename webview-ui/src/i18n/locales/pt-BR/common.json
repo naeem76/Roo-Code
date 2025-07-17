@@ -53,16 +53,16 @@
 		}
 	},
 	"confirmation": {
-		"delete_message": "Excluir Mensagem",
-		"delete_warning": "Excluir esta mensagem irá excluir todas as mensagens subsequentes na conversa. Deseja prosseguir?",
-		"edit_message": "Editar Mensagem",
-		"edit_warning": "Editar esta mensagem irá excluir todas as mensagens subsequentes na conversa. Deseja prosseguir?",
-		"edit_question_with_checkpoint": "Editar esta mensagem irá excluir todas as mensagens posteriores na conversa. Você também deseja desfazer todas as alterações de código até este checkpoint?",
-		"delete_question_with_checkpoint": "Excluir esta mensagem irá excluir todas as mensagens posteriores na conversa. Você também deseja desfazer todas as alterações de código até este checkpoint?",
-		"edit_only": "Não, apenas editar a mensagem",
-		"delete_only": "Não, apenas excluir a mensagem",
-		"restore_to_checkpoint": "Sim, restaurar código para o checkpoint",
+		"deleteMessage": "Excluir Mensagem",
+		"deleteWarning": "Excluir esta mensagem irá excluir todas as mensagens subsequentes na conversa. Deseja prosseguir?",
+		"editMessage": "Editar Mensagem",
+		"editWarning": "Editar esta mensagem irá excluir todas as mensagens subsequentes na conversa. Deseja prosseguir?",
+		"editQuestionWithCheckpoint": "Editar esta mensagem irá excluir todas as mensagens posteriores na conversa. Você também deseja desfazer todas as alterações de código até este checkpoint?",
+		"deleteQuestionWithCheckpoint": "Excluir esta mensagem irá excluir todas as mensagens posteriores na conversa. Você também deseja desfazer todas as alterações de código até este checkpoint?",
+		"editOnly": "Não, apenas editar a mensagem",
+		"deleteOnly": "Não, apenas excluir a mensagem",
+		"restoreToCeckpoint": "Sim, restaurar código para o checkpoint",
 		"proceed": "Prosseguir",
-		"dont_show_again": "Não mostrar novamente"
+		"dontShowAgain": "Não mostrar novamente"
 	}
 }

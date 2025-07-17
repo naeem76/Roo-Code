@@ -53,16 +53,16 @@
 		}
 	},
 	"confirmation": {
-		"delete_message": "Elimina Messaggio",
-		"delete_warning": "Eliminando questo messaggio verranno eliminati tutti i messaggi successivi nella conversazione. Vuoi procedere?",
-		"edit_message": "Modifica Messaggio",
-		"edit_warning": "Modificando questo messaggio verranno eliminati tutti i messaggi successivi nella conversazione. Vuoi procedere?",
-		"edit_question_with_checkpoint": "Modificando questo messaggio verranno eliminati tutti i messaggi successivi nella conversazione. Vuoi anche annullare tutte le modifiche al codice fino a questo checkpoint?",
-		"delete_question_with_checkpoint": "Eliminando questo messaggio verranno eliminati tutti i messaggi successivi nella conversazione. Vuoi anche annullare tutte le modifiche al codice fino a questo checkpoint?",
-		"edit_only": "No, modifica solo il messaggio",
-		"delete_only": "No, elimina solo il messaggio",
-		"restore_to_checkpoint": "Sì, ripristina il codice al checkpoint",
+		"deleteMessage": "Elimina Messaggio",
+		"deleteWarning": "Eliminando questo messaggio verranno eliminati tutti i messaggi successivi nella conversazione. Vuoi procedere?",
+		"editMessage": "Modifica Messaggio",
+		"editWarning": "Modificando questo messaggio verranno eliminati tutti i messaggi successivi nella conversazione. Vuoi procedere?",
+		"editQuestionWithCheckpoint": "Modificando questo messaggio verranno eliminati tutti i messaggi successivi nella conversazione. Vuoi anche annullare tutte le modifiche al codice fino a questo checkpoint?",
+		"deleteQuestionWithCheckpoint": "Eliminando questo messaggio verranno eliminati tutti i messaggi successivi nella conversazione. Vuoi anche annullare tutte le modifiche al codice fino a questo checkpoint?",
+		"editOnly": "No, modifica solo il messaggio",
+		"deleteOnly": "No, elimina solo il messaggio",
+		"restoreToCeckpoint": "Sì, ripristina il codice al checkpoint",
 		"proceed": "Procedi",
-		"dont_show_again": "Non mostrare più"
+		"dontShowAgain": "Non mostrare più"
 	}
 }
