@@ -12,6 +12,9 @@ interface ReasoningBlockProps {
 	onToggleCollapse?: () => void
 }
 
+// Tolerance for determining if user is "near bottom" (in pixels)
+const SCROLL_SNAP_TOLERANCE = 10
+
 export const ReasoningBlock = ({ content, elapsed, isCollapsed = false, onToggleCollapse }: ReasoningBlockProps) => {
 	const contentRef = useRef<HTMLDivElement>(null)
 	const elapsedRef = useRef<number>(0)
@@ -21,10 +24,41 @@ export const ReasoningBlock = ({ content, elapsed, isCollapsed = false, onToggle
 	const [isTransitioning, setIsTransitioning] = useState<boolean>(false)
 	const cursorRef = useRef<number>(0)
 	const queueRef = useRef<string[]>([])
+	
+	// Track if user was scrolled near bottom before content update
+	const wasNearBottomRef = useRef(true) // Start as true for initial auto-scroll
 
+	// Check if user is near the bottom of the scroll container
+	const isNearBottom = useCallback(() => {
+		if (!contentRef.current) return false
+		const { scrollTop, scrollHeight, clientHeight } = contentRef.current
+		return Math.abs(scrollHeight - scrollTop - clientHeight) <= SCROLL_SNAP_TOLERANCE
+	}, [])
+
+	// Effect to listen to scroll events and update the ref
 	useEffect(() => {
-		if (contentRef.current && !isCollapsed) {
+		const element = contentRef.current
+		if (!element || isCollapsed) return
+
+		const handleScroll = () => {
+			wasNearBottomRef.current = isNearBottom()
+		}
+
+		element.addEventListener("scroll", handleScroll, { passive: true })
+		// Initial check in case it starts scrolled up
+		handleScroll()
+
+		return () => {
+			element.removeEventListener("scroll", handleScroll)
+		}
+	}, [isNearBottom, isCollapsed])
+
+	// Only auto-scroll if user was near bottom before content update
+	useEffect(() => {
+		if (contentRef.current && !isCollapsed && wasNearBottomRef.current) {
 			contentRef.current.scrollTop = contentRef.current.scrollHeight
+			// Update the ref since we just scrolled to bottom
+			wasNearBottomRef.current = true
 		}
 	}, [content, isCollapsed])
 
