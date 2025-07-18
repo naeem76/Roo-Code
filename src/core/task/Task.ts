@@ -69,6 +69,7 @@ import { SYSTEM_PROMPT } from "../prompts/system"
 // core modules
 import { ToolRepetitionDetector } from "../tools/ToolRepetitionDetector"
 import { FileContextTracker } from "../context-tracking/FileContextTracker"
+import { ContextTracker } from "../context-tracking/ContextTracker"
 import { RooIgnoreController } from "../ignore/RooIgnoreController"
 import { RooProtectedController } from "../protect/RooProtectedController"
 import { type AssistantMessageContent, parseAssistantMessage, presentAssistantMessage } from "../assistant-message"
@@ -165,6 +166,7 @@ export class Task extends EventEmitter<ClineEvents> {
 	rooIgnoreController?: RooIgnoreController
 	rooProtectedController?: RooProtectedController
 	fileContextTracker: FileContextTracker
+	contextTracker: ContextTracker
 	urlContentFetcher: UrlContentFetcher
 	terminalProcess?: RooTerminalProcess
 
@@ -245,6 +247,7 @@ export class Task extends EventEmitter<ClineEvents> {
 		this.rooIgnoreController = new RooIgnoreController(this.cwd)
 		this.rooProtectedController = new RooProtectedController(this.cwd)
 		this.fileContextTracker = new FileContextTracker(provider, this.taskId)
+		this.contextTracker = new ContextTracker(this.taskId, this.cwd, provider.context.globalStorageUri.fsPath)
 
 		this.rooIgnoreController.initialize().catch((error) => {
 			console.error("Failed to initialize RooIgnoreController:", error)
@@ -797,6 +800,17 @@ export class Task extends EventEmitter<ClineEvents> {
 			modifiedClineMessages.splice(lastRelevantMessageIndex + 1)
 		}
 
+		// Initialize context tracker and try to restore context snapshot for better resumption
+		try {
+			await this.contextTracker.initialize()
+			const contextSummary = this.contextTracker.generateContextSummary()
+			if (contextSummary) {
+				console.log("Context snapshot restored for task resumption:", contextSummary)
+			}
+		} catch (error) {
+			console.log("No context snapshot available for restoration:", error)
+		}
+
 		// since we don't use api_req_finished anymore, we need to check if the last api_req_started has a cost value, if it doesn't and no cancellation reason to present, then we remove it since it indicates an api request without any partial content streamed
 		const lastApiReqStartedIndex = findLastIndex(
 			modifiedClineMessages,
@@ -1065,6 +1079,12 @@ export class Task extends EventEmitter<ClineEvents> {
 		}
 
 		try {
+			this.contextTracker.dispose()
+		} catch (error) {
+			console.error("Error disposing context tracker:", error)
+		}
+
+		try {
 			// If we're not streaming then `abortStream` won't be called
 			if (this.isStreaming && this.diffViewProvider.isEditing) {
 				this.diffViewProvider.revertChanges().catch(console.error)
@@ -1126,6 +1146,15 @@ export class Task extends EventEmitter<ClineEvents> {
 		let includeFileDetails = true
 
 		this.emit("taskStarted")
+
+		// Initialize context tracker for new tasks
+		if (!this.isInitialized) {
+			try {
+				await this.contextTracker.initialize()
+			} catch (error) {
+				console.warn("Failed to initialize context tracker:", error)
+			}
+		}
 
 		while (!this.abort) {
 			const didEndLoop = await this.recursivelyMakeClineRequests(nextUserContent, includeFileDetails)
