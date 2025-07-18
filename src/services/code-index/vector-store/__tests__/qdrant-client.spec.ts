@@ -3,12 +3,25 @@ import { createHash } from "crypto"
 
 import { QdrantVectorStore } from "../qdrant-client"
 import { getWorkspacePath } from "../../../../utils/path"
-import { DEFAULT_MAX_SEARCH_RESULTS, DEFAULT_SEARCH_MIN_SCORE, MAX_DELETE_PATHS_PER_REQUEST, MAX_BATCH_RETRIES, INITIAL_RETRY_DELAY_MS } from "../../constants"
+import {
+	DEFAULT_MAX_SEARCH_RESULTS,
+	DEFAULT_SEARCH_MIN_SCORE,
+	MAX_DELETE_PATHS_PER_REQUEST,
+	MAX_BATCH_RETRIES,
+	INITIAL_RETRY_DELAY_MS,
+} from "../../constants"
 
 // Mocks
 vitest.mock("@qdrant/js-client-rest")
 vitest.mock("crypto")
 vitest.mock("../../../../utils/path")
+vitest.mock("../../constants", () => ({
+	DEFAULT_SEARCH_MIN_SCORE: 0.4,
+	DEFAULT_MAX_SEARCH_RESULTS: 50,
+	MAX_DELETE_PATHS_PER_REQUEST: 100,
+	MAX_BATCH_RETRIES: 3,
+	INITIAL_RETRY_DELAY_MS: 500,
+}))
 vitest.mock("../../../../i18n", () => ({
 	t: (key: string, params?: any) => {
 		// Mock translation function that includes parameters for testing
@@ -21,10 +34,13 @@ vitest.mock("../../../../i18n", () => ({
 		return key // Just return the key for other cases
 	},
 }))
-vitest.mock("path", () => ({
-	...vitest.importActual("path"),
-	sep: "/",
-}))
+vitest.mock("path", async (importOriginal) => {
+	const actual = (await importOriginal()) as any
+	return {
+		...actual,
+		sep: "/",
+	}
+})
 
 const mockQdrantClientInstance = {
 	getCollection: vitest.fn(),
@@ -1774,7 +1790,6 @@ describe("QdrantVectorStore", () => {
 					retryCount: MAX_BATCH_RETRIES,
 				}),
 			)
-
 			;(console.warn as any).mockRestore()
 			;(console.error as any).mockRestore()
 		})
