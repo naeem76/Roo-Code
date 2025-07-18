@@ -64,7 +64,7 @@ export const generateSystemPrompt = async (provider: ClineProvider, message: Web
 	const canUseBrowserTool = modelSupportsComputerUse && modeSupportsBrowser && (browserToolEnabled ?? true)
 
 	const mcpHub = provider.getMcpHub()
-	const hasMcpServers = (mcpHub?.getAllServers().length ?? 0) > 0
+	const hasMcpServers = mcpHub && (mcpHub.getAllServers().length ?? 0) > 0
 
 	const systemPrompt = await SYSTEM_PROMPT(
 		provider.context,

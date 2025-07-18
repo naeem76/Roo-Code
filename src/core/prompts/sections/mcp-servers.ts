@@ -6,7 +6,7 @@ export async function getMcpServersSection(
 	diffStrategy?: DiffStrategy,
 	enableMcpServerCreation?: boolean,
 ): Promise<string> {
-	if (!mcpHub || mcpHub.getAllServers().length === 0) {
+	if (!mcpHub || (mcpHub.getAllServers()?.length ?? 0) === 0) {
 		return ""
 	}
 

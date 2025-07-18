@@ -1608,7 +1608,7 @@ export class Task extends EventEmitter<ClineEvents> {
 			})
 		}
 
-		const hasMcpServers = (mcpHub?.getAllServers().length ?? 0) > 0
+		const hasMcpServers = mcpHub && (mcpHub.getAllServers().length ?? 0) > 0
 
 		const rooIgnoreInstructions = this.rooIgnoreController?.getInstructions()
 
