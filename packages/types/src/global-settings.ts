@@ -86,6 +86,9 @@ export const globalSettingsSchema = z.object({
 	terminalZdotdir: z.boolean().optional(),
 	terminalCompressProgressBar: z.boolean().optional(),
 
+	diagnosticsDelayMs: z.number().optional(),
+	diagnosticsEnabled: z.boolean().optional(),
+
 	rateLimitSeconds: z.number().optional(),
 	diffEnabled: z.boolean().optional(),
 	fuzzyMatchThreshold: z.number().optional(),
@@ -223,6 +226,9 @@ export const EVALS_SETTINGS: RooCodeSettings = {
 	terminalZdotdir: true,
 	terminalCompressProgressBar: true,
 	terminalShellIntegrationDisabled: true,
+
+	diagnosticsDelayMs: 2000,
+	diagnosticsEnabled: true,
 
 	diffEnabled: true,
 	fuzzyMatchThreshold: 1,

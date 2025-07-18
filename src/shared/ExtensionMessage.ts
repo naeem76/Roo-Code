@@ -214,6 +214,8 @@ export type ExtensionState = Pick<
 	| "terminalZshP10k"
 	| "terminalZdotdir"
 	| "terminalCompressProgressBar"
+	| "diagnosticsDelayMs"
+	| "diagnosticsEnabled"
 	| "diffEnabled"
 	| "fuzzyMatchThreshold"
 	// | "experiments" // Optional in GlobalSettings, required here.
@@ -243,8 +245,6 @@ export type ExtensionState = Pick<
 	taskHistory: HistoryItem[]
 
 	writeDelayMs: number
-	diagnosticsDelayMs: number
-	diagnosticsEnabled: boolean
 	requestDelaySeconds: number
 
 	enableCheckpoints: boolean

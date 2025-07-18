@@ -51,6 +51,12 @@ vi.mock("vscode", () => ({
 	languages: {
 		getDiagnostics: vi.fn(() => []),
 	},
+	DiagnosticSeverity: {
+		Error: 0,
+		Warning: 1,
+		Information: 2,
+		Hint: 3,
+	},
 	WorkspaceEdit: vi.fn().mockImplementation(() => ({
 		replace: vi.fn(),
 		delete: vi.fn(),
@@ -347,7 +353,7 @@ describe("DiffViewProvider", () => {
 				},
 			}
 			;(diffViewProvider as any).preDiagnostics = []
-			
+
 			// Mock vscode functions
 			vi.mocked(vscode.window.showTextDocument).mockResolvedValue({} as any)
 			vi.mocked(vscode.languages.getDiagnostics).mockReturnValue([])
