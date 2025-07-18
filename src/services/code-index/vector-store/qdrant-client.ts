@@ -4,8 +4,11 @@ import * as path from "path"
 import { getWorkspacePath } from "../../../utils/path"
 import { IVectorStore } from "../interfaces/vector-store"
 import { Payload, VectorStoreSearchResult } from "../interfaces"
-import { DEFAULT_MAX_SEARCH_RESULTS, DEFAULT_SEARCH_MIN_SCORE } from "../constants"
+import { DEFAULT_MAX_SEARCH_RESULTS, DEFAULT_SEARCH_MIN_SCORE, MAX_DELETE_PATHS_PER_REQUEST, MAX_BATCH_RETRIES, INITIAL_RETRY_DELAY_MS } from "../constants"
 import { t } from "../../../i18n"
+import { TelemetryService } from "@roo-code/telemetry"
+import { TelemetryEventName } from "@roo-code/types"
+import { sanitizeErrorMessage } from "../shared/validation-helpers"
 
 /**
  * Qdrant implementation of the vector store interface
@@ -422,29 +425,92 @@ export class QdrantVectorStore implements IVectorStore {
 			return
 		}
 
-		try {
-			const workspaceRoot = getWorkspacePath()
-			const normalizedPaths = filePaths.map((filePath) => {
-				const absolutePath = path.resolve(workspaceRoot, filePath)
-				return path.normalize(absolutePath)
-			})
+		const workspaceRoot = getWorkspacePath()
+		const normalizedPaths = filePaths.map((filePath) => {
+			const absolutePath = path.resolve(workspaceRoot, filePath)
+			return path.normalize(absolutePath)
+		})
 
-			const filter = {
-				should: normalizedPaths.map((normalizedPath) => ({
-					key: "filePath",
-					match: {
-						value: normalizedPath,
-					},
-				})),
+		// Process in chunks to avoid oversized requests
+		const chunks = []
+		for (let i = 0; i < normalizedPaths.length; i += MAX_DELETE_PATHS_PER_REQUEST) {
+			chunks.push(normalizedPaths.slice(i, i + MAX_DELETE_PATHS_PER_REQUEST))
+		}
+
+		// Process each chunk with retry logic
+		for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+			const chunk = chunks[chunkIndex]
+			let retryCount = 0
+			let lastError: Error | undefined
+
+			while (retryCount < MAX_BATCH_RETRIES) {
+				try {
+					const filter = {
+						should: chunk.map((normalizedPath) => ({
+							key: "filePath",
+							match: {
+								value: normalizedPath,
+							},
+						})),
+					}
+
+					await this.client.delete(this.collectionName, {
+						filter,
+						wait: true,
+					})
+
+					// Success - break out of retry loop
+					break
+				} catch (error) {
+					lastError = error as Error
+					retryCount++
+
+					// Log telemetry for deletion errors
+					TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
+						error: sanitizeErrorMessage(lastError.message),
+						location: "deletePointsByMultipleFilePaths",
+						errorType: "deletion_error",
+						retryCount,
+						chunkIndex,
+						chunkSize: chunk.length,
+						totalChunks: chunks.length,
+					})
+
+					console.warn(
+						`[QdrantVectorStore] Failed to delete points for chunk ${chunkIndex + 1}/${chunks.length} (attempt ${retryCount}/${MAX_BATCH_RETRIES}):`,
+						lastError.message,
+					)
+
+					if (retryCount === MAX_BATCH_RETRIES) {
+						// Final retry failed - throw error with context
+						const contextualError = new Error(
+							`Failed to delete points for ${chunk.length} file paths after ${MAX_BATCH_RETRIES} retries. Chunk ${chunkIndex + 1}/${chunks.length}. Original error: ${lastError.message}`,
+						)
+						contextualError.cause = lastError
+						
+						// Log final failure
+						TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
+							error: sanitizeErrorMessage(contextualError.message),
+							location: "deletePointsByMultipleFilePaths",
+							errorType: "deletion_retry_exhausted",
+							retryCount: MAX_BATCH_RETRIES,
+							chunkIndex,
+							chunkSize: chunk.length,
+							totalChunks: chunks.length,
+						})
+
+						console.error(
+							`[QdrantVectorStore] CRITICAL: Failed to delete points after ${MAX_BATCH_RETRIES} retries for chunk ${chunkIndex + 1}/${chunks.length}:`,
+							contextualError.message,
+						)
+						throw contextualError
+					}
+
+					// Wait before retrying with exponential backoff
+					const delay = INITIAL_RETRY_DELAY_MS * Math.pow(2, retryCount - 1)
+					await new Promise((resolve) => setTimeout(resolve, delay))
+				}
 			}
-
-			await this.client.delete(this.collectionName, {
-				filter,
-				wait: true,
-			})
-		} catch (error) {
-			console.error("Failed to delete points by file paths:", error)
-			throw error
 		}
 	}
 

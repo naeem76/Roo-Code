@@ -21,6 +21,9 @@ export const MAX_BATCH_RETRIES = 3
 export const INITIAL_RETRY_DELAY_MS = 500
 export const PARSING_CONCURRENCY = 10
 
+/**Vector Store */
+export const MAX_DELETE_PATHS_PER_REQUEST = 100 // Maximum number of file paths to delete in a single request
+
 /**OpenAI Embedder */
 export const MAX_BATCH_TOKENS = 100000
 export const MAX_ITEM_TOKENS = 8191

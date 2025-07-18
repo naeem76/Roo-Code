@@ -3,7 +3,7 @@ import { createHash } from "crypto"
 
 import { QdrantVectorStore } from "../qdrant-client"
 import { getWorkspacePath } from "../../../../utils/path"
-import { DEFAULT_MAX_SEARCH_RESULTS, DEFAULT_SEARCH_MIN_SCORE } from "../../constants"
+import { DEFAULT_MAX_SEARCH_RESULTS, DEFAULT_SEARCH_MIN_SCORE, MAX_DELETE_PATHS_PER_REQUEST, MAX_BATCH_RETRIES, INITIAL_RETRY_DELAY_MS } from "../../constants"
 
 // Mocks
 vitest.mock("@qdrant/js-client-rest")
@@ -1525,6 +1525,272 @@ describe("QdrantVectorStore", () => {
 			const callArgs = mockQdrantClientInstance.query.mock.calls[0][1]
 			expect(callArgs.limit).toBe(DEFAULT_MAX_SEARCH_RESULTS)
 			expect(callArgs.score_threshold).toBe(DEFAULT_SEARCH_MIN_SCORE)
+		})
+	})
+
+	describe("deletePointsByMultipleFilePaths", () => {
+		beforeEach(() => {
+			// Mock TelemetryService
+			vitest.mock("@roo-code/telemetry", () => ({
+				TelemetryService: {
+					instance: {
+						captureEvent: vitest.fn(),
+					},
+				},
+			}))
+			vitest.mock("@roo-code/types", () => ({
+				TelemetryEventName: {
+					CODE_INDEX_ERROR: "code_index_error",
+				},
+			}))
+			vitest.mock("../shared/validation-helpers", () => ({
+				sanitizeErrorMessage: vitest.fn((msg) => msg),
+			}))
+		})
+
+		it("should handle empty file paths array", async () => {
+			await vectorStore.deletePointsByMultipleFilePaths([])
+
+			expect(mockQdrantClientInstance.delete).not.toHaveBeenCalled()
+		})
+
+		it("should successfully delete points for single file path", async () => {
+			const filePaths = ["src/test.ts"]
+			mockQdrantClientInstance.delete.mockResolvedValue({} as any)
+
+			await vectorStore.deletePointsByMultipleFilePaths(filePaths)
+
+			expect(mockQdrantClientInstance.delete).toHaveBeenCalledTimes(1)
+			expect(mockQdrantClientInstance.delete).toHaveBeenCalledWith(expectedCollectionName, {
+				filter: {
+					should: [
+						{
+							key: "filePath",
+							match: {
+								value: expect.stringContaining("src/test.ts"),
+							},
+						},
+					],
+				},
+				wait: true,
+			})
+		})
+
+		it("should successfully delete points for multiple file paths within chunk limit", async () => {
+			const filePaths = ["src/test1.ts", "src/test2.ts", "src/test3.ts"]
+			mockQdrantClientInstance.delete.mockResolvedValue({} as any)
+
+			await vectorStore.deletePointsByMultipleFilePaths(filePaths)
+
+			expect(mockQdrantClientInstance.delete).toHaveBeenCalledTimes(1)
+			expect(mockQdrantClientInstance.delete).toHaveBeenCalledWith(expectedCollectionName, {
+				filter: {
+					should: expect.arrayContaining([
+						{
+							key: "filePath",
+							match: {
+								value: expect.stringContaining("src/test1.ts"),
+							},
+						},
+						{
+							key: "filePath",
+							match: {
+								value: expect.stringContaining("src/test2.ts"),
+							},
+						},
+						{
+							key: "filePath",
+							match: {
+								value: expect.stringContaining("src/test3.ts"),
+							},
+						},
+					]),
+				},
+				wait: true,
+			})
+		})
+
+		it("should chunk large file path arrays into multiple requests", async () => {
+			// Create an array larger than MAX_DELETE_PATHS_PER_REQUEST
+			const filePaths = Array.from({ length: MAX_DELETE_PATHS_PER_REQUEST + 50 }, (_, i) => `src/test${i}.ts`)
+			mockQdrantClientInstance.delete.mockResolvedValue({} as any)
+
+			await vectorStore.deletePointsByMultipleFilePaths(filePaths)
+
+			// Should be called twice: once for the first chunk, once for the remainder
+			expect(mockQdrantClientInstance.delete).toHaveBeenCalledTimes(2)
+
+			// First call should have MAX_DELETE_PATHS_PER_REQUEST items
+			const firstCall = mockQdrantClientInstance.delete.mock.calls[0][1]
+			expect(firstCall.filter.should).toHaveLength(MAX_DELETE_PATHS_PER_REQUEST)
+
+			// Second call should have the remaining 50 items
+			const secondCall = mockQdrantClientInstance.delete.mock.calls[1][1]
+			expect(secondCall.filter.should).toHaveLength(50)
+		})
+
+		it("should retry on failure and eventually succeed", async () => {
+			const filePaths = ["src/test.ts"]
+			const deleteError = new Error("Temporary Qdrant error")
+
+			// Fail twice, then succeed
+			mockQdrantClientInstance.delete
+				.mockRejectedValueOnce(deleteError)
+				.mockRejectedValueOnce(deleteError)
+				.mockResolvedValueOnce({} as any)
+
+			vitest.spyOn(console, "warn").mockImplementation(() => {})
+
+			await vectorStore.deletePointsByMultipleFilePaths(filePaths)
+
+			expect(mockQdrantClientInstance.delete).toHaveBeenCalledTimes(3)
+			expect(console.warn).toHaveBeenCalledTimes(2) // Two warnings for the failed attempts
+			;(console.warn as any).mockRestore()
+		})
+
+		it("should throw error after exhausting all retries", async () => {
+			const filePaths = ["src/test.ts"]
+			const deleteError = new Error("Persistent Qdrant error")
+
+			// Fail all retry attempts
+			mockQdrantClientInstance.delete.mockRejectedValue(deleteError)
+
+			vitest.spyOn(console, "warn").mockImplementation(() => {})
+			vitest.spyOn(console, "error").mockImplementation(() => {})
+
+			await expect(vectorStore.deletePointsByMultipleFilePaths(filePaths)).rejects.toThrow(
+				/Failed to delete points for 1 file paths after 3 retries/,
+			)
+
+			expect(mockQdrantClientInstance.delete).toHaveBeenCalledTimes(MAX_BATCH_RETRIES)
+			expect(console.warn).toHaveBeenCalledTimes(MAX_BATCH_RETRIES)
+			expect(console.error).toHaveBeenCalledTimes(1)
+			;(console.warn as any).mockRestore()
+			;(console.error as any).mockRestore()
+		})
+
+		it("should handle mixed success and failure across chunks", async () => {
+			// Create an array that will be split into 2 chunks
+			const filePaths = Array.from({ length: MAX_DELETE_PATHS_PER_REQUEST + 10 }, (_, i) => `src/test${i}.ts`)
+			const deleteError = new Error("Chunk 2 error")
+
+			// First chunk succeeds, second chunk fails
+			mockQdrantClientInstance.delete
+				.mockResolvedValueOnce({} as any) // First chunk succeeds
+				.mockRejectedValue(deleteError) // Second chunk fails all retries
+
+			vitest.spyOn(console, "warn").mockImplementation(() => {})
+			vitest.spyOn(console, "error").mockImplementation(() => {})
+
+			await expect(vectorStore.deletePointsByMultipleFilePaths(filePaths)).rejects.toThrow(
+				/Failed to delete points for 10 file paths after 3 retries. Chunk 2\/2/,
+			)
+
+			// First chunk: 1 call, Second chunk: MAX_BATCH_RETRIES calls
+			expect(mockQdrantClientInstance.delete).toHaveBeenCalledTimes(1 + MAX_BATCH_RETRIES)
+			;(console.warn as any).mockRestore()
+			;(console.error as any).mockRestore()
+		})
+
+		it("should use exponential backoff for retries", async () => {
+			const filePaths = ["src/test.ts"]
+			const deleteError = new Error("Temporary error")
+
+			// Fail twice, then succeed
+			mockQdrantClientInstance.delete
+				.mockRejectedValueOnce(deleteError)
+				.mockRejectedValueOnce(deleteError)
+				.mockResolvedValueOnce({} as any)
+
+			vitest.spyOn(console, "warn").mockImplementation(() => {})
+			const setTimeoutSpy = vitest.spyOn(global, "setTimeout").mockImplementation((fn: any) => {
+				fn() // Execute immediately for testing
+				return {} as any
+			})
+
+			await vectorStore.deletePointsByMultipleFilePaths(filePaths)
+
+			// Should have called setTimeout twice for the two retries
+			expect(setTimeoutSpy).toHaveBeenCalledTimes(2)
+
+			// First retry: INITIAL_RETRY_DELAY_MS * 2^0 = 500ms
+			expect(setTimeoutSpy).toHaveBeenNthCalledWith(1, expect.any(Function), INITIAL_RETRY_DELAY_MS)
+
+			// Second retry: INITIAL_RETRY_DELAY_MS * 2^1 = 1000ms
+			expect(setTimeoutSpy).toHaveBeenNthCalledWith(2, expect.any(Function), INITIAL_RETRY_DELAY_MS * 2)
+
+			setTimeoutSpy.mockRestore()
+			;(console.warn as any).mockRestore()
+		})
+
+		it("should normalize file paths correctly", async () => {
+			const filePaths = ["./src/test.ts", "src/../src/test2.ts"]
+			mockQdrantClientInstance.delete.mockResolvedValue({} as any)
+
+			await vectorStore.deletePointsByMultipleFilePaths(filePaths)
+
+			expect(mockQdrantClientInstance.delete).toHaveBeenCalledTimes(1)
+			const deleteCall = mockQdrantClientInstance.delete.mock.calls[0][1]
+
+			// Both paths should be normalized to absolute paths
+			expect(deleteCall.filter.should).toHaveLength(2)
+			deleteCall.filter.should.forEach((filter: any) => {
+				expect(filter.match.value).toMatch(/^\/.*\/src\/test.*\.ts$/) // Should be absolute paths
+			})
+		})
+
+		it("should capture telemetry events for errors", async () => {
+			const { TelemetryService } = await import("@roo-code/telemetry")
+			const { TelemetryEventName } = await import("@roo-code/types")
+
+			const filePaths = ["src/test.ts"]
+			const deleteError = new Error("Telemetry test error")
+
+			mockQdrantClientInstance.delete.mockRejectedValue(deleteError)
+			vitest.spyOn(console, "warn").mockImplementation(() => {})
+			vitest.spyOn(console, "error").mockImplementation(() => {})
+
+			await expect(vectorStore.deletePointsByMultipleFilePaths(filePaths)).rejects.toThrow()
+
+			// Should capture telemetry for each retry attempt plus final failure
+			expect(TelemetryService.instance.captureEvent).toHaveBeenCalledWith(
+				TelemetryEventName.CODE_INDEX_ERROR,
+				expect.objectContaining({
+					error: "Telemetry test error",
+					location: "deletePointsByMultipleFilePaths",
+					errorType: "deletion_error",
+					retryCount: expect.any(Number),
+					chunkIndex: 0,
+					chunkSize: 1,
+					totalChunks: 1,
+				}),
+			)
+
+			// Should also capture final retry exhausted event
+			expect(TelemetryService.instance.captureEvent).toHaveBeenCalledWith(
+				TelemetryEventName.CODE_INDEX_ERROR,
+				expect.objectContaining({
+					errorType: "deletion_retry_exhausted",
+					retryCount: MAX_BATCH_RETRIES,
+				}),
+			)
+
+			;(console.warn as any).mockRestore()
+			;(console.error as any).mockRestore()
+		})
+	})
+
+	describe("deletePointsByFilePath", () => {
+		it("should delegate to deletePointsByMultipleFilePaths", async () => {
+			const filePath = "src/test.ts"
+			const deleteMultipleSpy = vitest.spyOn(vectorStore, "deletePointsByMultipleFilePaths").mockResolvedValue()
+
+			await vectorStore.deletePointsByFilePath(filePath)
+
+			expect(deleteMultipleSpy).toHaveBeenCalledTimes(1)
+			expect(deleteMultipleSpy).toHaveBeenCalledWith([filePath])
+
+			deleteMultipleSpy.mockRestore()
 		})
 	})
 })
