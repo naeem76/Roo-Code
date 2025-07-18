@@ -63,6 +63,11 @@ function getGroupName(group: GroupEntry): ToolGroup {
 	return Array.isArray(group) ? group[0] : group
 }
 
+// Helper function to extract value from VSCode events (CustomEvent or regular Event)
+function extractEventValue(e: Event | React.FormEvent<HTMLElement>): string {
+	return (e as unknown as CustomEvent)?.detail?.target?.value || ((e as any).target as HTMLTextAreaElement).value
+}
+
 const ModesView = ({ onDone }: ModesViewProps) => {
 	const { t } = useAppTranslation()
 
@@ -859,9 +864,7 @@ const ModesView = ({ onDone }: ModesViewProps) => {
 								setLocalModeRoleDefinition(currentValue)
 							}}
 							onChange={(e) => {
-								const value =
-									(e as unknown as CustomEvent)?.detail?.target?.value ||
-									((e as any).target as HTMLTextAreaElement).value
+								const value = extractEventValue(e)
 								setLocalModeRoleDefinition(value)
 							}}
 							onBlur={() => {
@@ -942,9 +945,7 @@ const ModesView = ({ onDone }: ModesViewProps) => {
 								setLocalModeDescription(currentValue || "")
 							}}
 							onChange={(e) => {
-								const value =
-									(e as unknown as CustomEvent)?.detail?.target?.value ||
-									((e as any).target as HTMLTextAreaElement).value
+								const value = extractEventValue(e)
 								setLocalModeDescription(value)
 							}}
 							onBlur={() => {
@@ -1026,9 +1027,7 @@ const ModesView = ({ onDone }: ModesViewProps) => {
 								setLocalModeWhenToUse(currentValue || "")
 							}}
 							onChange={(e) => {
-								const value =
-									(e as unknown as CustomEvent)?.detail?.target?.value ||
-									((e as any).target as HTMLTextAreaElement).value
+								const value = extractEventValue(e)
 								setLocalModeWhenToUse(value)
 							}}
 							onBlur={() => {
@@ -1214,9 +1213,7 @@ const ModesView = ({ onDone }: ModesViewProps) => {
 								setLocalModeCustomInstructions(currentValue || "")
 							}}
 							onChange={(e) => {
-								const value =
-									(e as unknown as CustomEvent)?.detail?.target?.value ||
-									((e as any).target as HTMLTextAreaElement).value
+								const value = extractEventValue(e)
 								setLocalModeCustomInstructions(value)
 							}}
 							onBlur={() => {
@@ -1431,9 +1428,7 @@ const ModesView = ({ onDone }: ModesViewProps) => {
 						resize="vertical"
 						value={customInstructions || ""}
 						onChange={(e) => {
-							const value =
-								(e as unknown as CustomEvent)?.detail?.target?.value ||
-								((e as any).target as HTMLTextAreaElement).value
+							const value = extractEventValue(e)
 							setCustomInstructions(value || undefined)
 							vscode.postMessage({
 								type: "customInstructions",
