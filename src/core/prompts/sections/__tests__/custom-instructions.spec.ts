@@ -321,6 +321,84 @@ describe("loadRuleFiles", () => {
 		}
 	})
 
+	it("should filter out Vim swap files and other dot files from .roo/rules/ directory", async () => {
+		// Simulate .roo/rules directory exists
+		statMock.mockResolvedValueOnce({
+			isDirectory: vi.fn().mockReturnValue(true),
+		} as any)
+
+		// Simulate listing files including Vim swap files and other dot files
+		readdirMock.mockResolvedValueOnce([
+			{ name: "rule1.txt", isFile: () => true, isSymbolicLink: () => false, parentPath: "/fake/path/.roo/rules" },
+			{ name: ".01-prettier-tree-sitter.md.swp", isFile: () => true, isSymbolicLink: () => false, parentPath: "/fake/path/.roo/rules" },
+			{ name: ".vimrc.swp", isFile: () => true, isSymbolicLink: () => false, parentPath: "/fake/path/.roo/rules" },
+			{ name: ".hidden-file", isFile: () => true, isSymbolicLink: () => false, parentPath: "/fake/path/.roo/rules" },
+			{ name: "rule2.md", isFile: () => true, isSymbolicLink: () => false, parentPath: "/fake/path/.roo/rules" },
+			{ name: ".gitignore", isFile: () => true, isSymbolicLink: () => false, parentPath: "/fake/path/.roo/rules" },
+		] as any)
+
+		statMock.mockImplementation((path) => {
+			return Promise.resolve({
+				isFile: vi.fn().mockReturnValue(true),
+			}) as any
+		})
+
+		readFileMock.mockImplementation((filePath: PathLike) => {
+			const pathStr = filePath.toString()
+			const normalizedPath = pathStr.replace(/\\/g, "/")
+
+			// Only rule files should be read - dot files should be skipped
+			if (normalizedPath === "/fake/path/.roo/rules/rule1.txt") {
+				return Promise.resolve("rule 1 content")
+			}
+			if (normalizedPath === "/fake/path/.roo/rules/rule2.md") {
+				return Promise.resolve("rule 2 content")
+			}
+
+			// Dot files should not be read due to filtering
+			// If they somehow are read, return recognizable content
+			if (normalizedPath === "/fake/path/.roo/rules/.01-prettier-tree-sitter.md.swp") {
+				return Promise.resolve("b0VIM 8.2")
+			}
+			if (normalizedPath === "/fake/path/.roo/rules/.vimrc.swp") {
+				return Promise.resolve("VIM_SWAP_CONTENT")
+			}
+			if (normalizedPath === "/fake/path/.roo/rules/.hidden-file") {
+				return Promise.resolve("HIDDEN_FILE_CONTENT")
+			}
+			if (normalizedPath === "/fake/path/.roo/rules/.gitignore") {
+				return Promise.resolve("GITIGNORE_CONTENT")
+			}
+
+			return Promise.reject({ code: "ENOENT" })
+		})
+
+		const result = await loadRuleFiles("/fake/path")
+
+		// Should contain rule files
+		expect(result).toContain("rule 1 content")
+		expect(result).toContain("rule 2 content")
+
+		// Should NOT contain dot file content - they should be filtered out
+		expect(result).not.toContain("b0VIM 8.2")
+		expect(result).not.toContain("VIM_SWAP_CONTENT")
+		expect(result).not.toContain("HIDDEN_FILE_CONTENT")
+		expect(result).not.toContain("GITIGNORE_CONTENT")
+
+		// Verify dot files are not read at all
+		const expectedDotFiles = [
+			"/fake/path/.roo/rules/.01-prettier-tree-sitter.md.swp",
+			"/fake/path/.roo/rules/.vimrc.swp",
+			"/fake/path/.roo/rules/.hidden-file",
+			"/fake/path/.roo/rules/.gitignore",
+		]
+
+		for (const dotFile of expectedDotFiles) {
+			const expectedPath = process.platform === "win32" ? dotFile.replace(/\//g, "\\") : dotFile
+			expect(readFileMock).not.toHaveBeenCalledWith(expectedPath, "utf-8")
+		}
+	})
+
 	it("should fall back to .roorules when .roo/rules/ is empty", async () => {
 		// Simulate .roo/rules directory exists
 		statMock.mockResolvedValueOnce({
