@@ -309,11 +309,6 @@ ${joinedSections}`
 function shouldIncludeRuleFile(filename: string): boolean {
 	const basename = path.basename(filename)
 
-	// Exclude files that start with . (hidden files, including Vim .swp files)
-	if (basename.startsWith(".")) {
-		return false
-	}
-
 	const cachePatterns = [
 		"*.DS_Store",
 		"*.bak",

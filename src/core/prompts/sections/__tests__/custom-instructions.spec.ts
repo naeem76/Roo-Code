@@ -321,20 +321,19 @@ describe("loadRuleFiles", () => {
 		}
 	})
 
-	it("should filter out Vim swap files and other dot files from .roo/rules/ directory", async () => {
+	it("should filter out Vim swap files from .roo/rules/ directory", async () => {
 		// Simulate .roo/rules directory exists
 		statMock.mockResolvedValueOnce({
 			isDirectory: vi.fn().mockReturnValue(true),
 		} as any)
 
-		// Simulate listing files including Vim swap files and other dot files
+		// Simulate listing files including Vim swap files
 		readdirMock.mockResolvedValueOnce([
 			{ name: "rule1.txt", isFile: () => true, isSymbolicLink: () => false, parentPath: "/fake/path/.roo/rules" },
 			{ name: ".01-prettier-tree-sitter.md.swp", isFile: () => true, isSymbolicLink: () => false, parentPath: "/fake/path/.roo/rules" },
 			{ name: ".vimrc.swp", isFile: () => true, isSymbolicLink: () => false, parentPath: "/fake/path/.roo/rules" },
-			{ name: ".hidden-file", isFile: () => true, isSymbolicLink: () => false, parentPath: "/fake/path/.roo/rules" },
 			{ name: "rule2.md", isFile: () => true, isSymbolicLink: () => false, parentPath: "/fake/path/.roo/rules" },
-			{ name: ".gitignore", isFile: () => true, isSymbolicLink: () => false, parentPath: "/fake/path/.roo/rules" },
+			{ name: "file.swo", isFile: () => true, isSymbolicLink: () => false, parentPath: "/fake/path/.roo/rules" },
 		] as any)
 
 		statMock.mockImplementation((path) => {
@@ -347,7 +346,7 @@ describe("loadRuleFiles", () => {
 			const pathStr = filePath.toString()
 			const normalizedPath = pathStr.replace(/\\/g, "/")
 
-			// Only rule files should be read - dot files should be skipped
+			// Only rule files should be read - swap files should be skipped
 			if (normalizedPath === "/fake/path/.roo/rules/rule1.txt") {
 				return Promise.resolve("rule 1 content")
 			}
@@ -355,7 +354,7 @@ describe("loadRuleFiles", () => {
 				return Promise.resolve("rule 2 content")
 			}
 
-			// Dot files should not be read due to filtering
+			// Swap files should not be read due to filtering
 			// If they somehow are read, return recognizable content
 			if (normalizedPath === "/fake/path/.roo/rules/.01-prettier-tree-sitter.md.swp") {
 				return Promise.resolve("b0VIM 8.2")
@@ -363,11 +362,8 @@ describe("loadRuleFiles", () => {
 			if (normalizedPath === "/fake/path/.roo/rules/.vimrc.swp") {
 				return Promise.resolve("VIM_SWAP_CONTENT")
 			}
-			if (normalizedPath === "/fake/path/.roo/rules/.hidden-file") {
-				return Promise.resolve("HIDDEN_FILE_CONTENT")
-			}
-			if (normalizedPath === "/fake/path/.roo/rules/.gitignore") {
-				return Promise.resolve("GITIGNORE_CONTENT")
+			if (normalizedPath === "/fake/path/.roo/rules/file.swo") {
+				return Promise.resolve("SWO_CONTENT")
 			}
 
 			return Promise.reject({ code: "ENOENT" })
@@ -379,22 +375,20 @@ describe("loadRuleFiles", () => {
 		expect(result).toContain("rule 1 content")
 		expect(result).toContain("rule 2 content")
 
-		// Should NOT contain dot file content - they should be filtered out
+		// Should NOT contain swap file content - they should be filtered out
 		expect(result).not.toContain("b0VIM 8.2")
 		expect(result).not.toContain("VIM_SWAP_CONTENT")
-		expect(result).not.toContain("HIDDEN_FILE_CONTENT")
-		expect(result).not.toContain("GITIGNORE_CONTENT")
+		expect(result).not.toContain("SWO_CONTENT")
 
-		// Verify dot files are not read at all
-		const expectedDotFiles = [
+		// Verify swap files are not read at all
+		const expectedSwapFiles = [
 			"/fake/path/.roo/rules/.01-prettier-tree-sitter.md.swp",
 			"/fake/path/.roo/rules/.vimrc.swp",
-			"/fake/path/.roo/rules/.hidden-file",
-			"/fake/path/.roo/rules/.gitignore",
+			"/fake/path/.roo/rules/file.swo",
 		]
 
-		for (const dotFile of expectedDotFiles) {
-			const expectedPath = process.platform === "win32" ? dotFile.replace(/\//g, "\\") : dotFile
+		for (const swapFile of expectedSwapFiles) {
+			const expectedPath = process.platform === "win32" ? swapFile.replace(/\//g, "\\") : swapFile
 			expect(readFileMock).not.toHaveBeenCalledWith(expectedPath, "utf-8")
 		}
 	})
