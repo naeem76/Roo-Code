@@ -559,7 +559,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					setFileSearchResults([]) // Clear file search results.
 				}
 			},
-			[setInputValue, setSearchRequestId, setFileSearchResults, setSearchLoading, resetOnInputChange],
+			[setInputValue, setSearchRequestId, setFileSearchResults, setSearchLoading, resetOnInputChange, showContextMenu],
 		)
 
 		useEffect(() => {
