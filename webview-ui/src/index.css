@@ -18,6 +18,7 @@
 @import "tailwindcss/theme.css" layer(theme);
 @import "./preflight.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities);
+@import "katex/dist/katex.min.css";
 
 @plugin "tailwindcss-animate";
 
@@ -68,6 +69,9 @@
 
 	--color-vscode-editorGroup-border: var(--vscode-editorGroup-border);
 
+	--color-vscode-editorWarning-foreground: var(--vscode-editorWarning-foreground);
+	--color-vscode-editorWarning-background: var(--vscode-editorWarning-background);
+
 	--color-vscode-button-foreground: var(--vscode-button-foreground);
 	--color-vscode-button-background: var(--vscode-button-background);
 	--color-vscode-button-secondaryForeground: var(--vscode-button-secondaryForeground);
@@ -79,7 +83,10 @@
 
 	--color-vscode-input-foreground: var(--vscode-input-foreground);
 	--color-vscode-input-background: var(--vscode-input-background);
-	--color-vscode-input-border: var(--vscode-input-border);
+	--color-vscode-input-border: var(
+		--vscode-input-border,
+		transparent
+	); /* Some themes don't have a border color, so we can fallback to transparent */
 
 	--color-vscode-focusBorder: var(--vscode-focusBorder);
 
@@ -96,6 +103,35 @@
 	--color-vscode-list-hoverForeground: var(--vscode-list-hoverForeground);
 	--color-vscode-list-hoverBackground: var(--vscode-list-hoverBackground);
 	--color-vscode-list-focusBackground: var(--vscode-list-focusBackground);
+	--color-vscode-list-activeSelectionBackground: var(--vscode-list-activeSelectionBackground);
+	--color-vscode-list-activeSelectionForeground: var(--vscode-list-activeSelectionForeground);
+
+	--color-vscode-toolbar-hoverBackground: var(--vscode-toolbar-hoverBackground);
+
+	--color-vscode-panel-border: var(--vscode-panel-border);
+
+	--color-vscode-sideBar-foreground: var(--vscode-sideBar-foreground);
+	--color-vscode-sideBar-background: var(--vscode-sideBar-background);
+	--color-vscode-sideBar-border: var(--vscode-sideBar-border);
+
+	--color-vscode-sideBarSectionHeader-foreground: var(--vscode-sideBarSectionHeader-foreground);
+	--color-vscode-sideBarSectionHeader-background: var(--vscode-sideBarSectionHeader-background);
+	--color-vscode-sideBarSectionHeader-border: var(--vscode-sideBarSectionHeader-border);
+
+	--color-vscode-titleBar-activeForeground: var(--vscode-titleBar-activeForeground);
+	--color-vscode-titleBar-inactiveForeground: var(--vscode-titleBar-inactiveForeground);
+
+	--color-vscode-charts-green: var(--vscode-charts-green);
+	--color-vscode-charts-yellow: var(--vscode-charts-yellow);
+
+	--color-vscode-inputValidation-infoForeground: var(--vscode-inputValidation-infoForeground);
+	--color-vscode-inputValidation-infoBackground: var(--vscode-inputValidation-infoBackground);
+	--color-vscode-inputValidation-infoBorder: var(--vscode-inputValidation-infoBorder);
+
+	--color-vscode-widget-border: var(--vscode-widget-border);
+	--color-vscode-textLink-foreground: var(--vscode-textLink-foreground);
+	--color-vscode-textCodeBlock-background: var(--vscode-textCodeBlock-background);
+	--color-vscode-button-hoverBackground: var(--vscode-button-hoverBackground);
 }
 
 @layer base {
@@ -113,10 +149,10 @@
 		--muted: var(--vscode-disabledForeground);
 		--muted-foreground: var(--vscode-descriptionForeground);
 		--accent: var(--vscode-list-hoverBackground);
-		--accent-foreground: var(--vscode-button-foreground);
+		--accent-foreground: var(--vscode-list-hoverForeground);
 		--destructive: var(--vscode-errorForeground);
 		--destructive-foreground: var(--vscode-button-foreground);
-		--border: var(--vscode-input-border);
+		--border: var(--vscode-input-border, transparent); /* --border gets theme value or transparent fallback */
 		--input: var(--vscode-input-background);
 		--ring: var(--vscode-input-border);
 		--chart-1: var(--vscode-charts-red);
@@ -125,6 +161,13 @@
 		--chart-4: var(--vscode-charts-orange);
 		--chart-5: var(--vscode-charts-green);
 		--radius: 0.5rem;
+	}
+
+	/* Higher specififty than VSCode's theme and root. */
+	/* Used for baseline theme overrides, but avoid using for styling. */
+
+	body {
+		--vscode-input-border: var(--border);
 	}
 }
 
@@ -145,6 +188,11 @@
 	code {
 		background-color: var(--vscode-textCodeBlock-background);
 	}
+
+	/* Search result highlighting */
+	.history-item-highlight {
+		@apply underline;
+	}
 }
 
 /* Form Element Focus States */
@@ -155,10 +203,6 @@ textarea:focus {
 
 .focus\:outline-0 {
 	outline: 0 !important; /* Allow tailwind to override the `textarea:focus` rule */
-}
-
-vscode-button::part(control):focus {
-	outline: none;
 }
 
 /**
@@ -369,4 +413,69 @@ input[cmdk-input]:focus {
 
 .custom-markdown > pre {
 	background-color: transparent !important;
+}
+
+/*
+ * Use geometric precision for codicons to avoid blurriness 
+ */
+
+.codicon[class*="codicon-"] {
+	text-rendering: geometricPrecision !important;
+}
+
+/**
+ * Custom animations for UI elements
+ */
+
+@keyframes slide-in-right {
+	from {
+		transform: translateX(100%);
+	}
+	to {
+		transform: translateX(0);
+	}
+}
+
+.animate-slide-in-right {
+	animation: slide-in-right 0.3s ease-out;
+}
+
+@keyframes fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+.animate-fade-in {
+	animation: fade-in 0.2s ease-out;
+}
+
+@keyframes pulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.7;
+	}
+}
+
+.animate-pulse {
+	animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Transition utilities */
+.transition-all {
+	transition-property: all;
+	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+	transition-duration: 150ms;
+}
+
+.transition-colors {
+	transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+	transition-duration: 150ms;
 }

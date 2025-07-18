@@ -1,12 +1,43 @@
-// type that represents json data that is sent from extension to webview, called ExtensionMessage and has 'type' enum which can be 'plusButtonClicked' or 'settingsButtonClicked' or 'hello'
+import type {
+	GlobalSettings,
+	ProviderSettingsEntry,
+	ProviderSettings,
+	HistoryItem,
+	ModeConfig,
+	TelemetrySetting,
+	Experiments,
+	ClineMessage,
+	OrganizationAllowList,
+	CloudUserInfo,
+	ShareVisibility,
+} from "@roo-code/types"
 
-import { ApiConfiguration, ApiProvider, ModelInfo } from "./api"
-import { HistoryItem } from "./HistoryItem"
-import { McpServer } from "./mcp"
 import { GitCommit } from "../utils/git"
-import { Mode, CustomModePrompts, ModeConfig } from "./modes"
-import { CustomSupportPrompts } from "./support-prompt"
-import { ExperimentId } from "./experiments"
+
+import { McpServer } from "./mcp"
+import { Mode } from "./modes"
+import { RouterModels } from "./api"
+import type { MarketplaceItem } from "@roo-code/types"
+
+// Type for marketplace installed metadata
+export interface MarketplaceInstalledMetadata {
+	project: Record<string, { type: string }>
+	global: Record<string, { type: string }>
+}
+
+// Indexing status types
+export interface IndexingStatus {
+	systemStatus: string
+	message?: string
+	processedItems: number
+	totalItems: number
+	currentItemUnit?: string
+}
+
+export interface IndexingStatusUpdateMessage {
+	type: "indexingStatusUpdate"
+	values: IndexingStatus
+}
 
 export interface LanguageModelChatSelector {
 	vendor?: string
@@ -15,187 +46,260 @@ export interface LanguageModelChatSelector {
 	id?: string
 }
 
-// webview will hold state
+// Represents JSON data that is sent from extension to webview, called
+// ExtensionMessage and has 'type' enum which can be 'plusButtonClicked' or
+// 'settingsButtonClicked' or 'hello'. Webview will hold state.
 export interface ExtensionMessage {
 	type:
 		| "action"
 		| "state"
 		| "selectedImages"
-		| "ollamaModels"
-		| "lmStudioModels"
 		| "theme"
 		| "workspaceUpdated"
 		| "invoke"
-		| "partialMessage"
-		| "openRouterModels"
-		| "glamaModels"
-		| "unboundModels"
-		| "requestyModels"
-		| "openAiModels"
+		| "messageUpdated"
 		| "mcpServers"
 		| "enhancedPrompt"
 		| "commitSearchResults"
 		| "listApiConfig"
+		| "routerModels"
+		| "openAiModels"
+		| "ollamaModels"
+		| "lmStudioModels"
 		| "vsCodeLmModels"
 		| "vsCodeLmApiAvailable"
-		| "requestVsCodeLmModels"
 		| "updatePrompt"
 		| "systemPrompt"
 		| "autoApprovalEnabled"
 		| "updateCustomMode"
 		| "deleteCustomMode"
+		| "exportModeResult"
+		| "importModeResult"
+		| "checkRulesDirectoryResult"
+		| "deleteCustomModeCheck"
 		| "currentCheckpointUpdated"
+		| "showHumanRelayDialog"
+		| "humanRelayResponse"
+		| "humanRelayCancel"
 		| "browserToolEnabled"
+		| "browserConnectionResult"
+		| "remoteBrowserEnabled"
+		| "ttsStart"
+		| "ttsStop"
+		| "maxReadFileLine"
+		| "fileSearchResults"
+		| "toggleApiConfigPin"
+		| "acceptInput"
+		| "setHistoryPreviewCollapsed"
+		| "commandExecutionStatus"
+		| "mcpExecutionStatus"
+		| "vsCodeSetting"
+		| "authenticatedUser"
+		| "condenseTaskContextResponse"
+		| "singleRouterModelFetchResponse"
+		| "indexingStatusUpdate"
+		| "indexCleared"
+		| "codebaseIndexConfig"
+		| "marketplaceInstallResult"
+		| "marketplaceData"
+		| "shareTaskSuccess"
+		| "codeIndexSettingsSaved"
+		| "codeIndexSecretStatus"
+		| "showDeleteMessageDialog"
+		| "showEditMessageDialog"
 	text?: string
+	payload?: any // Add a generic payload for now, can refine later
 	action?:
 		| "chatButtonClicked"
 		| "mcpButtonClicked"
 		| "settingsButtonClicked"
 		| "historyButtonClicked"
 		| "promptsButtonClicked"
+		| "marketplaceButtonClicked"
+		| "accountButtonClicked"
 		| "didBecomeVisible"
-	invoke?: "sendMessage" | "primaryButtonClick" | "secondaryButtonClick" | "setChatBoxMessage"
+		| "focusInput"
+		| "switchTab"
+	invoke?: "newChat" | "sendMessage" | "primaryButtonClick" | "secondaryButtonClick" | "setChatBoxMessage"
 	state?: ExtensionState
 	images?: string[]
-	ollamaModels?: string[]
-	lmStudioModels?: string[]
-	vsCodeLmModels?: { vendor?: string; family?: string; version?: string; id?: string }[]
 	filePaths?: string[]
 	openedTabs?: Array<{
 		label: string
 		isActive: boolean
 		path?: string
 	}>
-	partialMessage?: ClineMessage
-	openRouterModels?: Record<string, ModelInfo>
-	glamaModels?: Record<string, ModelInfo>
-	unboundModels?: Record<string, ModelInfo>
-	requestyModels?: Record<string, ModelInfo>
+	clineMessage?: ClineMessage
+	routerModels?: RouterModels
 	openAiModels?: string[]
+	ollamaModels?: string[]
+	lmStudioModels?: string[]
+	vsCodeLmModels?: { vendor?: string; family?: string; version?: string; id?: string }[]
 	mcpServers?: McpServer[]
 	commits?: GitCommit[]
-	listApiConfig?: ApiConfigMeta[]
+	listApiConfig?: ProviderSettingsEntry[]
 	mode?: Mode
 	customMode?: ModeConfig
 	slug?: string
+	success?: boolean
+	values?: Record<string, any>
+	requestId?: string
+	promptText?: string
+	results?: { path: string; type: "file" | "folder"; label?: string }[]
+	error?: string
+	setting?: string
+	value?: any
+	hasContent?: boolean // For checkRulesDirectoryResult
+	items?: MarketplaceItem[]
+	userInfo?: CloudUserInfo
+	organizationAllowList?: OrganizationAllowList
+	tab?: string
+	marketplaceItems?: MarketplaceItem[]
+	marketplaceInstalledMetadata?: MarketplaceInstalledMetadata
+	visibility?: ShareVisibility
+	rulesFolderPath?: string
+	settings?: any
+	messageTs?: number
+	context?: string
 }
 
-export interface ApiConfigMeta {
-	id: string
-	name: string
-	apiProvider?: ApiProvider
-}
-
-export interface ExtensionState {
+export type ExtensionState = Pick<
+	GlobalSettings,
+	| "currentApiConfigName"
+	| "listApiConfigMeta"
+	| "pinnedApiConfigs"
+	// | "lastShownAnnouncementId"
+	| "customInstructions"
+	// | "taskHistory" // Optional in GlobalSettings, required here.
+	| "autoApprovalEnabled"
+	| "alwaysAllowReadOnly"
+	| "alwaysAllowReadOnlyOutsideWorkspace"
+	| "alwaysAllowWrite"
+	| "alwaysAllowWriteOutsideWorkspace"
+	| "alwaysAllowWriteProtected"
+	// | "writeDelayMs" // Optional in GlobalSettings, required here.
+	| "alwaysAllowBrowser"
+	| "alwaysApproveResubmit"
+	// | "requestDelaySeconds" // Optional in GlobalSettings, required here.
+	| "alwaysAllowMcp"
+	| "alwaysAllowModeSwitch"
+	| "alwaysAllowSubtasks"
+	| "alwaysAllowExecute"
+	| "alwaysAllowUpdateTodoList"
+	| "allowedCommands"
+	| "deniedCommands"
+	| "allowedMaxRequests"
+	| "browserToolEnabled"
+	| "browserViewportSize"
+	| "screenshotQuality"
+	| "remoteBrowserEnabled"
+	| "remoteBrowserHost"
+	// | "enableCheckpoints" // Optional in GlobalSettings, required here.
+	| "ttsEnabled"
+	| "ttsSpeed"
+	| "soundEnabled"
+	| "soundVolume"
+	// | "maxOpenTabsContext" // Optional in GlobalSettings, required here.
+	// | "maxWorkspaceFiles" // Optional in GlobalSettings, required here.
+	// | "showRooIgnoredFiles" // Optional in GlobalSettings, required here.
+	// | "maxReadFileLine" // Optional in GlobalSettings, required here.
+	| "maxConcurrentFileReads" // Optional in GlobalSettings, required here.
+	| "terminalOutputLineLimit"
+	| "terminalShellIntegrationTimeout"
+	| "terminalShellIntegrationDisabled"
+	| "terminalCommandDelay"
+	| "terminalPowershellCounter"
+	| "terminalZshClearEolMark"
+	| "terminalZshOhMy"
+	| "terminalZshP10k"
+	| "terminalZdotdir"
+	| "terminalCompressProgressBar"
+	| "diffEnabled"
+	| "fuzzyMatchThreshold"
+	// | "experiments" // Optional in GlobalSettings, required here.
+	| "language"
+	// | "telemetrySetting" // Optional in GlobalSettings, required here.
+	// | "mcpEnabled" // Optional in GlobalSettings, required here.
+	// | "enableMcpServerCreation" // Optional in GlobalSettings, required here.
+	// | "mode" // Optional in GlobalSettings, required here.
+	| "modeApiConfigs"
+	// | "customModes" // Optional in GlobalSettings, required here.
+	| "customModePrompts"
+	| "customSupportPrompts"
+	| "enhancementApiConfigId"
+	| "condensingApiConfigId"
+	| "customCondensingPrompt"
+	| "codebaseIndexConfig"
+	| "codebaseIndexModels"
+	| "profileThresholds"
+> & {
 	version: string
 	clineMessages: ClineMessage[]
-	taskHistory: HistoryItem[]
-	shouldShowAnnouncement: boolean
-	apiConfiguration?: ApiConfiguration
-	currentApiConfigName?: string
-	listApiConfigMeta?: ApiConfigMeta[]
-	customInstructions?: string
-	customModePrompts?: CustomModePrompts
-	customSupportPrompts?: CustomSupportPrompts
-	alwaysAllowReadOnly?: boolean
-	alwaysAllowWrite?: boolean
-	alwaysAllowExecute?: boolean
-	alwaysAllowBrowser?: boolean
-	alwaysAllowMcp?: boolean
-	alwaysApproveResubmit?: boolean
-	alwaysAllowModeSwitch?: boolean
-	browserToolEnabled?: boolean
-	requestDelaySeconds: number
-	rateLimitSeconds: number // Minimum time between successive requests (0 = disabled)
-	uriScheme?: string
 	currentTaskItem?: HistoryItem
-	allowedCommands?: string[]
-	soundEnabled?: boolean
-	soundVolume?: number
-	diffEnabled?: boolean
-	enableCheckpoints: boolean
-	browserViewportSize?: string
-	screenshotQuality?: number
-	fuzzyMatchThreshold?: number
-	preferredLanguage: string
+	apiConfiguration?: ProviderSettings
+	uriScheme?: string
+	shouldShowAnnouncement: boolean
+
+	taskHistory: HistoryItem[]
+
 	writeDelayMs: number
-	terminalOutputLineLimit?: number
+	requestDelaySeconds: number
+
+	enableCheckpoints: boolean
+	maxOpenTabsContext: number // Maximum number of VSCode open tabs to include in context (0-500)
+	maxWorkspaceFiles: number // Maximum number of files to include in current working directory details (0-500)
+	showRooIgnoredFiles: boolean // Whether to show .rooignore'd files in listings
+	maxReadFileLine: number // Maximum number of lines to read from a file before truncating
+
+	experiments: Experiments // Map of experiment IDs to their enabled state
+
 	mcpEnabled: boolean
 	enableMcpServerCreation: boolean
+
 	mode: Mode
-	modeApiConfigs?: Record<Mode, string>
-	enhancementApiConfigId?: string
-	experiments: Record<ExperimentId, boolean> // Map of experiment IDs to their enabled state
-	autoApprovalEnabled?: boolean
 	customModes: ModeConfig[]
 	toolRequirements?: Record<string, boolean> // Map of tool names to their requirements (e.g. {"apply_diff": true} if diffEnabled)
-	maxOpenTabsContext: number // Maximum number of VSCode open tabs to include in context (0-500)
+
 	cwd?: string // Current working directory
+	telemetrySetting: TelemetrySetting
+	telemetryKey?: string
+	machineId?: string
+
+	renderContext: "sidebar" | "editor"
+	settingsImportedAt?: number
+	historyPreviewCollapsed?: boolean
+
+	cloudUserInfo: CloudUserInfo | null
+	cloudIsAuthenticated: boolean
+	cloudApiUrl?: string
+	sharingEnabled: boolean
+	organizationAllowList: OrganizationAllowList
+
+	autoCondenseContext: boolean
+	autoCondenseContextPercent: number
+	marketplaceItems?: MarketplaceItem[]
+	marketplaceInstalledMetadata?: { project: Record<string, any>; global: Record<string, any> }
+	profileThresholds: Record<string, number>
+	hasOpenedModeSelector: boolean
 }
-
-export interface ClineMessage {
-	ts: number
-	type: "ask" | "say"
-	ask?: ClineAsk
-	say?: ClineSay
-	text?: string
-	images?: string[]
-	partial?: boolean
-	reasoning?: string
-	conversationHistoryIndex?: number
-	checkpoint?: Record<string, unknown>
-}
-
-export type ClineAsk =
-	| "followup"
-	| "command"
-	| "command_output"
-	| "completion_result"
-	| "tool"
-	| "api_req_failed"
-	| "resume_task"
-	| "resume_completed_task"
-	| "mistake_limit_reached"
-	| "browser_action_launch"
-	| "use_mcp_server"
-
-export type ClineSay =
-	| "task"
-	| "error"
-	| "api_req_started"
-	| "api_req_finished"
-	| "api_req_retried"
-	| "api_req_retry_delayed"
-	| "api_req_deleted"
-	| "text"
-	| "reasoning"
-	| "completion_result"
-	| "user_feedback"
-	| "user_feedback_diff"
-	| "command_output"
-	| "tool"
-	| "shell_integration_warning"
-	| "browser_action"
-	| "browser_action_result"
-	| "command"
-	| "mcp_server_request_started"
-	| "mcp_server_response"
-	| "new_task_started"
-	| "new_task"
-	| "checkpoint_saved"
 
 export interface ClineSayTool {
 	tool:
 		| "editedExistingFile"
 		| "appliedDiff"
 		| "newFileCreated"
+		| "codebaseSearch"
 		| "readFile"
+		| "fetchInstructions"
 		| "listFilesTopLevel"
 		| "listFilesRecursive"
 		| "listCodeDefinitionNames"
 		| "searchFiles"
 		| "switchMode"
 		| "newTask"
+		| "finishTask"
+		| "searchAndReplace"
+		| "insertContent"
 	path?: string
 	diff?: string
 	content?: string
@@ -203,15 +307,55 @@ export interface ClineSayTool {
 	filePattern?: string
 	mode?: string
 	reason?: string
+	isOutsideWorkspace?: boolean
+	isProtected?: boolean
+	additionalFileCount?: number // Number of additional files in the same read_file request
+	search?: string
+	replace?: string
+	useRegex?: boolean
+	ignoreCase?: boolean
+	startLine?: number
+	endLine?: number
+	lineNumber?: number
+	query?: string
+	batchFiles?: Array<{
+		path: string
+		lineSnippet: string
+		isOutsideWorkspace?: boolean
+		key: string
+		content?: string
+	}>
+	batchDiffs?: Array<{
+		path: string
+		changeCount: number
+		key: string
+		content: string
+		diffs?: Array<{
+			content: string
+			startLine?: number
+		}>
+	}>
+	question?: string
 }
 
-// must keep in sync with system prompt
-export const browserActions = ["launch", "click", "type", "scroll_down", "scroll_up", "close"] as const
+// Must keep in sync with system prompt.
+export const browserActions = [
+	"launch",
+	"click",
+	"hover",
+	"type",
+	"scroll_down",
+	"scroll_up",
+	"resize",
+	"close",
+] as const
+
 export type BrowserAction = (typeof browserActions)[number]
 
 export interface ClineSayBrowserAction {
 	action: BrowserAction
 	coordinate?: string
+	size?: string
 	text?: string
 }
 
@@ -228,6 +372,7 @@ export interface ClineAskUseMcpServer {
 	toolName?: string
 	arguments?: string
 	uri?: string
+	response?: string
 }
 
 export interface ClineApiReqInfo {
@@ -239,6 +384,7 @@ export interface ClineApiReqInfo {
 	cost?: number
 	cancelReason?: ClineApiReqCancelReason
 	streamingFailedMessage?: string
+	apiProtocol?: "anthropic" | "openai"
 }
 
 export type ClineApiReqCancelReason = "streaming_failed" | "user_cancelled"

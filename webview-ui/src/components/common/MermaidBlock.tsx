@@ -1,8 +1,16 @@
 import { useEffect, useRef, useState } from "react"
 import mermaid from "mermaid"
-import { useDebounceEffect } from "../../utils/useDebounceEffect"
 import styled from "styled-components"
-import { vscode } from "../../utils/vscode"
+import { useDebounceEffect } from "@src/utils/useDebounceEffect"
+import { vscode } from "@src/utils/vscode"
+import { useAppTranslation } from "@src/i18n/TranslationContext"
+import { useCopyToClipboard } from "@src/utils/clipboard"
+import CodeBlock from "./CodeBlock"
+import { MermaidButton } from "@/components/common/MermaidButton"
+
+// Removed previous attempts at static imports for individual diagram types
+// as the paths were incorrect for Mermaid v11.4.1 and caused errors.
+// The primary strategy will now rely on Vite's bundling configuration.
 
 const MERMAID_THEME = {
 	background: "#1e1e1e", // VS Code dark theme background
@@ -38,6 +46,7 @@ mermaid.initialize({
 	startOnLoad: false,
 	securityLevel: "loose",
 	theme: "dark",
+	suppressErrorRendering: true,
 	themeVariables: {
 		...MERMAID_THEME,
 		fontSize: "16px",
@@ -81,10 +90,15 @@ interface MermaidBlockProps {
 export default function MermaidBlock({ code }: MermaidBlockProps) {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [isLoading, setIsLoading] = useState(false)
+	const [error, setError] = useState<string | null>(null)
+	const [isErrorExpanded, setIsErrorExpanded] = useState(false)
+	const { showCopyFeedback, copyWithFeedback } = useCopyToClipboard()
+	const { t } = useAppTranslation()
 
 	// 1) Whenever `code` changes, mark that we need to re-render a new chart
 	useEffect(() => {
 		setIsLoading(true)
+		setError(null)
 	}, [code])
 
 	// 2) Debounce the actual parse/render
@@ -93,12 +107,10 @@ export default function MermaidBlock({ code }: MermaidBlockProps) {
 			if (containerRef.current) {
 				containerRef.current.innerHTML = ""
 			}
+
 			mermaid
-				.parse(code, { suppressErrors: true })
-				.then((isValid) => {
-					if (!isValid) {
-						throw new Error("Invalid or incomplete Mermaid code")
-					}
+				.parse(code)
+				.then(() => {
 					const id = `mermaid-${Math.random().toString(36).substring(2)}`
 					return mermaid.render(id, code)
 				})
@@ -109,7 +121,7 @@ export default function MermaidBlock({ code }: MermaidBlockProps) {
 				})
 				.catch((err) => {
 					console.warn("Mermaid parse/render failed:", err)
-					containerRef.current!.innerHTML = code.replace(/</g, "&lt;").replace(/>/g, "&gt;")
+					setError(err.message || "Failed to render Mermaid diagram")
 				})
 				.finally(() => {
 					setIsLoading(false)
@@ -139,18 +151,79 @@ export default function MermaidBlock({ code }: MermaidBlockProps) {
 		}
 	}
 
+	// Copy functionality handled directly through the copyWithFeedback utility
+
 	return (
 		<MermaidBlockContainer>
-			{isLoading && <LoadingMessage>Generating mermaid diagram...</LoadingMessage>}
+			{isLoading && <LoadingMessage>{t("common:mermaid.loading")}</LoadingMessage>}
 
-			{/* The container for the final <svg> or raw code. */}
-			<SvgContainer onClick={handleClick} ref={containerRef} $isLoading={isLoading} />
+			{error ? (
+				<div style={{ marginTop: "0px", overflow: "hidden", marginBottom: "8px" }}>
+					<div
+						style={{
+							borderBottom: isErrorExpanded ? "1px solid var(--vscode-editorGroup-border)" : "none",
+							fontWeight: "normal",
+							fontSize: "var(--vscode-font-size)",
+							color: "var(--vscode-editor-foreground)",
+							display: "flex",
+							alignItems: "center",
+							justifyContent: "space-between",
+							cursor: "pointer",
+						}}
+						onClick={() => setIsErrorExpanded(!isErrorExpanded)}>
+						<div
+							style={{
+								display: "flex",
+								alignItems: "center",
+								gap: "10px",
+								flexGrow: 1,
+							}}>
+							<span
+								className="codicon codicon-warning"
+								style={{
+									color: "var(--vscode-editorWarning-foreground)",
+									opacity: 0.8,
+									fontSize: 16,
+									marginBottom: "-1.5px",
+								}}></span>
+							<span style={{ fontWeight: "bold" }}>{t("common:mermaid.render_error")}</span>
+						</div>
+						<div style={{ display: "flex", alignItems: "center" }}>
+							<CopyButton
+								onClick={(e) => {
+									e.stopPropagation()
+									const combinedContent = `Error: ${error}\n\n\`\`\`mermaid\n${code}\n\`\`\``
+									copyWithFeedback(combinedContent, e)
+								}}>
+								<span className={`codicon codicon-${showCopyFeedback ? "check" : "copy"}`}></span>
+							</CopyButton>
+							<span className={`codicon codicon-chevron-${isErrorExpanded ? "up" : "down"}`}></span>
+						</div>
+					</div>
+					{isErrorExpanded && (
+						<div
+							style={{
+								padding: "8px",
+								backgroundColor: "var(--vscode-editor-background)",
+								borderTop: "none",
+							}}>
+							<div style={{ marginBottom: "8px", color: "var(--vscode-descriptionForeground)" }}>
+								{error}
+							</div>
+							<CodeBlock language="mermaid" source={code} />
+						</div>
+					)}
+				</div>
+			) : (
+				<MermaidButton containerRef={containerRef} code={code} isLoading={isLoading} svgToPng={svgToPng}>
+					<SvgContainer onClick={handleClick} ref={containerRef} $isLoading={isLoading}></SvgContainer>
+				</MermaidButton>
+			)}
 		</MermaidBlockContainer>
 	)
 }
 
 async function svgToPng(svgEl: SVGElement): Promise<string> {
-	console.log("svgToPng function called")
 	// Clone the SVG to avoid modifying the original
 	const svgClone = svgEl.cloneNode(true) as SVGElement
 
@@ -174,10 +247,16 @@ async function svgToPng(svgEl: SVGElement): Promise<string> {
 
 	const serializer = new XMLSerializer()
 	const svgString = serializer.serializeToString(svgClone)
-	const svgDataUrl = "data:image/svg+xml;base64," + btoa(decodeURIComponent(encodeURIComponent(svgString)))
+
+	// Create a data URL directly
+	// First, ensure the SVG string is properly encoded
+	const encodedSvg = encodeURIComponent(svgString).replace(/'/g, "%27").replace(/"/g, "%22")
+
+	const svgDataUrl = `data:image/svg+xml;charset=utf-8,${encodedSvg}`
 
 	return new Promise((resolve, reject) => {
 		const img = new Image()
+
 		img.onload = () => {
 			const canvas = document.createElement("canvas")
 			canvas.width = editorWidth
@@ -213,6 +292,23 @@ const LoadingMessage = styled.div`
 	font-size: 0.9em;
 `
 
+const CopyButton = styled.button`
+	padding: 3px;
+	height: 24px;
+	margin-right: 4px;
+	color: var(--vscode-editor-foreground);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: transparent;
+	border: none;
+	cursor: pointer;
+
+	&:hover {
+		opacity: 0.8;
+	}
+`
+
 interface SvgContainerProps {
 	$isLoading: boolean
 }
@@ -224,4 +320,12 @@ const SvgContainer = styled.div<SvgContainerProps>`
 	cursor: pointer;
 	display: flex;
 	justify-content: center;
+	max-height: 400px;
+
+	/* Ensure the SVG scales within the container */
+	& > svg {
+		display: block; /* Ensure block layout */
+		width: 100%;
+		max-height: 100%; /* Respect container's max-height */
+	}
 `

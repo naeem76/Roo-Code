@@ -1,27 +1,26 @@
 /*
-- function declarations (with associated comments)
-- method declarations (with associated comments)
-- type specifications
+Go Tree-Sitter Query Patterns
+Updated to capture full declarations instead of just identifiers
 */
 export default `
-(
-  (comment)* @doc
-  .
-  (function_declaration
-    name: (identifier) @name.definition.function) @definition.function
-  (#strip! @doc "^//\\s*")
-  (#set-adjacent! @doc @definition.function)
-)
+; Function declarations - capture the entire declaration
+(function_declaration) @name.definition.function
 
-(
-  (comment)* @doc
-  .
-  (method_declaration
-    name: (field_identifier) @name.definition.method) @definition.method
-  (#strip! @doc "^//\\s*")
-  (#set-adjacent! @doc @definition.method)
-)
+; Method declarations - capture the entire declaration
+(method_declaration) @name.definition.method
 
-(type_spec
-  name: (type_identifier) @name.definition.type) @definition.type
+; Type declarations (interfaces, structs, type aliases) - capture the entire declaration
+(type_declaration) @name.definition.type
+
+; Variable declarations - capture the entire declaration
+(var_declaration) @name.definition.var
+
+; Constant declarations - capture the entire declaration  
+(const_declaration) @name.definition.const
+
+; Package clause
+(package_clause) @name.definition.package
+
+; Import declarations - capture the entire import block
+(import_declaration) @name.definition.import
 `

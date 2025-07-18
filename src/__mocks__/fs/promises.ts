@@ -1,3 +1,5 @@
+import { vi } from "vitest"
+
 // Mock file system data
 const mockFiles = new Map()
 const mockDirectories = new Set()
@@ -24,26 +26,6 @@ const baseTestDirs = [
 	"/test/log/path",
 ]
 
-// Helper function to format instructions
-const formatInstructions = (sections: string[]): string => {
-	const joinedSections = sections.filter(Boolean).join("\n\n")
-	return joinedSections
-		? `
-====
-
-USER'S CUSTOM INSTRUCTIONS
-
-The following additional instructions are provided by the user, and should be followed to the best of your ability without interfering with the TOOL USE guidelines.
-
-${joinedSections}`
-		: ""
-}
-
-// Helper function to format rule content
-const formatRuleContent = (ruleFile: string, content: string): string => {
-	return `Rules:\n# Rules from ${ruleFile}:\n${content}`
-}
-
 type RuleFiles = {
 	".clinerules-code": string
 	".clinerules-ask": string
@@ -65,7 +47,7 @@ const ensureDirectoryExists = (path: string) => {
 }
 
 const mockFs = {
-	readFile: jest.fn().mockImplementation(async (filePath: string, encoding?: string) => {
+	readFile: vi.fn().mockImplementation(async (filePath: string, _encoding?: string) => {
 		// Return stored content if it exists
 		if (mockFiles.has(filePath)) {
 			return mockFiles.get(filePath)
@@ -102,7 +84,7 @@ const mockFs = {
 		throw error
 	}),
 
-	writeFile: jest.fn().mockImplementation(async (path: string, content: string) => {
+	writeFile: vi.fn().mockImplementation(async (path: string, content: string) => {
 		// Ensure parent directory exists
 		const parentDir = path.split("/").slice(0, -1).join("/")
 		ensureDirectoryExists(parentDir)
@@ -110,7 +92,7 @@ const mockFs = {
 		return Promise.resolve()
 	}),
 
-	mkdir: jest.fn().mockImplementation(async (path: string, options?: { recursive?: boolean }) => {
+	mkdir: vi.fn().mockImplementation(async (path: string, options?: { recursive?: boolean }) => {
 		// Always handle recursive creation
 		const parts = path.split("/")
 		let currentPath = ""
@@ -142,7 +124,7 @@ const mockFs = {
 		return Promise.resolve()
 	}),
 
-	access: jest.fn().mockImplementation(async (path: string) => {
+	access: vi.fn().mockImplementation(async (path: string) => {
 		// Check if the path exists in either files or directories
 		if (mockFiles.has(path) || mockDirectories.has(path) || path.startsWith("/test")) {
 			return Promise.resolve()
@@ -152,7 +134,23 @@ const mockFs = {
 		throw error
 	}),
 
-	constants: jest.requireActual("fs").constants,
+	rename: vi.fn().mockImplementation(async (oldPath: string, newPath: string) => {
+		// Check if the old file exists
+		if (mockFiles.has(oldPath)) {
+			// Copy content to new path
+			const content = mockFiles.get(oldPath)
+			mockFiles.set(newPath, content)
+			// Delete old file
+			mockFiles.delete(oldPath)
+			return Promise.resolve()
+		}
+		// If old file doesn't exist, throw an error
+		const error = new Error(`ENOENT: no such file or directory, rename '${oldPath}'`)
+		;(error as any).code = "ENOENT"
+		throw error
+	}),
+
+	constants: require("fs").constants,
 
 	// Expose mock data for test assertions
 	_mockFiles: mockFiles,
@@ -162,7 +160,7 @@ const mockFs = {
 	_setInitialMockData: () => {
 		// Set up default MCP settings
 		mockFiles.set(
-			"/mock/settings/path/cline_mcp_settings.json",
+			"/mock/settings/path/mcp_settings.json",
 			JSON.stringify({
 				mcpServers: {
 					"test-server": {
@@ -170,6 +168,7 @@ const mockFs = {
 						args: ["test.js"],
 						disabled: false,
 						alwaysAllow: ["existing-tool"],
+						disabledTools: [],
 					},
 				},
 			}),

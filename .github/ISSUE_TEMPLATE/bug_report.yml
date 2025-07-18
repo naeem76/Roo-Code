@@ -1,68 +1,98 @@
 name: Bug Report
-description: File a bug report
+description: Clearly report a bug with detailed repro steps
 labels: ["bug"]
 body:
-    - type: input
-      id: version
-      attributes:
-          label: Which version of the app are you using?
-          description: Please specify the app version you're using (e.g. v3.3.1)
-      validations:
-          required: true
-    - type: dropdown
-      id: provider
-      attributes:
-          label: Which API Provider are you using?
-          multiple: false
-          options:
-              - OpenRouter
-              - Anthropic
-              - Google Gemini
-              - DeepSeek
-              - OpenAI
-              - OpenAI Compatible
-              - GCP Vertex AI
-              - AWS Bedrock
-              - Glama
-              - VS Code LM API
-              - LM Studio
-              - Ollama
-      validations:
-          required: true
-    - type: input
-      id: model
-      attributes:
-          label: Which Model are you using?
-          description: Please specify the model you're using (e.g. Claude 3.7 Sonnet)
-      validations:
-          required: true
-    - type: textarea
-      id: what-happened
-      attributes:
-          label: What happened?
-          description: Also tell us, what did you expect to happen?
-          placeholder: Tell us what you see!
-      validations:
-          required: true
-    - type: textarea
-      id: steps
-      attributes:
-          label: Steps to reproduce
-          description: How do you trigger this bug? Please walk us through it step by step.
-          value: |
-              1.
-              2.
-              3.
-      validations:
-          required: true
-    - type: textarea
-      id: logs
-      attributes:
-          label: Relevant API REQUEST output
-          description: Please copy and paste any relevant output. This will be automatically formatted into code, so no need for backticks.
-          render: shell
-    - type: textarea
-      id: additional-context
-      attributes:
-          label: Additional context
-          description: Add any other context about the problem here, such as screenshots or related issues.
+  - type: markdown
+    attributes:
+      value: |
+        **Thanks for your report!** Please check existing issues first:  
+        👉 https://github.com/RooCodeInc/Roo-Code/issues
+
+  - type: input
+    id: version
+    attributes:
+      label: App Version
+      description: What version of Roo Code are you using? (e.g., v3.3.1)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: provider
+    attributes:
+      label: API Provider
+      options:
+        - Anthropic
+        - AWS Bedrock
+        - Chutes AI
+        - DeepSeek
+        - Glama
+        - Google Gemini
+        - Google Vertex AI
+        - Groq
+        - Human Relay Provider
+        - LiteLLM
+        - LM Studio
+        - Mistral AI
+        - Ollama
+        - OpenAI
+        - OpenAI Compatible
+        - OpenRouter
+        - Requesty
+        - Unbound
+        - VS Code Language Model API
+        - xAI (Grok)
+        - Not Applicable / Other
+    validations:
+      required: true
+
+  - type: input
+    id: model
+    attributes:
+      label: Model Used
+      description: Exact model name (e.g., Claude 3.7 Sonnet). Use N/A if irrelevant.
+    validations:
+      required: true
+
+  - type: textarea
+    id: roo-code-tasks
+    attributes:
+      label: Roo Code Task Links (Optional)
+      description: |
+        If you have any publicly shared task links that demonstrate the issue, please paste them here.
+        This helps maintainers understand the context.
+        Example: https://app.roocode.com/share/task-id
+      placeholder: Paste your Roo Code share links here, one per line
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 🔁 Steps to Reproduce
+      description: |
+        Help us see what you saw. Give clear, numbered steps:
+
+        1. Setup (OS, extension version, settings)
+        2. Exact actions (clicks, input, files, commands)
+        3. What happened after each step
+
+        Think like you're writing a recipe. Without this, we can't reproduce the issue.
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 💥 Outcome Summary
+      description: |
+        Recap what went wrong in one or two lines.
+
+        Example: "Expected code to run, but got an empty response and no error."
+      placeholder: Expected ___, but got ___.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 📄 Relevant Logs or Errors (Optional)
+      description: Paste API logs, terminal output, or errors here. Use triple backticks (```) for code formatting.
+      render: shell

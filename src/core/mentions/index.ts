@@ -1,27 +1,63 @@
-import * as vscode from "vscode"
-import * as path from "path"
-import { openFile } from "../../integrations/misc/open-file"
-import { UrlContentFetcher } from "../../services/browser/UrlContentFetcher"
-import { mentionRegexGlobal, formatGitSuggestion, type MentionSuggestion } from "../../shared/context-mentions"
 import fs from "fs/promises"
-import { extractTextFromFile } from "../../integrations/misc/extract-text"
+import * as path from "path"
+
+import * as vscode from "vscode"
 import { isBinaryFile } from "isbinaryfile"
-import { diagnosticsToProblemsString } from "../../integrations/diagnostics"
+
+import { mentionRegexGlobal, unescapeSpaces } from "../../shared/context-mentions"
+
 import { getCommitInfo, getWorkingState } from "../../utils/git"
-import { getLatestTerminalOutput } from "../../integrations/terminal/get-latest-output"
+import { getWorkspacePath } from "../../utils/path"
+
+import { openFile } from "../../integrations/misc/open-file"
+import { extractTextFromFile } from "../../integrations/misc/extract-text"
+import { diagnosticsToProblemsString } from "../../integrations/diagnostics"
+
+import { UrlContentFetcher } from "../../services/browser/UrlContentFetcher"
+
+import { FileContextTracker } from "../context-tracking/FileContextTracker"
+
+import { RooIgnoreController } from "../ignore/RooIgnoreController"
+
+import { t } from "../../i18n"
+
+function getUrlErrorMessage(error: unknown): string {
+	const errorMessage = error instanceof Error ? error.message : String(error)
+
+	// Check for common error patterns and return appropriate message
+	if (errorMessage.includes("timeout")) {
+		return t("common:errors.url_timeout")
+	}
+	if (errorMessage.includes("net::ERR_NAME_NOT_RESOLVED")) {
+		return t("common:errors.url_not_found")
+	}
+	if (errorMessage.includes("net::ERR_INTERNET_DISCONNECTED")) {
+		return t("common:errors.no_internet")
+	}
+	if (errorMessage.includes("403") || errorMessage.includes("Forbidden")) {
+		return t("common:errors.url_forbidden")
+	}
+	if (errorMessage.includes("404") || errorMessage.includes("Not Found")) {
+		return t("common:errors.url_page_not_found")
+	}
+
+	// Default error message
+	return t("common:errors.url_fetch_failed", { error: errorMessage })
+}
 
 export async function openMention(mention?: string): Promise<void> {
 	if (!mention) {
 		return
 	}
 
-	const cwd = vscode.workspace.workspaceFolders?.map((folder) => folder.uri.fsPath).at(0)
+	const cwd = getWorkspacePath()
 	if (!cwd) {
 		return
 	}
 
 	if (mention.startsWith("/")) {
-		const relPath = mention.slice(1)
+		// Slice off the leading slash and unescape any spaces in the path
+		const relPath = unescapeSpaces(mention.slice(1))
 		const absPath = path.resolve(cwd, relPath)
 		if (mention.endsWith("/")) {
 			vscode.commands.executeCommand("revealInExplorer", vscode.Uri.file(absPath))
@@ -37,7 +73,14 @@ export async function openMention(mention?: string): Promise<void> {
 	}
 }
 
-export async function parseMentions(text: string, cwd: string, urlContentFetcher: UrlContentFetcher): Promise<string> {
+export async function parseMentions(
+	text: string,
+	cwd: string,
+	urlContentFetcher: UrlContentFetcher,
+	fileContextTracker?: FileContextTracker,
+	rooIgnoreController?: RooIgnoreController,
+	showRooIgnoredFiles: boolean = true,
+): Promise<string> {
 	const mentions: Set<string> = new Set()
 	let parsedText = text.replace(mentionRegexGlobal, (match, mention) => {
 		mentions.add(mention)
@@ -67,7 +110,8 @@ export async function parseMentions(text: string, cwd: string, urlContentFetcher
 			await urlContentFetcher.launchBrowser()
 		} catch (error) {
 			launchBrowserError = error
-			vscode.window.showErrorMessage(`Error fetching content for ${urlMention}: ${error.message}`)
+			const errorMessage = error instanceof Error ? error.message : String(error)
+			vscode.window.showErrorMessage(`Error fetching content for ${urlMention}: ${errorMessage}`)
 		}
 	}
 
@@ -75,25 +119,42 @@ export async function parseMentions(text: string, cwd: string, urlContentFetcher
 		if (mention.startsWith("http")) {
 			let result: string
 			if (launchBrowserError) {
-				result = `Error fetching content: ${launchBrowserError.message}`
+				const errorMessage =
+					launchBrowserError instanceof Error ? launchBrowserError.message : String(launchBrowserError)
+				result = `Error fetching content: ${errorMessage}`
 			} else {
 				try {
 					const markdown = await urlContentFetcher.urlToMarkdown(mention)
 					result = markdown
 				} catch (error) {
-					vscode.window.showErrorMessage(`Error fetching content for ${mention}: ${error.message}`)
-					result = `Error fetching content: ${error.message}`
+					console.error(`Error fetching URL ${mention}:`, error)
+
+					// Get raw error message for AI
+					const rawErrorMessage = error instanceof Error ? error.message : String(error)
+
+					// Get localized error message for UI notification
+					const localizedErrorMessage = getUrlErrorMessage(error)
+
+					vscode.window.showErrorMessage(
+						t("common:errors.url_fetch_error_with_url", { url: mention, error: localizedErrorMessage }),
+					)
+
+					// Send raw error message to AI model
+					result = `Error fetching content: ${rawErrorMessage}`
 				}
 			}
 			parsedText += `\n\n<url_content url="${mention}">\n${result}\n</url_content>`
 		} else if (mention.startsWith("/")) {
 			const mentionPath = mention.slice(1)
 			try {
-				const content = await getFileOrFolderContent(mentionPath, cwd)
+				const content = await getFileOrFolderContent(mentionPath, cwd, rooIgnoreController, showRooIgnoredFiles)
 				if (mention.endsWith("/")) {
 					parsedText += `\n\n<folder_content path="${mentionPath}">\n${content}\n</folder_content>`
 				} else {
 					parsedText += `\n\n<file_content path="${mentionPath}">\n${content}\n</file_content>`
+					if (fileContextTracker) {
+						await fileContextTracker.trackFileContext(mentionPath, "file_mentioned")
+					}
 				}
 			} catch (error) {
 				if (mention.endsWith("/")) {
@@ -104,7 +165,7 @@ export async function parseMentions(text: string, cwd: string, urlContentFetcher
 			}
 		} else if (mention === "problems") {
 			try {
-				const problems = getWorkspaceProblems(cwd)
+				const problems = await getWorkspaceProblems(cwd)
 				parsedText += `\n\n<workspace_diagnostics>\n${problems}\n</workspace_diagnostics>`
 			} catch (error) {
 				parsedText += `\n\n<workspace_diagnostics>\nError fetching diagnostics: ${error.message}\n</workspace_diagnostics>`
@@ -144,50 +205,77 @@ export async function parseMentions(text: string, cwd: string, urlContentFetcher
 	return parsedText
 }
 
-async function getFileOrFolderContent(mentionPath: string, cwd: string): Promise<string> {
-	const absPath = path.resolve(cwd, mentionPath)
+async function getFileOrFolderContent(
+	mentionPath: string,
+	cwd: string,
+	rooIgnoreController?: any,
+	showRooIgnoredFiles: boolean = true,
+): Promise<string> {
+	const unescapedPath = unescapeSpaces(mentionPath)
+	const absPath = path.resolve(cwd, unescapedPath)
 
 	try {
 		const stats = await fs.stat(absPath)
 
 		if (stats.isFile()) {
-			const isBinary = await isBinaryFile(absPath).catch(() => false)
-			if (isBinary) {
-				return "(Binary file, unable to display content)"
+			if (rooIgnoreController && !rooIgnoreController.validateAccess(absPath)) {
+				return `(File ${mentionPath} is ignored by .rooignore)`
 			}
-			const content = await extractTextFromFile(absPath)
-			return content
+			try {
+				const content = await extractTextFromFile(absPath)
+				return content
+			} catch (error) {
+				return `(Failed to read contents of ${mentionPath}): ${error.message}`
+			}
 		} else if (stats.isDirectory()) {
 			const entries = await fs.readdir(absPath, { withFileTypes: true })
 			let folderContent = ""
 			const fileContentPromises: Promise<string | undefined>[] = []
-			entries.forEach((entry, index) => {
+			const LOCK_SYMBOL = "🔒"
+
+			for (let index = 0; index < entries.length; index++) {
+				const entry = entries[index]
 				const isLast = index === entries.length - 1
 				const linePrefix = isLast ? "└── " : "├── "
+				const entryPath = path.join(absPath, entry.name)
+
+				let isIgnored = false
+				if (rooIgnoreController) {
+					isIgnored = !rooIgnoreController.validateAccess(entryPath)
+				}
+
+				if (isIgnored && !showRooIgnoredFiles) {
+					continue
+				}
+
+				const displayName = isIgnored ? `${LOCK_SYMBOL} ${entry.name}` : entry.name
+
 				if (entry.isFile()) {
-					folderContent += `${linePrefix}${entry.name}\n`
-					const filePath = path.join(mentionPath, entry.name)
-					const absoluteFilePath = path.resolve(absPath, entry.name)
-					fileContentPromises.push(
-						(async () => {
-							try {
-								const isBinary = await isBinaryFile(absoluteFilePath).catch(() => false)
-								if (isBinary) {
+					folderContent += `${linePrefix}${displayName}\n`
+					if (!isIgnored) {
+						const filePath = path.join(mentionPath, entry.name)
+						const absoluteFilePath = path.resolve(absPath, entry.name)
+						fileContentPromises.push(
+							(async () => {
+								try {
+									const isBinary = await isBinaryFile(absoluteFilePath).catch(() => false)
+									if (isBinary) {
+										return undefined
+									}
+									const content = await extractTextFromFile(absoluteFilePath)
+									return `<file_content path="${filePath.toPosix()}">\n${content}\n</file_content>`
+								} catch (error) {
 									return undefined
 								}
-								const content = await extractTextFromFile(absoluteFilePath)
-								return `<file_content path="${filePath.toPosix()}">\n${content}\n</file_content>`
-							} catch (error) {
-								return undefined
-							}
-						})(),
-					)
+							})(),
+						)
+					}
 				} else if (entry.isDirectory()) {
-					folderContent += `${linePrefix}${entry.name}/\n`
+					folderContent += `${linePrefix}${displayName}/\n`
 				} else {
-					folderContent += `${linePrefix}${entry.name}\n`
+					folderContent += `${linePrefix}${displayName}\n`
 				}
-			})
+			}
 			const fileContents = (await Promise.all(fileContentPromises)).filter((content) => content)
 			return `${folderContent}\n${fileContents.join("\n\n")}`.trim()
 		} else {
@@ -198,9 +286,9 @@ async function getFileOrFolderContent(mentionPath: string, cwd: string): Promise
 	}
 }
 
-function getWorkspaceProblems(cwd: string): string {
+async function getWorkspaceProblems(cwd: string): Promise<string> {
 	const diagnostics = vscode.languages.getDiagnostics()
-	const result = diagnosticsToProblemsString(
+	const result = await diagnosticsToProblemsString(
 		diagnostics,
 		[vscode.DiagnosticSeverity.Error, vscode.DiagnosticSeverity.Warning],
 		cwd,
@@ -210,3 +298,53 @@ function getWorkspaceProblems(cwd: string): string {
 	}
 	return result
 }
+
+/**
+ * Gets the contents of the active terminal
+ * @returns The terminal contents as a string
+ */
+export async function getLatestTerminalOutput(): Promise<string> {
+	// Store original clipboard content to restore later
+	const originalClipboard = await vscode.env.clipboard.readText()
+
+	try {
+		// Select terminal content
+		await vscode.commands.executeCommand("workbench.action.terminal.selectAll")
+
+		// Copy selection to clipboard
+		await vscode.commands.executeCommand("workbench.action.terminal.copySelection")
+
+		// Clear the selection
+		await vscode.commands.executeCommand("workbench.action.terminal.clearSelection")
+
+		// Get terminal contents from clipboard
+		let terminalContents = (await vscode.env.clipboard.readText()).trim()
+
+		// Check if there's actually a terminal open
+		if (terminalContents === originalClipboard) {
+			return ""
+		}
+
+		// Clean up command separation
+		const lines = terminalContents.split("\n")
+		const lastLine = lines.pop()?.trim()
+
+		if (lastLine) {
+			let i = lines.length - 1
+
+			while (i >= 0 && !lines[i].trim().startsWith(lastLine)) {
+				i--
+			}
+
+			terminalContents = lines.slice(Math.max(i, 0)).join("\n")
+		}
+
+		return terminalContents
+	} finally {
+		// Restore original clipboard content
+		await vscode.env.clipboard.writeText(originalClipboard)
+	}
+}
+
+// Export processUserContentMentions from its own file
+export { processUserContentMentions } from "./processUserContentMentions"

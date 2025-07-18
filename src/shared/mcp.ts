@@ -1,13 +1,23 @@
+export type McpErrorEntry = {
+	message: string
+	timestamp: number
+	level: "error" | "warn" | "info"
+}
+
 export type McpServer = {
 	name: string
 	config: string
 	status: "connected" | "connecting" | "disconnected"
 	error?: string
+	errorHistory?: McpErrorEntry[]
 	tools?: McpTool[]
 	resources?: McpResource[]
 	resourceTemplates?: McpResourceTemplate[]
 	disabled?: boolean
 	timeout?: number
+	source?: "global" | "project"
+	projectPath?: string
+	instructions?: string
 }
 
 export type McpTool = {
@@ -15,6 +25,7 @@ export type McpTool = {
 	description?: string
 	inputSchema?: object
 	alwaysAllow?: boolean
+	enabledForPrompt?: boolean
 }
 
 export type McpResource = {
@@ -50,6 +61,11 @@ export type McpToolCallResponse = {
 		  }
 		| {
 				type: "image"
+				data: string
+				mimeType: string
+		  }
+		| {
+				type: "audio"
 				data: string
 				mimeType: string
 		  }
