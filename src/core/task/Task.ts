@@ -180,7 +180,7 @@ export class Task extends EventEmitter<ClineEvents> {
 	// LLM Messages & Chat Messages
 	apiConversationHistory: ApiMessage[] = []
 	clineMessages: ClineMessage[] = []
-	prevEnvDetails?: Record<string, any>
+	prevEnvDetails?: Record<string, unknown>
 
 	// Ask
 	private askResponse?: ClineAskResponse

@@ -8,6 +8,13 @@ import { defaultModeSlug, getFullModeDetails } from "../../../shared/modes"
 import { getApiMetrics } from "../../../shared/getApiMetrics"
 import type { Task } from "../../task/Task"
 
+/**
+ * Retrieves metadata context including time, cost, and mode information.
+ * Provides both high-frequency data (time, cost) and low-frequency data (mode details).
+ *
+ * @param cline - The current task instance
+ * @returns Object containing time, cost, and mode metadata
+ */
 export async function getMetadataContext(cline: Task) {
 	const state = await cline.providerRef.deref()?.getState()
 	const {
@@ -30,13 +37,13 @@ export async function getMetadataContext(cline: Task) {
 		.padStart(2, "0")}:${offsetMinutes.toString().padStart(2, "0")}`
 	const isoDateWithOffset = now.toISOString().replace(/Z$/, offsetString)
 	const time = {
-		"@I": isoDateWithOffset,
+		"@iso": isoDateWithOffset,
 	}
 
 	const { totalCost } = getApiMetrics(cline.clineMessages)
 	const cost = {
-		"@t": totalCost !== null ? totalCost.toFixed(2) : "0.00",
-		"@c": "USD",
+		"@total": totalCost !== null ? totalCost.toFixed(2) : "0.00",
+		"@currency": "USD",
 		"#text": "Must form responses to minimize cost growth",
 	}
 

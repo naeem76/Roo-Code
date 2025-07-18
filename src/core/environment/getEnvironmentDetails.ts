@@ -8,7 +8,22 @@ import { getMetadataContext } from "./context/metadata"
 import { getWorkspaceContext } from "./context/workspace"
 import { getTodoContext } from "./context/todo"
 
-export async function getEnvironmentDetails(task: Task, includeFileDetails: boolean = false) {
+/**
+ * Environment details structure for type safety
+ */
+export interface EnvironmentDetails {
+	[key: string]: unknown
+}
+
+/**
+ * Generates environment details for the current task, returning only differences
+ * from the previous state to optimize token usage and improve performance.
+ *
+ * @param task - The current task instance
+ * @param includeFileDetails - Whether to include detailed file listings
+ * @returns XML string containing environment details differences
+ */
+export async function getEnvironmentDetails(task: Task, includeFileDetails: boolean = false): Promise<string> {
 	const [vscodeContext, terminalContext, fileContext, metadataContext, workspaceContext, todoContext] =
 		await Promise.all([
 			getVscodeEditorContext(task),
@@ -19,7 +34,7 @@ export async function getEnvironmentDetails(task: Task, includeFileDetails: bool
 			getTodoContext(task),
 		])
 
-	const currentEnvDetails = {
+	const currentEnvDetails: EnvironmentDetails = {
 		...vscodeContext,
 		...terminalContext,
 		...fileContext,
@@ -28,8 +43,9 @@ export async function getEnvironmentDetails(task: Task, includeFileDetails: bool
 		...todoContext,
 	}
 
-	const diffEnvDetails = _envDiff(currentEnvDetails, task.prevEnvDetails)
+	const diffEnvDetails = calculateEnvironmentDiff(currentEnvDetails, task.prevEnvDetails)
 
+	// Store current state for next comparison
 	task.prevEnvDetails = currentEnvDetails
 
 	const builder = new XMLBuilder({
@@ -45,14 +61,34 @@ export async function getEnvironmentDetails(task: Task, includeFileDetails: bool
 	return builder.build({ environment_details: diffEnvDetails })
 }
 
-function _envDiff(current: any, previous: any): any {
+/**
+ * Calculates the difference between current and previous environment details.
+ * Returns only the changed properties to optimize token usage.
+ *
+ * @param current - Current environment details
+ * @param previous - Previous environment details (if any)
+ * @param depth - Current recursion depth to prevent infinite loops
+ * @returns Object containing only the differences
+ */
+function calculateEnvironmentDiff(
+	current: EnvironmentDetails,
+	previous: EnvironmentDetails | undefined,
+	depth: number = 0
+): EnvironmentDetails {
+	// Prevent infinite recursion
+	const MAX_DEPTH = 10
+	if (depth > MAX_DEPTH) {
+		console.warn('Environment diff calculation exceeded maximum depth, returning current value')
+		return current
+	}
+
 	if (!previous) return current
 
 	return Object.keys(current).reduce((acc, key) => {
 		const currentValue = current[key]
 		const previousValue = previous ? previous[key] : undefined
 
-		if (_objIsEqual(currentValue, previousValue)) {
+		if (areObjectsEqual(currentValue, previousValue)) {
 			return acc
 		}
 
@@ -65,7 +101,11 @@ function _envDiff(current: any, previous: any): any {
 			previousValue !== null &&
 			!Array.isArray(previousValue)
 		) {
-			const nestedDiff = _envDiff(currentValue, previousValue)
+			const nestedDiff = calculateEnvironmentDiff(
+				currentValue as EnvironmentDetails,
+				previousValue as EnvironmentDetails,
+				depth + 1
+			)
 			if (Object.keys(nestedDiff).length > 0) {
 				acc[key] = nestedDiff
 			}
@@ -75,20 +115,42 @@ function _envDiff(current: any, previous: any): any {
 		}
 
 		return acc
-	}, {} as any)
+	}, {} as EnvironmentDetails)
 }
 
-function _objIsEqual(a: any, b: any): boolean {
+/**
+ * Performs deep equality comparison between two values.
+ * Handles objects, arrays, and primitive types.
+ *
+ * @param a - First value to compare
+ * @param b - Second value to compare
+ * @param depth - Current recursion depth to prevent infinite loops
+ * @returns True if values are equal, false otherwise
+ */
+function areObjectsEqual(a: unknown, b: unknown, depth: number = 0): boolean {
+	// Prevent infinite recursion
+	const MAX_DEPTH = 10
+	if (depth > MAX_DEPTH) {
+		console.warn('Object equality check exceeded maximum depth, returning false')
+		return false
+	}
+
 	if (a === b) return true
 	if (a === null || b === null || typeof a !== "object" || typeof b !== "object") return false
 
-	const keysA = Object.keys(a)
-	const keysB = Object.keys(b)
+	const keysA = Object.keys(a as Record<string, unknown>)
+	const keysB = Object.keys(b as Record<string, unknown>)
 
 	if (keysA.length !== keysB.length) return false
 
 	for (const key of keysA) {
-		if (!keysB.includes(key) || !_objIsEqual(a[key], b[key])) return false
+		if (!keysB.includes(key) || !areObjectsEqual(
+			(a as Record<string, unknown>)[key],
+			(b as Record<string, unknown>)[key],
+			depth + 1
+		)) {
+			return false
+		}
 	}
 
 	return true
