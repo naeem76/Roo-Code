@@ -553,7 +553,11 @@ ${errorDetails ? `\nTechnical details:\n${errorDetails}\n` : ""}
 				}
 
 				// Call saveChanges to update the DiffViewProvider properties
-				await cline.diffViewProvider.saveChanges()
+				const provider = cline.providerRef.deref()
+				const state = await provider?.getState()
+				const diagnosticsEnabled = state?.diagnosticsEnabled ?? true
+				const diagnosticsDelayMs = state?.diagnosticsDelayMs ?? 2000
+				await cline.diffViewProvider.saveChanges(diagnosticsEnabled, diagnosticsDelayMs)
 
 				// Track file edit operation
 				await cline.fileContextTracker.trackFileContext(relPath, "roo_edited" as RecordSource)

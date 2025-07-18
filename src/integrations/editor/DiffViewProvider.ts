@@ -4,6 +4,7 @@ import * as fs from "fs/promises"
 import * as diff from "diff"
 import stripBom from "strip-bom"
 import { XMLBuilder } from "fast-xml-parser"
+import delay from "delay"
 
 import { createDirectoriesForFile } from "../../utils/fs"
 import { arePathsEqual, getReadablePath } from "../../utils/path"
@@ -179,7 +180,7 @@ export class DiffViewProvider {
 		}
 	}
 
-	async saveChanges(): Promise<{
+	async saveChanges(diagnosticsEnabled: boolean = true, diagnosticsDelayMs: number = 2000): Promise<{
 		newProblemsMessage: string | undefined
 		userEdits: string | undefined
 		finalContent: string | undefined
@@ -214,18 +215,27 @@ export class DiffViewProvider {
 		// and can address them accordingly. If problems don't change immediately after
 		// applying a fix, won't be notified, which is generally fine since the
 		// initial fix is usually correct and it may just take time for linters to catch up.
-		const postDiagnostics = vscode.languages.getDiagnostics()
+		
+		let newProblemsMessage = ""
+		
+		if (diagnosticsEnabled) {
+			// Add configurable delay to allow linters time to process and clean up issues
+			// like unused imports (especially important for Go and other languages)
+			await delay(diagnosticsDelayMs)
+			
+			const postDiagnostics = vscode.languages.getDiagnostics()
 
-		const newProblems = await diagnosticsToProblemsString(
-			getNewDiagnostics(this.preDiagnostics, postDiagnostics),
-			[
-				vscode.DiagnosticSeverity.Error, // only including errors since warnings can be distracting (if user wants to fix warnings they can use the @problems mention)
-			],
-			this.cwd,
-		) // Will be empty string if no errors.
+			const newProblems = await diagnosticsToProblemsString(
+				getNewDiagnostics(this.preDiagnostics, postDiagnostics),
+				[
+					vscode.DiagnosticSeverity.Error, // only including errors since warnings can be distracting (if user wants to fix warnings they can use the @problems mention)
+				],
+				this.cwd,
+			) // Will be empty string if no errors.
 
-		const newProblemsMessage =
-			newProblems.length > 0 ? `\n\nNew problems detected after saving the file:\n${newProblems}` : ""
+			newProblemsMessage =
+				newProblems.length > 0 ? `\n\nNew problems detected after saving the file:\n${newProblems}` : ""
+		}
 
 		// If the edited content has different EOL characters, we don't want to
 		// show a diff with all the EOL differences.

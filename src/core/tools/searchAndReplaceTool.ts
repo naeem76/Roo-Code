@@ -227,7 +227,11 @@ export async function searchAndReplaceTool(
 		}
 
 		// Call saveChanges to update the DiffViewProvider properties
-		await cline.diffViewProvider.saveChanges()
+		const provider = cline.providerRef.deref()
+		const state = await provider?.getState()
+		const diagnosticsEnabled = state?.diagnosticsEnabled ?? true
+		const diagnosticsDelayMs = state?.diagnosticsDelayMs ?? 2000
+		await cline.diffViewProvider.saveChanges(diagnosticsEnabled, diagnosticsDelayMs)
 
 		// Track file edit operation
 		if (relPath) {

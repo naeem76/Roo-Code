@@ -243,6 +243,8 @@ export type ExtensionState = Pick<
 	taskHistory: HistoryItem[]
 
 	writeDelayMs: number
+	diagnosticsDelayMs: number
+	diagnosticsEnabled: boolean
 	requestDelaySeconds: number
 
 	enableCheckpoints: boolean
