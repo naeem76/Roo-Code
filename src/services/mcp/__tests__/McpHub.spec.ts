@@ -70,6 +70,8 @@ vi.mock("vscode", () => ({
 		parse: (path: string) => ({ fsPath: path, path, scheme: "file" }),
 	},
 	RelativePattern: class {
+		base: any
+		pattern: string
 		constructor(base: any, pattern: string) {
 			this.base = base
 			this.pattern = pattern
