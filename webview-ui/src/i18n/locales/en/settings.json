@@ -626,6 +626,7 @@
 		"noWorkspaceDescription": "Please open a workspace folder to generate rules for your project.",
 		"selectTypes": "Select rule types to generate:",
 		"noRulesSelected": "Please select at least one rule type to generate",
+		"unsavedChangesError": "Please save your settings before generating rules",
 		"types": {
 			"general": {
 				"label": "General Rules",

@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button"
 import { vscode } from "@/utils/vscode"
 import { cn } from "@/lib/utils"
 import { useExtensionState } from "@/context/ExtensionStateContext"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, StandardTooltip } from "@/components/ui"
 
 import { SectionHeader } from "./SectionHeader"
 import { Section } from "./Section"
 
-type RulesSettingsProps = HTMLAttributes<HTMLDivElement>
+type RulesSettingsProps = HTMLAttributes<HTMLDivElement> & {
+	hasUnsavedChanges?: boolean
+}
 
 interface RuleType {
 	id: string
@@ -20,7 +22,7 @@ interface RuleType {
 	exists?: boolean
 }
 
-export const RulesSettings = ({ className, ...props }: RulesSettingsProps) => {
+export const RulesSettings = ({ className, hasUnsavedChanges, ...props }: RulesSettingsProps) => {
 	const { t } = useAppTranslation()
 	const [isGenerating, setIsGenerating] = useState(false)
 	const [generationStatus, setGenerationStatus] = useState<{
@@ -287,25 +289,33 @@ export const RulesSettings = ({ className, ...props }: RulesSettingsProps) => {
 									</SelectContent>
 								</Select>
 
-								<Button
-									onClick={handleGenerateRules}
-									disabled={isGenerating || !selectedApiConfig}
-									variant="default"
-									size="default"
-									className="w-full"
-									title={t("settings:rules.generateButtonTooltip")}>
-									{isGenerating ? (
-										<>
-											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-											{t("settings:rules.generating")}
-										</>
-									) : (
-										<>
-											<FileText className="mr-2 h-4 w-4" />
-											{t("settings:rules.generateButton")}
-										</>
-									)}
-								</Button>
+								<StandardTooltip
+									content={
+										hasUnsavedChanges
+											? t("settings:rules.unsavedChangesError")
+											: t("settings:rules.generateButtonTooltip")
+									}>
+									<span className="w-full">
+										<Button
+											onClick={handleGenerateRules}
+											disabled={isGenerating || !selectedApiConfig || hasUnsavedChanges}
+											variant="default"
+											size="default"
+											className="w-full">
+											{isGenerating ? (
+												<>
+													<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+													{t("settings:rules.generating")}
+												</>
+											) : (
+												<>
+													<FileText className="mr-2 h-4 w-4" />
+													{t("settings:rules.generateButton")}
+												</>
+											)}
+										</Button>
+									</span>
+								</StandardTooltip>
 							</div>
 
 							{isGenerating && (
@@ -316,8 +326,7 @@ export const RulesSettings = ({ className, ...props }: RulesSettingsProps) => {
 
 							{generationStatus.type === "success" && (
 								<div className="text-vscode-testing-iconPassed text-sm">
-									<p>{t("settings:rules.taskCreated")}</p>
-									<p className="text-vscode-descriptionForeground">{generationStatus.message}</p>
+									<p>{generationStatus.message || t("settings:rules.taskCreated")}</p>
 								</div>
 							)}
 
