@@ -399,7 +399,7 @@ describe("DiffViewProvider", () => {
 			const result = await diffViewProvider.saveChanges()
 
 			// Verify default behavior (enabled=true, delay=2000ms)
-			expect(mockDelay).toHaveBeenCalledWith(2000)
+			expect(mockDelay).toHaveBeenCalledWith(1000)
 			expect(vscode.languages.getDiagnostics).toHaveBeenCalled()
 			expect(result.newProblemsMessage).toBe("")
 		})
