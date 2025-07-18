@@ -99,8 +99,8 @@ describe("RooIgnoreController", () => {
 		/**
 		 * Tests the controller behavior when .rooignore doesn't exist
 		 */
-		it("should allow all access when .rooignore doesn't exist", async () => {
-			// Setup mocks to simulate missing .rooignore file
+		it("should use default ignore patterns when .rooignore doesn't exist", async () => {
+			// Setup mocks to simulate missing .rooignore and .gitignore files
 			mockFileExists.mockResolvedValue(false)
 
 			// Initialize controller
@@ -109,9 +109,18 @@ describe("RooIgnoreController", () => {
 			// Verify no content was stored
 			expect(controller.rooIgnoreContent).toBeUndefined()
 
-			// All files should be accessible
-			expect(controller.validateAccess("node_modules/package.json")).toBe(true)
-			expect(controller.validateAccess("secrets.json")).toBe(true)
+			// Default patterns should be applied
+			expect(controller.validateAccess("node_modules/package.json")).toBe(false)
+			expect(controller.validateAccess(".git/config")).toBe(false)
+			expect(controller.validateAccess("dist/app.js")).toBe(false)
+			expect(controller.validateAccess("build/output.js")).toBe(false)
+			expect(controller.validateAccess("app.log")).toBe(false)
+			expect(controller.validateAccess(".DS_Store")).toBe(false)
+
+			// These should be allowed
+			expect(controller.validateAccess("src/app.ts")).toBe(true)
+			expect(controller.validateAccess("README.md")).toBe(true)
+			expect(controller.validateAccess("package.json")).toBe(true)
 		})
 
 		/**
@@ -135,7 +144,7 @@ describe("RooIgnoreController", () => {
 		/**
 		 * Tests error handling during initialization
 		 */
-		it("should handle errors when loading .rooignore", async () => {
+		it("should handle errors when loading ignore patterns", async () => {
 			// Setup mocks to simulate error
 			mockFileExists.mockResolvedValue(true)
 			mockReadFile.mockRejectedValue(new Error("Test file read error"))
@@ -147,7 +156,7 @@ describe("RooIgnoreController", () => {
 			await controller.initialize()
 
 			// Verify error was logged
-			expect(consoleSpy).toHaveBeenCalledWith("Unexpected error loading .rooignore:", expect.any(Error))
+			expect(consoleSpy).toHaveBeenCalledWith("Unexpected error loading ignore patterns:", expect.any(Error))
 
 			// Cleanup
 			consoleSpy.mockRestore()
@@ -206,16 +215,20 @@ describe("RooIgnoreController", () => {
 		/**
 		 * Tests the default behavior when no .rooignore exists
 		 */
-		it("should allow all access when no .rooignore content", async () => {
-			// Create a new controller with no .rooignore
+		it("should use default patterns when no .rooignore content", async () => {
+			// Create a new controller with no .rooignore or .gitignore
 			mockFileExists.mockResolvedValue(false)
 			const emptyController = new RooIgnoreController(TEST_CWD)
 			await emptyController.initialize()
 
-			// All paths should be allowed
-			expect(emptyController.validateAccess("node_modules/package.json")).toBe(true)
+			// Default patterns should be applied
+			expect(emptyController.validateAccess("node_modules/package.json")).toBe(false)
+			expect(emptyController.validateAccess(".git/HEAD")).toBe(false)
+			expect(emptyController.validateAccess("dist/app.js")).toBe(false)
+
+			// These should be allowed
+			expect(emptyController.validateAccess("src/app.ts")).toBe(true)
 			expect(emptyController.validateAccess("secrets/api-keys.json")).toBe(true)
-			expect(emptyController.validateAccess(".git/HEAD")).toBe(true)
 		})
 	})
 
@@ -278,15 +291,19 @@ describe("RooIgnoreController", () => {
 		/**
 		 * Tests behavior when no .rooignore exists
 		 */
-		it("should allow all commands when no .rooignore exists", async () => {
-			// Create a new controller with no .rooignore
+		it("should apply default patterns when no .rooignore exists", async () => {
+			// Create a new controller with no .rooignore or .gitignore
 			mockFileExists.mockResolvedValue(false)
 			const emptyController = new RooIgnoreController(TEST_CWD)
 			await emptyController.initialize()
 
-			// All commands should be allowed
-			expect(emptyController.validateCommand("cat node_modules/package.json")).toBeUndefined()
-			expect(emptyController.validateCommand("grep pattern .git/config")).toBeUndefined()
+			// Commands accessing default ignored files should be blocked
+			expect(emptyController.validateCommand("cat node_modules/package.json")).toBe("node_modules/package.json")
+			expect(emptyController.validateCommand("grep pattern .git/config")).toBe(".git/config")
+
+			// Commands accessing allowed files should be allowed
+			expect(emptyController.validateCommand("cat src/app.ts")).toBeUndefined()
+			expect(emptyController.validateCommand("grep pattern README.md")).toBeUndefined()
 		})
 	})
 
@@ -376,13 +393,17 @@ describe("RooIgnoreController", () => {
 		/**
 		 * Tests behavior when no .rooignore exists
 		 */
-		it("should return undefined when no .rooignore exists", async () => {
-			// Setup no .rooignore
+		it("should return default instructions when no .rooignore exists", async () => {
+			// Setup no .rooignore or .gitignore
 			mockFileExists.mockResolvedValue(false)
 			await controller.initialize()
 
 			const instructions = controller.getInstructions()
-			expect(instructions).toBeUndefined()
+			expect(instructions).toContain("# Default ignore patterns")
+			expect(instructions).toContain("node_modules/")
+			expect(instructions).toContain(".git/")
+			expect(instructions).toContain("dist/")
+			expect(instructions).toContain("build/")
 		})
 	})
 
@@ -413,13 +434,13 @@ describe("RooIgnoreController", () => {
 		 * Tests behavior when .rooignore is created
 		 */
 		it("should reload .rooignore when file is created", async () => {
-			// Setup initial state without .rooignore
+			// Setup initial state without .rooignore or .gitignore
 			mockFileExists.mockResolvedValue(false)
 			await controller.initialize()
 
-			// Verify initial state
+			// Verify initial state - should use default patterns
 			expect(controller.rooIgnoreContent).toBeUndefined()
-			expect(controller.validateAccess("node_modules/package.json")).toBe(true)
+			expect(controller.validateAccess("node_modules/package.json")).toBe(false) // blocked by default patterns
 
 			// Setup for the test
 			mockFileExists.mockResolvedValue(false) // Initially no file exists
@@ -432,17 +453,20 @@ describe("RooIgnoreController", () => {
 			expect(controller.rooIgnoreContent).toBeUndefined()
 
 			// Now simulate file creation
-			mockFileExists.mockResolvedValue(true)
-			mockReadFile.mockResolvedValue("node_modules")
+			mockFileExists.mockImplementation((filePath: string) => {
+				return Promise.resolve(filePath.endsWith(".rooignore"))
+			})
+			mockReadFile.mockResolvedValue("secrets/**")
 
 			// Force reload of .rooignore content manually
 			await controller.initialize()
 
 			// Now verify content was updated
-			expect(controller.rooIgnoreContent).toBe("node_modules")
+			expect(controller.rooIgnoreContent).toBe("secrets/**")
 
-			// Verify access validation changed
-			expect(controller.validateAccess("node_modules/package.json")).toBe(false)
+			// Verify access validation changed - now only secrets are blocked, node_modules allowed
+			expect(controller.validateAccess("node_modules/package.json")).toBe(true)
+			expect(controller.validateAccess("secrets/api-keys.json")).toBe(false)
 		})
 
 		/**
@@ -476,27 +500,30 @@ describe("RooIgnoreController", () => {
 		/**
 		 * Tests behavior when .rooignore is deleted
 		 */
-		it("should reset when .rooignore is deleted", async () => {
+		it("should reset to default patterns when .rooignore is deleted", async () => {
 			// Setup initial state with .rooignore
-			mockFileExists.mockResolvedValue(true)
-			mockReadFile.mockResolvedValue("node_modules")
+			mockFileExists.mockImplementation((filePath: string) => {
+				return Promise.resolve(filePath.endsWith(".rooignore"))
+			})
+			mockReadFile.mockResolvedValue("secrets/**")
 			await controller.initialize()
 
-			// Verify initial state
-			expect(controller.validateAccess("node_modules/package.json")).toBe(false)
+			// Verify initial state - only secrets blocked
+			expect(controller.validateAccess("secrets/api-keys.json")).toBe(false)
+			expect(controller.validateAccess("node_modules/package.json")).toBe(true)
 
-			// Simulate file deletion
+			// Simulate file deletion - no .rooignore or .gitignore
 			mockFileExists.mockResolvedValue(false)
 
-			// Find and trigger the onDelete handler
-			const onDeleteHandler = mockWatcher.onDidDelete.mock.calls[0][0]
-			await onDeleteHandler()
+			// Manually trigger the reload to simulate the file watcher behavior
+			await controller.initialize()
 
 			// Verify content was reset
 			expect(controller.rooIgnoreContent).toBeUndefined()
 
-			// Verify access validation changed
-			expect(controller.validateAccess("node_modules/package.json")).toBe(true)
+			// Verify access validation changed to default patterns
+			expect(controller.validateAccess("node_modules/package.json")).toBe(false) // blocked by default
+			expect(controller.validateAccess("secrets/api-keys.json")).toBe(true) // allowed (not in default patterns)
 		})
 	})
 })

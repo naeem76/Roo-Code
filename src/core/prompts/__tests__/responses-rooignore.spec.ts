@@ -231,18 +231,23 @@ describe("RooIgnore Response Formatting", () => {
 		})
 
 		/**
-		 * Tests null/undefined case
+		 * Tests default patterns case
 		 */
-		it("should return undefined when no .rooignore exists", async () => {
-			// Set up no .rooignore
+		it("should return default instructions when no .rooignore exists", async () => {
+			// Set up no .rooignore or .gitignore
 			mockFileExists.mockResolvedValue(false)
 
 			// Create controller without .rooignore
 			const controller = new RooIgnoreController(TEST_CWD)
 			await controller.initialize()
 
-			// Should return undefined
-			expect(controller.getInstructions()).toBeUndefined()
+			// Should return default instructions
+			const instructions = controller.getInstructions()
+			expect(instructions).toContain("# Default ignore patterns")
+			expect(instructions).toContain("node_modules/")
+			expect(instructions).toContain(".git/")
+			expect(instructions).toContain("dist/")
+			expect(instructions).toContain("build/")
 		})
 	})
 })
