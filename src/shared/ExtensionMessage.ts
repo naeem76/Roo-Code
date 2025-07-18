@@ -107,6 +107,8 @@ export interface ExtensionMessage {
 		| "codeIndexSecretStatus"
 		| "rulesGenerationStatus"
 		| "existingRuleFiles"
+		| "showDeleteMessageDialog"
+		| "showEditMessageDialog"
 	text?: string
 	payload?: any // Add a generic payload for now, can refine later
 	files?: string[] // For existingRuleFiles
@@ -161,6 +163,8 @@ export interface ExtensionMessage {
 	visibility?: ShareVisibility
 	rulesFolderPath?: string
 	settings?: any
+	messageTs?: number
+	context?: string
 }
 
 export type ExtensionState = Pick<

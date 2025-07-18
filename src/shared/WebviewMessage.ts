@@ -111,7 +111,9 @@ export interface WebviewMessage {
 		| "enhancedPrompt"
 		| "draggedImages"
 		| "deleteMessage"
+		| "deleteMessageConfirm"
 		| "submitEditedMessage"
+		| "editMessageConfirm"
 		| "terminalOutputLineLimit"
 		| "terminalShellIntegrationTimeout"
 		| "terminalShellIntegrationDisabled"
@@ -200,6 +202,7 @@ export interface WebviewMessage {
 	editedMessageContent?: string
 	tab?: "settings" | "history" | "mcp" | "modes" | "chat" | "marketplace" | "account"
 	disabled?: boolean
+	context?: string
 	dataUri?: string
 	askResponse?: ClineAskResponse
 	apiConfiguration?: ProviderSettings
@@ -228,6 +231,7 @@ export interface WebviewMessage {
 	ids?: string[]
 	hasSystemPromptOverride?: boolean
 	terminalOperation?: "continue" | "abort"
+	messageTs?: number
 	historyPreviewCollapsed?: boolean
 	filters?: { type?: string; search?: string; tags?: string[] }
 	url?: string // For openExternal
