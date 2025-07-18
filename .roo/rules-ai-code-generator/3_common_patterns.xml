@@ -1,0 +1,443 @@
+<ai_code_generation_patterns>
+  <overview>
+    Common code patterns and templates for AI-assisted code generation,
+    providing reusable solutions for frequent programming scenarios.
+  </overview>
+
+  <architectural_patterns>
+    <pattern name="factory_pattern">
+      <description>Create objects without specifying exact classes</description>
+      <use_cases>
+        <use_case>Creating different types of objects based on configuration</use_case>
+        <use_case>Abstracting object creation logic</use_case>
+        <use_case>Supporting plugin architectures</use_case>
+      </use_cases>
+      <implementation language="typescript"><![CDATA[
+interface Product {
+  operation(): string;
+}
+
+class ConcreteProductA implements Product {
+  operation(): string {
+    return 'Result of ConcreteProductA';
+  }
+}
+
+class ConcreteProductB implements Product {
+  operation(): string {
+    return 'Result of ConcreteProductB';
+  }
+}
+
+abstract class Creator {
+  abstract factoryMethod(): Product;
+
+  someOperation(): string {
+    const product = this.factoryMethod();
+    return `Creator: ${product.operation()}`;
+  }
+}
+
+class ConcreteCreatorA extends Creator {
+  factoryMethod(): Product {
+    return new ConcreteProductA();
+  }
+}
+      ]]></implementation>
+    </pattern>
+
+    <pattern name="repository_pattern">
+      <description>Encapsulate data access logic and provide a uniform interface</description>
+      <use_cases>
+        <use_case>Abstracting database operations</use_case>
+        <use_case>Supporting multiple data sources</use_case>
+        <use_case>Facilitating unit testing with mock repositories</use_case>
+      </use_cases>
+      <implementation language="typescript"><![CDATA[
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
+interface UserRepository {
+  findById(id: string): Promise<User | null>;
+  findByEmail(email: string): Promise<User | null>;
+  save(user: User): Promise<User>;
+  delete(id: string): Promise<void>;
+}
+
+class DatabaseUserRepository implements UserRepository {
+  constructor(private db: Database) {}
+
+  async findById(id: string): Promise<User | null> {
+    try {
+      const result = await this.db.query('SELECT * FROM users WHERE id = ?', [id]);
+      return result.rows[0] || null;
+    } catch (error) {
+      throw new Error(`Failed to find user by id: ${error.message}`);
+    }
+  }
+
+  async save(user: User): Promise<User> {
+    try {
+      const result = await this.db.query(
+        'INSERT INTO users (id, name, email) VALUES (?, ?, ?) ON CONFLICT (id) DO UPDATE SET name = ?, email = ?',
+        [user.id, user.name, user.email, user.name, user.email]
+      );
+      return user;
+    } catch (error) {
+      throw new Error(`Failed to save user: ${error.message}`);
+    }
+  }
+}
+      ]]></implementation>
+    </pattern>
+  </architectural_patterns>
+
+  <error_handling_patterns>
+    <pattern name="result_type">
+      <description>Type-safe error handling without exceptions</description>
+      <benefits>
+        <benefit>Explicit error handling in function signatures</benefit>
+        <benefit>Compile-time error checking</benefit>
+        <benefit>Composable error handling</benefit>
+      </benefits>
+      <implementation language="typescript"><![CDATA[
+type Result<T, E = Error> = 
+  | { success: true; data: T }
+  | { success: false; error: E };
+
+function ok<T>(data: T): Result<T, never> {
+  return { success: true, data };
+}
+
+function err<E>(error: E): Result<never, E> {
+  return { success: false, error };
+}
+
+// Usage example
+async function fetchUser(id: string): Promise<Result<User, string>> {
+  try {
+    const user = await userRepository.findById(id);
+    if (!user) {
+      return err('User not found');
+    }
+    return ok(user);
+  } catch (error) {
+    return err(`Database error: ${error.message}`);
+  }
+}
+
+// Chaining operations
+function processUser(result: Result<User, string>): Result<ProcessedUser, string> {
+  if (!result.success) {
+    return result; // Propagate error
+  }
+  
+  try {
+    const processed = processUserData(result.data);
+    return ok(processed);
+  } catch (error) {
+    return err(`Processing failed: ${error.message}`);
+  }
+}
+      ]]></implementation>
+    </pattern>
+
+    <pattern name="error_boundary">
+      <description>Centralized error handling for application boundaries</description>
+      <use_cases>
+        <use_case>API endpoint error handling</use_case>
+        <use_case>React component error boundaries</use_case>
+        <use_case>Service layer error handling</use_case>
+      </use_cases>
+      <implementation language="typescript"><![CDATA[
+interface ErrorHandler {
+  handle(error: Error, context?: string): void;
+}
+
+class LoggingErrorHandler implements ErrorHandler {
+  constructor(private logger: Logger) {}
+
+  handle(error: Error, context = 'Unknown'): void {
+    this.logger.error(`Error in ${context}:`, {
+      message: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString(),
+    });
+  }
+}
+
+function withErrorBoundary<T extends any[], R>(
+  fn: (...args: T) => Promise<R>,
+  errorHandler: ErrorHandler,
+  context?: string
+) {
+  return async (...args: T): Promise<R | null> => {
+    try {
+      return await fn(...args);
+    } catch (error) {
+      errorHandler.handle(error, context);
+      return null;
+    }
+  };
+}
+
+// Usage
+const safeUserFetch = withErrorBoundary(
+  fetchUser,
+  new LoggingErrorHandler(logger),
+  'UserService.fetchUser'
+);
+      ]]></implementation>
+    </pattern>
+  </error_handling_patterns>
+
+  <validation_patterns>
+    <pattern name="schema_validation">
+      <description>Type-safe input validation with detailed error reporting</description>
+      <implementation language="typescript"><![CDATA[
+interface ValidationResult<T> {
+  success: boolean;
+  data?: T;
+  errors?: ValidationError[];
+}
+
+interface ValidationError {
+  field: string;
+  message: string;
+  value?: any;
+}
+
+class Validator<T> {
+  private rules: ValidationRule<T>[] = [];
+
+  rule(rule: ValidationRule<T>): this {
+    this.rules.push(rule);
+    return this;
+  }
+
+  validate(data: any): ValidationResult<T> {
+    const errors: ValidationError[] = [];
+
+    for (const rule of this.rules) {
+      const result = rule.validate(data);
+      if (!result.valid) {
+        errors.push({
+          field: rule.field,
+          message: result.message,
+          value: data[rule.field],
+        });
+      }
+    }
+
+    if (errors.length > 0) {
+      return { success: false, errors };
+    }
+
+    return { success: true, data: data as T };
+  }
+}
+
+interface ValidationRule<T> {
+  field: keyof T;
+  validate(data: any): { valid: boolean; message: string };
+}
+
+// Usage example
+const userValidator = new Validator<User>()
+  .rule({
+    field: 'email',
+    validate: (data) => ({
+      valid: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email),
+      message: 'Invalid email format',
+    }),
+  })
+  .rule({
+    field: 'name',
+    validate: (data) => ({
+      valid: typeof data.name === 'string' && data.name.length > 0,
+      message: 'Name is required and must be a non-empty string',
+    }),
+  });
+      ]]></implementation>
+    </pattern>
+  </validation_patterns>
+
+  <testing_patterns>
+    <pattern name="test_builder">
+      <description>Builder pattern for creating test data</description>
+      <benefits>
+        <benefit>Readable test setup</benefit>
+        <benefit>Reusable test data creation</benefit>
+        <benefit>Easy to modify test scenarios</benefit>
+      </benefits>
+      <implementation language="typescript"><![CDATA[
+class UserBuilder {
+  private user: Partial<User> = {};
+
+  withId(id: string): this {
+    this.user.id = id;
+    return this;
+  }
+
+  withName(name: string): this {
+    this.user.name = name;
+    return this;
+  }
+
+  withEmail(email: string): this {
+    this.user.email = email;
+    return this;
+  }
+
+  build(): User {
+    return {
+      id: this.user.id || 'default-id',
+      name: this.user.name || 'Default Name',
+      email: this.user.email || 'default@example.com',
+    };
+  }
+}
+
+// Usage in tests
+describe('UserService', () => {
+  it('should create user with valid data', async () => {
+    const user = new UserBuilder()
+      .withName('John Doe')
+      .withEmail('john@example.com')
+      .build();
+
+    const result = await userService.createUser(user);
+    
+    expect(result.success).toBe(true);
+    expect(result.data?.name).toBe('John Doe');
+  });
+});
+      ]]></implementation>
+    </pattern>
+
+    <pattern name="mock_factory">
+      <description>Factory for creating consistent mocks</description>
+      <implementation language="typescript"><![CDATA[
+class MockFactory {
+  static createUserRepository(): jest.Mocked<UserRepository> {
+    return {
+      findById: jest.fn(),
+      findByEmail: jest.fn(),
+      save: jest.fn(),
+      delete: jest.fn(),
+    };
+  }
+
+  static createUser(overrides: Partial<User> = {}): User {
+    return {
+      id: 'test-id',
+      name: 'Test User',
+      email: 'test@example.com',
+      ...overrides,
+    };
+  }
+}
+
+// Usage in tests
+describe('UserService', () => {
+  let userRepository: jest.Mocked<UserRepository>;
+  let userService: UserService;
+
+  beforeEach(() => {
+    userRepository = MockFactory.createUserRepository();
+    userService = new UserService(userRepository);
+  });
+
+  it('should return user when found', async () => {
+    const user = MockFactory.createUser({ name: 'John Doe' });
+    userRepository.findById.mockResolvedValue(user);
+
+    const result = await userService.getUser('test-id');
+
+    expect(result.success).toBe(true);
+    expect(result.data?.name).toBe('John Doe');
+  });
+});
+      ]]></implementation>
+    </pattern>
+  </testing_patterns>
+
+  <async_patterns>
+    <pattern name="promise_wrapper">
+      <description>Wrap callback-based APIs in promises</description>
+      <implementation language="typescript"><![CDATA[
+function promisify<T>(
+  fn: (callback: (error: Error | null, result?: T) => void) => void
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    fn((error, result) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(result!);
+      }
+    });
+  });
+}
+
+// Usage
+const readFileAsync = (filename: string): Promise<string> =>
+  promisify<string>((callback) => fs.readFile(filename, 'utf8', callback));
+      ]]></implementation>
+    </pattern>
+
+    <pattern name="retry_mechanism">
+      <description>Automatic retry with exponential backoff</description>
+      <implementation language="typescript"><![CDATA[
+interface RetryOptions {
+  maxAttempts: number;
+  baseDelay: number;
+  maxDelay: number;
+  backoffFactor: number;
+}
+
+async function withRetry<T>(
+  operation: () => Promise<T>,
+  options: RetryOptions
+): Promise<T> {
+  let lastError: Error;
+  
+  for (let attempt = 1; attempt <= options.maxAttempts; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      
+      if (attempt === options.maxAttempts) {
+        throw lastError;
+      }
+      
+      const delay = Math.min(
+        options.baseDelay * Math.pow(options.backoffFactor, attempt - 1),
+        options.maxDelay
+      );
+      
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw lastError!;
+}
+
+// Usage
+const result = await withRetry(
+  () => fetchDataFromAPI(),
+  {
+    maxAttempts: 3,
+    baseDelay: 1000,
+    maxDelay: 10000,
+    backoffFactor: 2,
+  }
+);
+      ]]></implementation>
+    </pattern>
+  </async_patterns>
+</ai_code_generation_patterns>

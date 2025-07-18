@@ -1,0 +1,327 @@
+<ai_code_generation_tool_usage>
+  <overview>
+    Specific guidance for using tools effectively in AI-assisted code generation,
+    ensuring optimal workflow and high-quality output.
+  </overview>
+
+  <tool_priorities>
+    <priority level="1">
+      <tool>search_files</tool>
+      <when>Always use first to understand existing codebase patterns</when>
+      <why>Identifies similar implementations and established conventions</why>
+      <usage_pattern>Search for similar functionality before implementing new features</usage_pattern>
+    </priority>
+
+    <priority level="2">
+      <tool>list_code_definition_names</tool>
+      <when>After identifying relevant files with search_files</when>
+      <why>Provides structural overview of existing code organization</why>
+      <usage_pattern>Understand class hierarchies and module organization</usage_pattern>
+    </priority>
+
+    <priority level="3">
+      <tool>read_file</tool>
+      <when>After identifying specific files to examine</when>
+      <why>Get detailed implementation context and patterns</why>
+      <usage_pattern>Read up to 5 related files simultaneously for efficiency</usage_pattern>
+    </priority>
+  </tool_priorities>
+
+  <tool_specific_guidance>
+    <tool name="search_files">
+      <purpose>Find existing implementations and patterns in the codebase</purpose>
+      <best_practices>
+        <practice>Use semantic search terms related to functionality</practice>
+        <practice>Search for interface definitions and type declarations</practice>
+        <practice>Look for similar error handling patterns</practice>
+        <practice>Find existing test patterns for similar functionality</practice>
+      </best_practices>
+      <search_strategies>
+        <strategy name="functionality_search">
+          <description>Search for similar business logic</description>
+          <example><![CDATA[
+<search_files>
+<path>src</path>
+<regex>(validate|validation|sanitize|clean).*input</regex>
+<file_pattern>*.ts</file_pattern>
+</search_files>
+          ]]></example>
+        </strategy>
+        <strategy name="pattern_search">
+          <description>Find architectural patterns</description>
+          <example><![CDATA[
+<search_files>
+<path>src</path>
+<regex>(Repository|Service|Factory|Builder)</regex>
+<file_pattern>*.ts</file_pattern>
+</search_files>
+          ]]></example>
+        </strategy>
+        <strategy name="error_handling_search">
+          <description>Identify error handling approaches</description>
+          <example><![CDATA[
+<search_files>
+<path>src</path>
+<regex>(try\s*\{|catch\s*\(|Result<|Either<)</regex>
+<file_pattern>*.ts</file_pattern>
+</search_files>
+          ]]></example>
+        </strategy>
+      </search_strategies>
+    </tool>
+
+    <tool name="read_file">
+      <purpose>Examine detailed implementation for pattern understanding</purpose>
+      <best_practices>
+        <practice>Read related files together (up to 5 at once)</practice>
+        <practice>Focus on interface definitions and public APIs</practice>
+        <practice>Understand error handling and validation patterns</practice>
+        <practice>Note testing approaches and conventions</practice>
+      </best_practices>
+      <reading_strategy>
+        <step>Start with interface/type definitions</step>
+        <step>Examine main implementation files</step>
+        <step>Review corresponding test files</step>
+        <step>Check configuration and setup files</step>
+      </reading_strategy>
+      <example><![CDATA[
+<read_file>
+<args>
+  <file><path>src/types/User.ts</path></file>
+  <file><path>src/services/UserService.ts</path></file>
+  <file><path>src/repositories/UserRepository.ts</path></file>
+  <file><path>src/__tests__/UserService.test.ts</path></file>
+  <file><path>src/utils/validation.ts</path></file>
+</args>
+</read_file>
+      ]]></example>
+    </tool>
+
+    <tool name="write_to_file">
+      <purpose>Create new implementation files</purpose>
+      <best_practices>
+        <practice>Include comprehensive documentation</practice>
+        <practice>Follow established naming conventions</practice>
+        <practice>Implement proper error handling</practice>
+        <practice>Add type annotations and interfaces</practice>
+      </best_practices>
+      <file_structure_template><![CDATA[
+// File header with description
+/**
+ * @fileoverview Brief description of the file's purpose
+ * @author AI Code Generator
+ */
+
+// Imports (external dependencies first, then internal)
+import { ExternalType } from 'external-library';
+import { InternalType } from '../types/InternalType';
+
+// Type definitions and interfaces
+interface LocalInterface {
+  property: string;
+}
+
+// Main implementation
+export class ImplementationClass {
+  // Implementation details
+}
+
+// Default export (if applicable)
+export default ImplementationClass;
+      ]]></file_structure_template>
+    </tool>
+
+    <tool name="apply_diff">
+      <purpose>Make targeted modifications to existing files</purpose>
+      <best_practices>
+        <practice>Always read the file first to ensure exact content match</practice>
+        <practice>Make multiple related changes in one diff when possible</practice>
+        <practice>Include line numbers for accuracy</practice>
+        <practice>Preserve existing formatting and style</practice>
+      </best_practices>
+      <modification_patterns>
+        <pattern name="add_method">
+          <description>Adding a new method to an existing class</description>
+          <example><![CDATA[
+<apply_diff>
+<path>src/services/UserService.ts</path>
+<diff>
+<<<<<<< SEARCH
+:start_line:45
+-------
+  }
+
+  // End of class
+}
+=======
+  }
+
+  /**
+   * Validates user email format
+   * @param email - Email address to validate
+   * @returns True if email is valid, false otherwise
+   */
+  validateEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  // End of class
+}
+>>>>>>> REPLACE
+</diff>
+</apply_diff>
+          ]]></example>
+        </pattern>
+      </modification_patterns>
+    </tool>
+
+    <tool name="execute_command">
+      <purpose>Run tests, linting, and build processes</purpose>
+      <best_practices>
+        <practice>Run tests after implementing new functionality</practice>
+        <practice>Use linting to ensure code quality</practice>
+        <practice>Check build processes for integration issues</practice>
+        <practice>Run type checking for TypeScript projects</practice>
+      </best_practices>
+      <common_commands>
+        <command name="test_execution">
+          <description>Run tests for new implementation</description>
+          <example><![CDATA[
+<execute_command>
+<command>cd src && npx vitest UserService.test.ts</command>
+</execute_command>
+          ]]></example>
+        </command>
+        <command name="type_checking">
+          <description>Verify TypeScript types</description>
+          <example><![CDATA[
+<execute_command>
+<command>npx tsc --noEmit</command>
+</execute_command>
+          ]]></example>
+        </command>
+        <command name="linting">
+          <description>Check code quality</description>
+          <example><![CDATA[
+<execute_command>
+<command>npx eslint src/services/UserService.ts</command>
+</execute_command>
+          ]]></example>
+        </command>
+      </common_commands>
+    </tool>
+  </tool_specific_guidance>
+
+  <workflow_tool_combinations>
+    <combination name="explore_and_implement">
+      <description>Standard workflow for implementing new functionality</description>
+      <sequence>
+        <step number="1">
+          <tool>search_files</tool>
+          <purpose>Find similar existing implementations</purpose>
+          <output>List of relevant files and patterns</output>
+        </step>
+        <step number="2">
+          <tool>list_code_definition_names</tool>
+          <purpose>Understand code structure and organization</purpose>
+          <output>Overview of classes, functions, and interfaces</output>
+        </step>
+        <step number="3">
+          <tool>read_file</tool>
+          <purpose>Examine detailed implementations</purpose>
+          <output>Understanding of patterns and conventions</output>
+        </step>
+        <step number="4">
+          <tool>write_to_file</tool>
+          <purpose>Create new implementation</purpose>
+          <output>New code following established patterns</output>
+        </step>
+        <step number="5">
+          <tool>write_to_file</tool>
+          <purpose>Create comprehensive tests</purpose>
+          <output>Test coverage for new functionality</output>
+        </step>
+        <step number="6">
+          <tool>execute_command</tool>
+          <purpose>Verify implementation works correctly</purpose>
+          <output>Test results and validation</output>
+        </step>
+      </sequence>
+    </combination>
+
+    <combination name="refactor_existing">
+      <description>Workflow for refactoring existing code</description>
+      <sequence>
+        <step number="1">
+          <tool>read_file</tool>
+          <purpose>Understand current implementation</purpose>
+        </step>
+        <step number="2">
+          <tool>search_files</tool>
+          <purpose>Find all usages and dependencies</purpose>
+        </step>
+        <step number="3">
+          <tool>apply_diff</tool>
+          <purpose>Make targeted improvements</purpose>
+        </step>
+        <step number="4">
+          <tool>execute_command</tool>
+          <purpose>Verify refactoring doesn't break functionality</purpose>
+        </step>
+      </sequence>
+    </combination>
+
+    <combination name="add_feature_to_existing">
+      <description>Adding new functionality to existing modules</description>
+      <sequence>
+        <step number="1">
+          <tool>read_file</tool>
+          <purpose>Understand existing module structure</purpose>
+        </step>
+        <step number="2">
+          <tool>search_files</tool>
+          <purpose>Find similar feature implementations</purpose>
+        </step>
+        <step number="3">
+          <tool>apply_diff</tool>
+          <purpose>Add new functionality</purpose>
+        </step>
+        <step number="4">
+          <tool>apply_diff</tool>
+          <purpose>Update tests</purpose>
+        </step>
+        <step number="5">
+          <tool>execute_command</tool>
+          <purpose>Validate new functionality</purpose>
+        </step>
+      </sequence>
+    </combination>
+  </workflow_tool_combinations>
+
+  <efficiency_tips>
+    <tip category="file_reading">
+      <description>Read multiple related files simultaneously</description>
+      <rationale>More efficient than sequential reads and provides better context</rationale>
+      <example>Read interface, implementation, and test files together</example>
+    </tip>
+
+    <tip category="search_optimization">
+      <description>Use specific regex patterns for targeted searches</description>
+      <rationale>Reduces noise and finds more relevant results</rationale>
+      <example>Search for "interface.*Repository" instead of just "Repository"</example>
+    </tip>
+
+    <tip category="diff_batching">
+      <description>Combine related changes in single diff operations</description>
+      <rationale>Reduces tool calls and maintains consistency</rationale>
+      <example>Add method and update imports in one diff</example>
+    </tip>
+
+    <tip category="test_strategy">
+      <description>Generate tests alongside implementation</description>
+      <rationale>Ensures comprehensive coverage and validates design</rationale>
+      <example>Create test file immediately after implementation file</example>
+    </tip>
+  </efficiency_tips>
+</ai_code_generation_tool_usage>

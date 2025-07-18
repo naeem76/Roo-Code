@@ -1,0 +1,125 @@
+<ai_code_generation_workflow>
+  <overview>
+    This workflow guides AI-assisted code generation following Google GenAI best practices,
+    ensuring high-quality, maintainable, and well-tested code output.
+  </overview>
+
+  <initialization_steps>
+    <step number="1">
+      <title>Understand Requirements</title>
+      <description>
+        Thoroughly analyze the user's request to understand the complete scope
+      </description>
+      <actions>
+        <action>Parse the user's input to identify the core functionality needed</action>
+        <action>Identify any constraints, performance requirements, or dependencies</action>
+        <action>Determine the target programming language and framework</action>
+        <action>Understand the integration points with existing code</action>
+      </actions>
+      <validation>
+        <criterion>All functional requirements are clearly understood</criterion>
+        <criterion>Non-functional requirements (performance, security) are identified</criterion>
+        <criterion>Integration points and dependencies are mapped</criterion>
+      </validation>
+    </step>
+
+    <step number="2">
+      <title>Analyze Existing Codebase</title>
+      <description>
+        Examine the current codebase to understand patterns and conventions
+      </description>
+      <tools>
+        <tool>search_files - Find similar implementations and patterns</tool>
+        <tool>list_code_definition_names - Understand project structure</tool>
+        <tool>read_file - Examine existing code for patterns and conventions</tool>
+      </tools>
+      <analysis_points>
+        <point>Coding style and naming conventions</point>
+        <point>Error handling patterns</point>
+        <point>Testing approaches and frameworks</point>
+        <point>Documentation standards</point>
+        <point>Architectural patterns in use</point>
+      </analysis_points>
+    </step>
+  </initialization_steps>
+
+  <main_workflow>
+    <phase name="planning">
+      <description>Plan the implementation approach</description>
+      <steps>
+        <step>Design the API and interface contracts</step>
+        <step>Identify reusable components and utilities</step>
+        <step>Plan the testing strategy</step>
+        <step>Consider error handling and edge cases</step>
+        <step>Design for maintainability and extensibility</step>
+      </steps>
+    </phase>
+
+    <phase name="implementation">
+      <description>Generate the code following best practices</description>
+      <steps>
+        <step>Create well-structured, modular code</step>
+        <step>Implement comprehensive error handling</step>
+        <step>Add meaningful documentation and comments</step>
+        <step>Follow established patterns and conventions</step>
+        <step>Ensure proper input validation and sanitization</step>
+      </steps>
+    </phase>
+
+    <phase name="testing">
+      <description>Generate comprehensive test coverage</description>
+      <steps>
+        <step>Create unit tests for all public methods</step>
+        <step>Add integration tests for complex workflows</step>
+        <step>Test error conditions and edge cases</step>
+        <step>Verify performance requirements are met</step>
+        <step>Ensure security requirements are validated</step>
+      </steps>
+    </phase>
+
+    <phase name="validation">
+      <description>Verify the implementation meets all requirements</description>
+      <steps>
+        <step>Run all tests to ensure functionality</step>
+        <step>Verify code follows project conventions</step>
+        <step>Check for potential security vulnerabilities</step>
+        <step>Validate performance characteristics</step>
+        <step>Ensure proper documentation is in place</step>
+      </steps>
+    </phase>
+  </main_workflow>
+
+  <completion_criteria>
+    <criterion>All functional requirements are implemented and tested</criterion>
+    <criterion>Code follows established patterns and conventions</criterion>
+    <criterion>Comprehensive test coverage is provided</criterion>
+    <criterion>Error handling covers all identified edge cases</criterion>
+    <criterion>Documentation is clear and complete</criterion>
+    <criterion>Security best practices are followed</criterion>
+    <criterion>Performance requirements are met</criterion>
+  </completion_criteria>
+
+  <quality_gates>
+    <gate name="code_review">
+      <description>Self-review generated code for quality</description>
+      <checklist>
+        <item>Code is readable and well-structured</item>
+        <item>Variable and function names are meaningful</item>
+        <item>Complex logic is properly documented</item>
+        <item>Error handling is comprehensive</item>
+        <item>Security considerations are addressed</item>
+      </checklist>
+    </gate>
+
+    <gate name="testing">
+      <description>Ensure comprehensive test coverage</description>
+      <checklist>
+        <item>All public methods have unit tests</item>
+        <item>Edge cases and error conditions are tested</item>
+        <item>Integration points are validated</item>
+        <item>Performance tests are included where relevant</item>
+        <item>Tests are maintainable and well-documented</item>
+      </checklist>
+    </gate>
+  </quality_gates>
+</ai_code_generation_workflow>

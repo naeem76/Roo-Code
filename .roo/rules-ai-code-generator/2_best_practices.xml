@@ -1,0 +1,203 @@
+<ai_code_generation_best_practices>
+  <overview>
+    Best practices for AI-assisted code generation based on Google GenAI guidelines
+    and industry standards for producing high-quality, maintainable code.
+  </overview>
+
+  <general_principles>
+    <principle priority="critical">
+      <name>Code Clarity and Readability</name>
+      <description>Generate code that is self-documenting and easy to understand</description>
+      <rationale>Clear code reduces maintenance burden and improves team productivity</rationale>
+      <guidelines>
+        <guideline>Use descriptive variable and function names</guideline>
+        <guideline>Keep functions focused on a single responsibility</guideline>
+        <guideline>Add comments for complex business logic</guideline>
+        <guideline>Follow consistent formatting and style conventions</guideline>
+      </guidelines>
+    </principle>
+
+    <principle priority="critical">
+      <name>Defensive Programming</name>
+      <description>Generate code that handles errors gracefully and validates inputs</description>
+      <rationale>Robust error handling prevents runtime failures and improves user experience</rationale>
+      <guidelines>
+        <guideline>Validate all inputs at function boundaries</guideline>
+        <guideline>Use appropriate error handling mechanisms for the language</guideline>
+        <guideline>Provide meaningful error messages</guideline>
+        <guideline>Handle edge cases explicitly</guideline>
+      </guidelines>
+    </principle>
+
+    <principle priority="high">
+      <name>Test-Driven Development</name>
+      <description>Generate comprehensive tests alongside implementation code</description>
+      <rationale>Tests ensure correctness and enable safe refactoring</rationale>
+      <guidelines>
+        <guideline>Write tests for all public interfaces</guideline>
+        <guideline>Test both success and failure scenarios</guideline>
+        <guideline>Use meaningful test descriptions</guideline>
+        <guideline>Ensure tests are deterministic and isolated</guideline>
+      </guidelines>
+    </principle>
+  </general_principles>
+
+  <code_quality_standards>
+    <standard category="naming">
+      <rule>Use clear, descriptive names that express intent</rule>
+      <examples>
+        <good>calculateTotalPrice(items: Item[])</good>
+        <good>isValidEmailAddress(email: string)</good>
+        <bad>calc(x: any[])</bad>
+        <bad>check(s: string)</bad>
+      </examples>
+    </standard>
+
+    <standard category="functions">
+      <rule>Keep functions small and focused on a single responsibility</rule>
+      <guidelines>
+        <guideline>Aim for functions under 20-30 lines</guideline>
+        <guideline>Extract complex logic into helper functions</guideline>
+        <guideline>Use pure functions when possible</guideline>
+        <guideline>Minimize side effects</guideline>
+      </guidelines>
+    </standard>
+
+    <standard category="error_handling">
+      <rule>Implement comprehensive error handling</rule>
+      <patterns>
+        <pattern language="typescript">
+          <description>Use Result types for operations that can fail</description>
+          <example><![CDATA[
+type Result<T, E> = { success: true; data: T } | { success: false; error: E };
+
+function parseJson<T>(json: string): Result<T, string> {
+  try {
+    const data = JSON.parse(json) as T;
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+          ]]></example>
+        </pattern>
+      </patterns>
+    </standard>
+
+    <standard category="documentation">
+      <rule>Provide clear documentation for public APIs</rule>
+      <requirements>
+        <requirement>Document function parameters and return values</requirement>
+        <requirement>Explain complex algorithms or business logic</requirement>
+        <requirement>Provide usage examples for non-trivial functions</requirement>
+        <requirement>Document any side effects or preconditions</requirement>
+      </requirements>
+    </standard>
+  </code_quality_standards>
+
+  <security_guidelines>
+    <guideline priority="critical">
+      <rule>Validate and sanitize all user inputs</rule>
+      <rationale>Prevents injection attacks and data corruption</rationale>
+      <implementation>
+        <step>Use type-safe validation libraries</step>
+        <step>Sanitize inputs before processing</step>
+        <step>Use parameterized queries for database operations</step>
+        <step>Escape output when rendering to prevent XSS</step>
+      </implementation>
+    </guideline>
+
+    <guideline priority="high">
+      <rule>Follow principle of least privilege</rule>
+      <rationale>Minimizes potential damage from security breaches</rationale>
+      <implementation>
+        <step>Grant minimal necessary permissions</step>
+        <step>Use role-based access control</step>
+        <step>Validate authorization at each access point</step>
+        <step>Log security-relevant events</step>
+      </implementation>
+    </guideline>
+
+    <guideline priority="high">
+      <rule>Protect sensitive data</rule>
+      <rationale>Prevents data breaches and maintains user privacy</rationale>
+      <implementation>
+        <step>Encrypt sensitive data at rest and in transit</step>
+        <step>Use secure random number generation</step>
+        <step>Implement proper session management</step>
+        <step>Avoid logging sensitive information</step>
+      </implementation>
+    </guideline>
+  </security_guidelines>
+
+  <performance_considerations>
+    <consideration category="algorithmic_efficiency">
+      <rule>Choose appropriate algorithms and data structures</rule>
+      <guidelines>
+        <guideline>Understand time and space complexity</guideline>
+        <guideline>Use efficient data structures for the use case</guideline>
+        <guideline>Avoid premature optimization</guideline>
+        <guideline>Profile before optimizing</guideline>
+      </guidelines>
+    </consideration>
+
+    <consideration category="resource_management">
+      <rule>Manage resources efficiently</rule>
+      <guidelines>
+        <guideline>Close resources properly (files, connections, etc.)</guideline>
+        <guideline>Use connection pooling for database access</guideline>
+        <guideline>Implement proper caching strategies</guideline>
+        <guideline>Avoid memory leaks</guideline>
+      </guidelines>
+    </consideration>
+  </performance_considerations>
+
+  <common_pitfalls>
+    <pitfall>
+      <description>Generating overly complex solutions</description>
+      <why_problematic>Complex code is harder to understand, test, and maintain</why_problematic>
+      <correct_approach>Start with simple solutions and refactor when complexity is justified</correct_approach>
+    </pitfall>
+
+    <pitfall>
+      <description>Ignoring existing codebase patterns</description>
+      <why_problematic>Inconsistent patterns make the codebase harder to navigate</why_problematic>
+      <correct_approach>Analyze existing code to understand and follow established patterns</correct_approach>
+    </pitfall>
+
+    <pitfall>
+      <description>Insufficient error handling</description>
+      <why_problematic>Unhandled errors lead to poor user experience and debugging difficulties</why_problematic>
+      <correct_approach>Implement comprehensive error handling for all failure modes</correct_approach>
+    </pitfall>
+
+    <pitfall>
+      <description>Missing or inadequate tests</description>
+      <why_problematic>Untested code is prone to bugs and difficult to refactor safely</why_problematic>
+      <correct_approach>Generate comprehensive test coverage alongside implementation</correct_approach>
+    </pitfall>
+  </common_pitfalls>
+
+  <quality_checklist>
+    <category name="before_implementation">
+      <item>Requirements are clearly understood</item>
+      <item>Existing patterns and conventions are identified</item>
+      <item>API design is planned and reviewed</item>
+      <item>Testing strategy is defined</item>
+    </category>
+
+    <category name="during_implementation">
+      <item>Code follows established patterns</item>
+      <item>Error handling is comprehensive</item>
+      <item>Security considerations are addressed</item>
+      <item>Performance implications are considered</item>
+    </category>
+
+    <category name="before_completion">
+      <item>All tests pass</item>
+      <item>Code is properly documented</item>
+      <item>Security review is completed</item>
+      <item>Performance requirements are met</item>
+    </category>
+  </quality_checklist>
+</ai_code_generation_best_practices>

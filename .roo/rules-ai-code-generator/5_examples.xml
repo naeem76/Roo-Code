@@ -1,0 +1,92 @@
+<ai_code_generation_examples>
+  <overview>
+    Complete workflow examples demonstrating AI-assisted code generation
+    following Google GenAI best practices and established patterns.
+  </overview>
+
+  <example name="implement_user_service">
+    <scenario>
+      User requests implementation of a UserService class with CRUD operations,
+      following existing repository patterns in the codebase.
+    </scenario>
+
+    <user_request>
+      Create a UserService class that handles user management operations including
+      create, read, update, and delete functionality with proper error handling.
+    </user_request>
+
+    <workflow>
+      <step number="1">
+        <description>Search for existing service patterns</description>
+        <tool_use><![CDATA[
+<search_files>
+<path>src</path>
+<regex>(Service|Repository).*\.(ts|js)</regex>
+<file_pattern>*.ts</file_pattern>
+</search_files>
+        ]]></tool_use>
+        <expected_outcome>Identify existing service and repository patterns</expected_outcome>
+      </step>
+
+      <step number="2">
+        <description>Examine existing service implementations</description>
+        <tool_use><![CDATA[
+<read_file>
+<args>
+  <file><path>src/services/BaseService.ts</path></file>
+  <file><path>src/repositories/UserRepository.ts</path></file>
+  <file><path>src/types/User.ts</path></file>
+  <file><path>src/utils/validation.ts</path></file>
+</args>
+</read_file>
+        ]]></tool_use>
+        <analysis>
+          - Understand existing error handling patterns
+          - Identify validation approaches
+          - Note testing conventions
+          - Understand type definitions
+        </analysis>
+      </step>
+
+      <step number="3">
+        <description>Create UserService implementation following established patterns</description>
+        <tool_use><![CDATA[
+<write_to_file>
+<path>src/services/UserService.ts</path>
+<content>
+/**
+ * UserService handles user management operations
+ * Following established patterns with proper error handling
+ */
+import { User, CreateUserRequest } from '../types/User';
+import { UserRepository } from '../repositories/UserRepository';
+
+type Result<T, E = string> = 
+  | { success: true; data: T }
+  | { success: false; error: E };
+
+export class UserService {
+  constructor(private userRepository: UserRepository) {}
+
+  async createUser(request: CreateUserRequest): Promise<Result<User>> {
+    try {
+      // Validate input
+      if (!request.email || !request.name) {
+        return { success: false, error: 'Email and name are required' };
+      }
+
+      // Check if user exists
+      const existing = await this.userRepository.findByEmail(request.email);
+      if (existing) {
+        return { success: false, error: 'User already exists' };
+      }
+
+      // Create user
+      const user = await this.userRepository.create(request);
+      return { success: true, data: user };
+
+    } catch (error) {
+      return { success: false, error: `Failed to create user: ${error.message}` };
+    }
+  }
+}
