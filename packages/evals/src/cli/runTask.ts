@@ -35,7 +35,7 @@ export const processTask = async ({ taskId, logger }: { taskId: number; logger?:
 	const task = await findTask(taskId)
 	const { language, exercise } = task
 	const run = await findRun(task.runId)
-	await registerRunner({ runId: run.id, taskId })
+	await registerRunner({ runId: run.id, taskId, timeoutSeconds: (run.timeout || 5) * 60 })
 
 	const containerized = isDockerContainer()
 
