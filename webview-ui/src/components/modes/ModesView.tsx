@@ -780,7 +780,7 @@ const ModesView = ({ onDone }: ModesViewProps) => {
 									<Input
 										type="text"
 										value={
-											editingState.currentEditingModeSlug === visualMode
+											editingState.currentEditingField === 'modeName' && editingState.currentEditingModeSlug === visualMode
 												? editingState.modeName
 												: (getModeProperty(findModeBySlug(visualMode, customModes), "name") ??
 													"")
@@ -791,6 +791,7 @@ const ModesView = ({ onDone }: ModesViewProps) => {
 												setEditingState(prev => ({
 													...prev,
 													currentEditingModeSlug: visualMode,
+													currentEditingField: 'modeName',
 													modeName: customMode.name
 												}))
 											}
