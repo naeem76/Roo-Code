@@ -492,4 +492,108 @@ describe("runClaudeCode", () => {
 		const systemPromptArg = args[systemPromptIndex + 1]
 		expect(systemPromptArg).not.toMatch(/^@/)
 	})
+
+	test("should use cmd.exe wrapper on Windows for command execution", async () => {
+		const { runClaudeCode } = await import("../run")
+		
+		// Mock process.platform to simulate Windows
+		const originalPlatform = process.platform
+		Object.defineProperty(process, "platform", {
+			value: "win32",
+		})
+
+		const options = {
+			systemPrompt: "You are a helpful assistant",
+			messages: [{ role: "user" as const, content: "Hello" }],
+			path: "claude",
+		}
+
+		const generator = runClaudeCode(options)
+
+		// Consume at least one item to trigger process spawn
+		await generator.next()
+
+		// Clean up the generator
+		await generator.return(undefined)
+
+		// Verify execa was called with cmd.exe wrapper on Windows
+		const [command, args] = mockExeca.mock.calls[0]
+		expect(command).toBe("cmd.exe")
+		expect(args).toEqual(expect.arrayContaining(["/c", "claude"]))
+		expect(args).toContain("-p")
+
+		// Restore original platform
+		Object.defineProperty(process, "platform", {
+			value: originalPlatform,
+		})
+	})
+
+	test("should not double-wrap cmd.exe on Windows", async () => {
+		const { runClaudeCode } = await import("../run")
+		
+		// Mock process.platform to simulate Windows
+		const originalPlatform = process.platform
+		Object.defineProperty(process, "platform", {
+			value: "win32",
+		})
+
+		const options = {
+			systemPrompt: "You are a helpful assistant",
+			messages: [{ role: "user" as const, content: "Hello" }],
+			path: "cmd.exe", // Already cmd.exe
+		}
+
+		const generator = runClaudeCode(options)
+
+		// Consume at least one item to trigger process spawn
+		await generator.next()
+
+		// Clean up the generator
+		await generator.return(undefined)
+
+		// Verify execa was called without double-wrapping
+		const [command, args] = mockExeca.mock.calls[0]
+		expect(command).toBe("cmd.exe")
+		expect(args).not.toContain("/c") // Should not have /c since it's already cmd.exe
+
+		// Restore original platform
+		Object.defineProperty(process, "platform", {
+			value: originalPlatform,
+		})
+	})
+
+	test("should not use cmd.exe wrapper on non-Windows platforms", async () => {
+		const { runClaudeCode } = await import("../run")
+		
+		// Mock process.platform to simulate Linux/macOS
+		const originalPlatform = process.platform
+		Object.defineProperty(process, "platform", {
+			value: "linux",
+		})
+
+		const options = {
+			systemPrompt: "You are a helpful assistant",
+			messages: [{ role: "user" as const, content: "Hello" }],
+			path: "claude",
+		}
+
+		const generator = runClaudeCode(options)
+
+		// Consume at least one item to trigger process spawn
+		await generator.next()
+
+		// Clean up the generator
+		await generator.return(undefined)
+
+		// Verify execa was called directly without cmd.exe wrapper
+		const [command, args] = mockExeca.mock.calls[0]
+		expect(command).toBe("claude")
+		expect(args).not.toContain("/c")
+		expect(args).toContain("-p")
+
+		// Restore original platform
+		Object.defineProperty(process, "platform", {
+			value: originalPlatform,
+		})
+	})
 })

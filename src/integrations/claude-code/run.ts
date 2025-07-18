@@ -82,9 +82,24 @@ export async function* runClaudeCode(
 		const { exitCode } = await process
 		if (exitCode !== null && exitCode !== 0) {
 			const errorOutput = processState.error?.message || processState.stderrLogs?.trim()
-			throw new Error(
-				`Claude Code process exited with code ${exitCode}.${errorOutput ? ` Error output: ${errorOutput}` : ""}`,
-			)
+			
+			// Provide more specific error messages for common Windows issues
+			let errorMessage = `Claude Code process exited with code ${exitCode}`
+			
+			if (errorOutput) {
+				// Check for common Windows-specific errors
+				if (errorOutput.includes("ENAMETOOLONG") || errorOutput.includes("command line too long")) {
+					errorMessage += ". This appears to be a Windows command line length issue. Try using a shorter system prompt or ensure the Claude CLI is properly installed."
+				} else if (errorOutput.includes("is not recognized as an internal or external command")) {
+					errorMessage += ". The 'claude' command was not found. Please ensure the Claude CLI is installed and available in your PATH."
+				} else if (errorOutput.includes("Access is denied") || errorOutput.includes("EACCES")) {
+					errorMessage += ". Access denied. Please check file permissions and ensure the Claude CLI has proper execution rights."
+				} else {
+					errorMessage += `. Error output: ${errorOutput}`
+				}
+			}
+			
+			throw new Error(errorMessage)
 		}
 	} finally {
 		rl.close()
@@ -140,7 +155,7 @@ async function runProcess({
 	// Check if system prompt is too long for command line
 	const useTempFileForSystemPrompt = systemPrompt.length > MAX_COMMAND_LINE_LENGTH
 
-	const args = ["-p"]
+	const baseArgs = ["-p"]
 	let tempFileCleanup: TempFileCleanup | null = null
 
 	// Handle system prompt - use temp file for long prompts, command line for short ones
@@ -153,7 +168,7 @@ async function runProcess({
 
 		try {
 			await vscode.workspace.fs.writeFile(vscode.Uri.file(tempFilePath), Buffer.from(systemPrompt, "utf8"))
-			args.push("--system-prompt", `@${tempFilePath}`)
+			baseArgs.push("--system-prompt", `@${tempFilePath}`)
 
 			tempFileCleanup = {
 				filePath: tempFilePath,
@@ -171,10 +186,10 @@ async function runProcess({
 		}
 	} else {
 		// Use command line argument for short system prompts
-		args.push("--system-prompt", systemPrompt)
+		baseArgs.push("--system-prompt", systemPrompt)
 	}
 
-	args.push(
+	baseArgs.push(
 		"--verbose",
 		"--output-format",
 		"stream-json",
@@ -186,8 +201,20 @@ async function runProcess({
 	)
 
 	if (modelId) {
-		args.push("--model", modelId)
+		baseArgs.push("--model", modelId)
 	}
+
+	// On Windows, wrap commands with cmd.exe to handle non-exe executables like npx.ps1
+	// This is necessary for node version managers (fnm, nvm-windows, volta) that implement
+	// commands as PowerShell scripts rather than executables.
+	// This pattern is used in McpHub.ts for MCP servers and resolves Windows execution issues.
+	const isWindows = process.platform === "win32"
+	
+	// Check if command is already cmd.exe to avoid double-wrapping
+	const isAlreadyWrapped = claudePath.toLowerCase() === "cmd.exe" || claudePath.toLowerCase() === "cmd"
+	
+	const command = isWindows && !isAlreadyWrapped ? "cmd.exe" : claudePath
+	const args = isWindows && !isAlreadyWrapped ? ["/c", claudePath, ...baseArgs] : baseArgs
 
 	const env: Record<string, string> = {
 		...process.env,
@@ -198,7 +225,7 @@ async function runProcess({
 			CLAUDE_CODE_DEFAULT_MAX_OUTPUT_TOKENS.toString(),
 	}
 
-	const child = execa(claudePath, args, {
+	const child = execa(command, args, {
 		stdin: "pipe",
 		stdout: "pipe",
 		stderr: "pipe",
@@ -260,9 +287,35 @@ function parseChunk(data: string, processState: ProcessState) {
 
 function attemptParseChunk(data: string): ClaudeCodeMessage | null {
 	try {
-		return JSON.parse(data)
+		// Trim whitespace and ensure we have valid JSON
+		const trimmedData = data.trim()
+		if (!trimmedData) {
+			return null
+		}
+
+		// Check if the data looks like JSON (starts with { and ends with })
+		if (!trimmedData.startsWith("{") || !trimmedData.endsWith("}")) {
+			console.warn("Received non-JSON data from Claude Code:", trimmedData.substring(0, 100))
+			return null
+		}
+
+		const parsed = JSON.parse(trimmedData)
+		
+		// Validate that the parsed object has the expected structure
+		if (!parsed || typeof parsed !== "object" || !parsed.type) {
+			console.warn("Parsed data missing required 'type' field:", parsed)
+			return null
+		}
+
+		return parsed as ClaudeCodeMessage
 	} catch (error) {
-		console.error("Error parsing chunk:", error, data.length)
+		// Log more detailed error information for debugging
+		console.error("Error parsing chunk from Claude Code:", {
+			error: error instanceof Error ? error.message : String(error),
+			dataLength: data.length,
+			dataPreview: data.substring(0, 200),
+			dataEnding: data.length > 200 ? data.substring(data.length - 50) : "",
+		})
 		return null
 	}
 }
