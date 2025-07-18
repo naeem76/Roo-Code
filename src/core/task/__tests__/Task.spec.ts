@@ -1494,4 +1494,395 @@ describe("Cline", () => {
 			})
 		})
 	})
+
+	describe("deduplicateReadFileHistory", () => {
+		let mockProvider: any
+		let mockApiConfig: ProviderSettings
+
+		beforeEach(() => {
+			mockProvider = {
+				context: {
+					globalStorageUri: { fsPath: "/test/storage" },
+				},
+				getState: vi.fn().mockResolvedValue({}),
+				postStateToWebview: vi.fn().mockResolvedValue(undefined),
+				postMessageToWebview: vi.fn().mockResolvedValue(undefined),
+				updateTaskHistory: vi.fn().mockResolvedValue(undefined),
+			}
+
+			mockApiConfig = {
+				apiProvider: "anthropic",
+				apiModelId: "claude-3-5-sonnet-20241022",
+				apiKey: "test-api-key",
+			}
+		})
+
+		it("should remove older read_file results for the same file", async () => {
+			const task = new Task({
+				provider: mockProvider,
+				apiConfiguration: mockApiConfig,
+				task: "test task",
+				startTask: false,
+			})
+
+			// Set up conversation history with duplicate read_file results
+			task.apiConversationHistory = [
+				{
+					role: "user",
+					content: [
+						{ type: "text", text: "[read_file for src/test.ts]" },
+						{ type: "text", text: "File content line 1\nFile content line 2" },
+						{ type: "text", text: "[/read_file]" },
+					],
+					ts: Date.now() - 2000,
+				},
+				{
+					role: "assistant",
+					content: [{ type: "text", text: "I see the file content." }],
+					ts: Date.now() - 1500,
+				},
+				{
+					role: "user",
+					content: [
+						{ type: "text", text: "[read_file for src/test.ts]" },
+						{ type: "text", text: "Updated file content line 1\nUpdated file content line 2" },
+						{ type: "text", text: "[/read_file]" },
+					],
+					ts: Date.now() - 1000,
+				},
+				{
+					role: "assistant",
+					content: [{ type: "text", text: "I see the updated content." }],
+					ts: Date.now() - 500,
+				},
+			]
+
+			// Call the private method using bracket notation
+			;(task as any).deduplicateReadFileHistory()
+
+			// Verify that the older read_file content was removed
+			expect(task.apiConversationHistory).toHaveLength(4)
+
+			// First message should have the file content removed (only 2 items instead of 3)
+			const firstMessage = task.apiConversationHistory[0]
+			expect(firstMessage.content).toHaveLength(2)
+			expect((firstMessage.content[0] as any).text).toBe("[read_file for src/test.ts]")
+			expect((firstMessage.content[1] as any).text).toBe("[/read_file]")
+
+			// Latest message should still have all content
+			const latestMessage = task.apiConversationHistory[2]
+			expect(latestMessage.content).toHaveLength(3)
+			expect((latestMessage.content[0] as any).text).toBe("[read_file for src/test.ts]")
+			expect((latestMessage.content[1] as any).text).toBe("Updated file content line 1\nUpdated file content line 2")
+			expect((latestMessage.content[2] as any).text).toBe("[/read_file]")
+		})
+
+		it("should handle multiple different files correctly", async () => {
+			const task = new Task({
+				provider: mockProvider,
+				apiConfiguration: mockApiConfig,
+				task: "test task",
+				startTask: false,
+			})
+
+			// Set up conversation history with different files
+			task.apiConversationHistory = [
+				{
+					role: "user",
+					content: [
+						{ type: "text", text: "[read_file for src/file1.ts]" },
+						{ type: "text", text: "File 1 content" },
+						{ type: "text", text: "[/read_file]" },
+					],
+					ts: Date.now() - 3000,
+				},
+				{
+					role: "user",
+					content: [
+						{ type: "text", text: "[read_file for src/file2.ts]" },
+						{ type: "text", text: "File 2 content" },
+						{ type: "text", text: "[/read_file]" },
+					],
+					ts: Date.now() - 2000,
+				},
+				{
+					role: "user",
+					content: [
+						{ type: "text", text: "[read_file for src/file1.ts]" },
+						{ type: "text", text: "Updated file 1 content" },
+						{ type: "text", text: "[/read_file]" },
+					],
+					ts: Date.now() - 1000,
+				},
+			]
+
+			// Call the private method
+			;(task as any).deduplicateReadFileHistory()
+
+			// Verify that only file1.ts older content was removed
+			expect(task.apiConversationHistory).toHaveLength(3)
+
+			// First message (older file1.ts) should have content removed
+			const firstMessage = task.apiConversationHistory[0]
+			expect(firstMessage.content).toHaveLength(2)
+			expect((firstMessage.content[0] as any).text).toBe("[read_file for src/file1.ts]")
+			expect((firstMessage.content[1] as any).text).toBe("[/read_file]")
+
+			// Second message (file2.ts) should remain unchanged
+			const secondMessage = task.apiConversationHistory[1]
+			expect(secondMessage.content).toHaveLength(3)
+			expect((secondMessage.content[0] as any).text).toBe("[read_file for src/file2.ts]")
+			expect((secondMessage.content[1] as any).text).toBe("File 2 content")
+
+			// Third message (latest file1.ts) should remain unchanged
+			const thirdMessage = task.apiConversationHistory[2]
+			expect(thirdMessage.content).toHaveLength(3)
+			expect((thirdMessage.content[0] as any).text).toBe("[read_file for src/file1.ts]")
+			expect((thirdMessage.content[1] as any).text).toBe("Updated file 1 content")
+		})
+
+		it("should skip assistant messages", async () => {
+			const task = new Task({
+				provider: mockProvider,
+				apiConfiguration: mockApiConfig,
+				task: "test task",
+				startTask: false,
+			})
+
+			// Set up conversation history with assistant messages
+			task.apiConversationHistory = [
+				{
+					role: "assistant",
+					content: [
+						{ type: "text", text: "[read_file for src/test.ts]" },
+						{ type: "text", text: "This should not be processed" },
+						{ type: "text", text: "[/read_file]" },
+					],
+					ts: Date.now() - 2000,
+				},
+				{
+					role: "user",
+					content: [
+						{ type: "text", text: "[read_file for src/test.ts]" },
+						{ type: "text", text: "User read file content" },
+						{ type: "text", text: "[/read_file]" },
+					],
+					ts: Date.now() - 1000,
+				},
+			]
+
+			// Call the private method
+			;(task as any).deduplicateReadFileHistory()
+
+			// Verify that assistant message was not modified
+			const assistantMessage = task.apiConversationHistory[0]
+			expect(assistantMessage.content).toHaveLength(3)
+			expect((assistantMessage.content[1] as any).text).toBe("This should not be processed")
+
+			// User message should remain unchanged since there's no older user message with same file
+			const userMessage = task.apiConversationHistory[1]
+			expect(userMessage.content).toHaveLength(3)
+			expect((userMessage.content[1] as any).text).toBe("User read file content")
+		})
+
+		it("should handle string content gracefully", async () => {
+			const task = new Task({
+				provider: mockProvider,
+				apiConfiguration: mockApiConfig,
+				task: "test task",
+				startTask: false,
+			})
+
+			// Set up conversation history with string content
+			task.apiConversationHistory = [
+				{
+					role: "user",
+					content: "This is a string content",
+					ts: Date.now() - 2000,
+				},
+				{
+					role: "user",
+					content: [
+						{ type: "text", text: "[read_file for src/test.ts]" },
+						{ type: "text", text: "File content" },
+						{ type: "text", text: "[/read_file]" },
+					],
+					ts: Date.now() - 1000,
+				},
+			]
+
+			// Call the private method - should not throw
+			expect(() => {
+				;(task as any).deduplicateReadFileHistory()
+			}).not.toThrow()
+
+			// Verify that string content was skipped
+			expect(task.apiConversationHistory[0].content).toBe("This is a string content")
+			expect(task.apiConversationHistory[1].content).toHaveLength(3)
+		})
+
+		it("should handle malformed content blocks gracefully", async () => {
+			const task = new Task({
+				provider: mockProvider,
+				apiConfiguration: mockApiConfig,
+				task: "test task",
+				startTask: false,
+			})
+
+			// Set up conversation history with malformed content
+			task.apiConversationHistory = [
+				{
+					role: "user",
+					content: [
+						"string item", // This should be skipped
+						{ type: "text", text: "[read_file for src/test.ts]" },
+						{ type: "text", text: "File content" },
+					],
+					ts: Date.now() - 2000,
+				},
+				{
+					role: "user",
+					content: [
+						{ type: "image", source: { type: "base64", media_type: "image/jpeg", data: "data" } }, // Non-text type
+						{ type: "text", text: "[read_file for src/test.ts]" },
+						{ type: "text", text: "Updated content" },
+					],
+					ts: Date.now() - 1000,
+				},
+			]
+
+			// Call the private method - should not throw
+			expect(() => {
+				;(task as any).deduplicateReadFileHistory()
+			}).not.toThrow()
+
+			// Verify that malformed content was handled gracefully
+			expect(task.apiConversationHistory).toHaveLength(2)
+		})
+
+		it("should only process messages with exactly 3 content items", async () => {
+			const task = new Task({
+				provider: mockProvider,
+				apiConfiguration: mockApiConfig,
+				task: "test task",
+				startTask: false,
+			})
+
+			// Set up conversation history with different content lengths
+			task.apiConversationHistory = [
+				{
+					role: "user",
+					content: [
+						{ type: "text", text: "[read_file for src/test.ts]" },
+						{ type: "text", text: "File content" },
+						// Missing closing tag - only 2 items
+					],
+					ts: Date.now() - 3000,
+				},
+				{
+					role: "user",
+					content: [
+						{ type: "text", text: "[read_file for src/test.ts]" },
+						{ type: "text", text: "File content" },
+						{ type: "text", text: "[/read_file]" },
+						{ type: "text", text: "Extra content" },
+						// 4 items instead of 3
+					],
+					ts: Date.now() - 2000,
+				},
+				{
+					role: "user",
+					content: [
+						{ type: "text", text: "[read_file for src/test.ts]" },
+						{ type: "text", text: "Latest file content" },
+						{ type: "text", text: "[/read_file]" },
+					],
+					ts: Date.now() - 1000,
+				},
+			]
+
+			// Call the private method
+			;(task as any).deduplicateReadFileHistory()
+
+			// Verify that only the message with exactly 3 items was processed
+			// First message (2 items) should remain unchanged
+			expect(task.apiConversationHistory[0].content).toHaveLength(2)
+
+			// Second message (4 items) should remain unchanged
+			expect(task.apiConversationHistory[1].content).toHaveLength(4)
+
+			// Third message (3 items) should remain unchanged as it's the latest
+			expect(task.apiConversationHistory[2].content).toHaveLength(3)
+		})
+
+		it("should handle empty conversation history", async () => {
+			const task = new Task({
+				provider: mockProvider,
+				apiConfiguration: mockApiConfig,
+				task: "test task",
+				startTask: false,
+			})
+
+			// Set empty conversation history
+			task.apiConversationHistory = []
+
+			// Call the private method - should not throw
+			expect(() => {
+				;(task as any).deduplicateReadFileHistory()
+			}).not.toThrow()
+
+			// Verify that history remains empty
+			expect(task.apiConversationHistory).toHaveLength(0)
+		})
+
+		it("should be called during attemptApiRequest", async () => {
+			const task = new Task({
+				provider: mockProvider,
+				apiConfiguration: mockApiConfig,
+				task: "test task",
+				startTask: false,
+			})
+
+			// Mock the deduplicateReadFileHistory method to verify it's called
+			const deduplicateSpy = vi.spyOn(task as any, "deduplicateReadFileHistory")
+
+			// Mock the API stream response
+			const mockStream = {
+				async *[Symbol.asyncIterator]() {
+					yield { type: "text", text: "response" }
+				},
+				async next() {
+					return { done: true, value: { type: "text", text: "response" } }
+				},
+				async return() {
+					return { done: true, value: undefined }
+				},
+				async throw(e: any) {
+					throw e
+				},
+				[Symbol.asyncDispose]: async () => {},
+			} as AsyncGenerator<any>
+
+			vi.spyOn(task.api, "createMessage").mockReturnValue(mockStream)
+
+			// Mock getSystemPrompt to avoid complex dependencies
+			vi.spyOn(task as any, "getSystemPrompt").mockResolvedValue("test system prompt")
+
+			// Mock getTokenUsage to return undefined contextTokens
+			vi.spyOn(task, "getTokenUsage").mockReturnValue({
+				inputTokens: 0,
+				outputTokens: 0,
+				cacheWriteTokens: 0,
+				cacheReadTokens: 0,
+				contextTokens: undefined,
+			})
+
+			// Call attemptApiRequest
+			const iterator = task.attemptApiRequest(0)
+			await iterator.next()
+
+			// Verify that deduplicateReadFileHistory was called
+			expect(deduplicateSpy).toHaveBeenCalledOnce()
+		})
+	})
 })
