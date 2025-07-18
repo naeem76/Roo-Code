@@ -5,14 +5,7 @@ import * as os from "node:os"
 import pWaitFor from "p-wait-for"
 import { execa } from "execa"
 
-import {
-	type TaskEvent,
-	TaskCommandName,
-	RooCodeEventName,
-	IpcMessageType,
-	EVALS_SETTINGS,
-	EVALS_TIMEOUT,
-} from "@roo-code/types"
+import { type TaskEvent, TaskCommandName, RooCodeEventName, IpcMessageType, EVALS_SETTINGS } from "@roo-code/types"
 import { IpcClient } from "@roo-code/ipc"
 
 import {
