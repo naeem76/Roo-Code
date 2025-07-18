@@ -46,7 +46,7 @@ const mockRelativePattern = class {
 export const workspace = {
 	workspaceFolders: [],
 	getWorkspaceFolder: () => null,
-	onDidChangeWorkspaceFolders: () => mockDisposable,
+	onDidChangeWorkspaceFolders: (callback) => mockDisposable,
 	getConfiguration: () => ({
 		get: () => null,
 	}),
