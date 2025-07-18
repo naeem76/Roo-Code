@@ -470,11 +470,52 @@ export class CustomModesManager {
 
 	public async updateCustomMode(slug: string, config: ModeConfig): Promise<void> {
 		try {
-			// Validate the mode configuration before saving
+			// Comprehensive validation to prevent empty fields from being saved
+			const validationErrors: string[] = []
+			
+			// Validate required fields are not empty
+			if (!config.name || config.name.trim() === "") {
+				validationErrors.push("Mode name cannot be empty")
+			}
+			
+			if (!config.roleDefinition || config.roleDefinition.trim() === "") {
+				validationErrors.push("Role definition cannot be empty")
+			}
+			
+			if (!config.slug || config.slug.trim() === "") {
+				validationErrors.push("Mode slug cannot be empty")
+			}
+			
+			// Validate optional fields are not empty strings (they should be undefined if not provided)
+			if (config.description !== undefined && config.description.trim() === "") {
+				validationErrors.push("Description cannot be empty (use undefined instead)")
+			}
+			
+			if (config.whenToUse !== undefined && config.whenToUse.trim() === "") {
+				validationErrors.push("When to use cannot be empty (use undefined instead)")
+			}
+			
+			if (config.customInstructions !== undefined && config.customInstructions.trim() === "") {
+				validationErrors.push("Custom instructions cannot be empty (use undefined instead)")
+			}
+			
+			// Validate groups array is not empty
+			if (!config.groups || !Array.isArray(config.groups) || config.groups.length === 0) {
+				validationErrors.push("At least one tool group must be selected")
+			}
+			
+			// If we have validation errors, throw them
+			if (validationErrors.length > 0) {
+				const errorMessage = `Invalid mode configuration: ${validationErrors.join(", ")}`
+				logger.error(`Validation failed for mode ${slug}`, { errors: validationErrors })
+				throw new Error(errorMessage)
+			}
+			
+			// Use schema validation as a secondary check
 			const validationResult = modeConfigSchema.safeParse(config)
 			if (!validationResult.success) {
 				const errors = validationResult.error.errors.map((e: any) => e.message).join(", ")
-				logger.error(`Invalid mode configuration for ${slug}`, { errors: validationResult.error.errors })
+				logger.error(`Schema validation failed for mode ${slug}`, { errors: validationResult.error.errors })
 				throw new Error(`Invalid mode configuration: ${errors}`)
 			}
 

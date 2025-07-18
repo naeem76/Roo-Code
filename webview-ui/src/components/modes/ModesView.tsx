@@ -110,9 +110,14 @@ const ModesView = ({ onDone }: ModesViewProps) => {
 	const [searchValue, setSearchValue] = useState("")
 	const searchInputRef = useRef<HTMLInputElement>(null)
 
-	// Local state for mode name input to allow visual emptying
+	// Local state for all editable fields to allow visual emptying but prevent saving empty values
 	const [localModeName, setLocalModeName] = useState<string>("")
+	const [localModeDescription, setLocalModeDescription] = useState<string>("")
+	const [localModeRoleDefinition, setLocalModeRoleDefinition] = useState<string>("")
+	const [localModeWhenToUse, setLocalModeWhenToUse] = useState<string>("")
+	const [localModeCustomInstructions, setLocalModeCustomInstructions] = useState<string>("")
 	const [currentEditingModeSlug, setCurrentEditingModeSlug] = useState<string | null>(null)
+	const [currentEditingField, setCurrentEditingField] = useState<string | null>(null)
 
 	// Direct update functions
 	const updateAgentPrompt = useCallback(
@@ -222,11 +227,16 @@ const ModesView = ({ onDone }: ModesViewProps) => {
 		}
 	}, [getCurrentMode, checkRulesDirectory, hasRulesToExport])
 
-	// Reset local name state when mode changes
+	// Reset all local state when mode changes
 	useEffect(() => {
 		if (currentEditingModeSlug && currentEditingModeSlug !== visualMode) {
 			setCurrentEditingModeSlug(null)
+			setCurrentEditingField(null)
 			setLocalModeName("")
+			setLocalModeDescription("")
+			setLocalModeRoleDefinition("")
+			setLocalModeWhenToUse("")
+			setLocalModeCustomInstructions("")
 		}
 	}, [visualMode, currentEditingModeSlug])
 
@@ -825,30 +835,58 @@ const ModesView = ({ onDone }: ModesViewProps) => {
 							value={(() => {
 								const customMode = findModeBySlug(visualMode, customModes)
 								const prompt = customModePrompts?.[visualMode] as PromptComponent
+								
+								// Use local state if currently editing this field
+								if (currentEditingField === "roleDefinition" && currentEditingModeSlug === visualMode) {
+									return localModeRoleDefinition
+								}
+								
 								return (
 									customMode?.roleDefinition ??
 									prompt?.roleDefinition ??
 									getRoleDefinition(visualMode)
 								)
 							})()}
+							onFocus={() => {
+								const customMode = findModeBySlug(visualMode, customModes)
+								const prompt = customModePrompts?.[visualMode] as PromptComponent
+								const currentValue = customMode?.roleDefinition ??
+									prompt?.roleDefinition ??
+									getRoleDefinition(visualMode)
+								
+								setCurrentEditingModeSlug(visualMode)
+								setCurrentEditingField("roleDefinition")
+								setLocalModeRoleDefinition(currentValue)
+							}}
 							onChange={(e) => {
 								const value =
 									(e as unknown as CustomEvent)?.detail?.target?.value ||
 									((e as any).target as HTMLTextAreaElement).value
+								setLocalModeRoleDefinition(value)
+							}}
+							onBlur={() => {
 								const customMode = findModeBySlug(visualMode, customModes)
-								if (customMode) {
-									// For custom modes, update the JSON file
-									updateCustomMode(visualMode, {
-										...customMode,
-										roleDefinition: value.trim() || "",
-										source: customMode.source || "global",
-									})
-								} else {
-									// For built-in modes, update the prompts
-									updateAgentPrompt(visualMode, {
-										roleDefinition: value.trim() || undefined,
-									})
+								
+								// Only save if the value is not empty
+								if (localModeRoleDefinition.trim()) {
+									if (customMode) {
+										// For custom modes, update the JSON file
+										updateCustomMode(visualMode, {
+											...customMode,
+											roleDefinition: localModeRoleDefinition.trim(),
+											source: customMode.source || "global",
+										})
+									} else {
+										// For built-in modes, update the prompts
+										updateAgentPrompt(visualMode, {
+											roleDefinition: localModeRoleDefinition.trim(),
+										})
+									}
 								}
+								
+								// Clear the editing state
+								setCurrentEditingField(null)
+								setCurrentEditingModeSlug(null)
 							}}
 							className="w-full"
 							rows={5}
@@ -884,26 +922,55 @@ const ModesView = ({ onDone }: ModesViewProps) => {
 							value={(() => {
 								const customMode = findModeBySlug(visualMode, customModes)
 								const prompt = customModePrompts?.[visualMode] as PromptComponent
+								
+								// Use local state if currently editing this field
+								if (currentEditingField === "description" && currentEditingModeSlug === visualMode) {
+									return localModeDescription
+								}
+								
 								return customMode?.description ?? prompt?.description ?? getDescription(visualMode)
 							})()}
+							onFocus={() => {
+								const customMode = findModeBySlug(visualMode, customModes)
+								const prompt = customModePrompts?.[visualMode] as PromptComponent
+								const currentValue = customMode?.description ??
+									prompt?.description ??
+									getDescription(visualMode)
+								
+								setCurrentEditingModeSlug(visualMode)
+								setCurrentEditingField("description")
+								setLocalModeDescription(currentValue || "")
+							}}
 							onChange={(e) => {
 								const value =
 									(e as unknown as CustomEvent)?.detail?.target?.value ||
 									((e as any).target as HTMLTextAreaElement).value
+								setLocalModeDescription(value)
+							}}
+							onBlur={() => {
 								const customMode = findModeBySlug(visualMode, customModes)
+								
+								// For description, allow empty values (they become undefined)
+								const trimmedValue = localModeDescription.trim()
+								const finalValue = trimmedValue || undefined
+								
 								if (customMode) {
 									// For custom modes, update the JSON file
 									updateCustomMode(visualMode, {
 										...customMode,
-										description: value.trim() || undefined,
+										description: finalValue,
 										source: customMode.source || "global",
 									})
 								} else {
 									// For built-in modes, update the prompts
 									updateAgentPrompt(visualMode, {
-										description: value.trim() || undefined,
+										description: finalValue,
 									})
 								}
+								
+								// Clear the editing state
+								setCurrentEditingField(null)
+								setCurrentEditingModeSlug(null)
 							}}
 							className="w-full"
 							data-testid={`${getCurrentMode()?.slug || "code"}-description-textfield`}
@@ -939,26 +1006,55 @@ const ModesView = ({ onDone }: ModesViewProps) => {
 							value={(() => {
 								const customMode = findModeBySlug(visualMode, customModes)
 								const prompt = customModePrompts?.[visualMode] as PromptComponent
+								
+								// Use local state if currently editing this field
+								if (currentEditingField === "whenToUse" && currentEditingModeSlug === visualMode) {
+									return localModeWhenToUse
+								}
+								
 								return customMode?.whenToUse ?? prompt?.whenToUse ?? getWhenToUse(visualMode)
 							})()}
+							onFocus={() => {
+								const customMode = findModeBySlug(visualMode, customModes)
+								const prompt = customModePrompts?.[visualMode] as PromptComponent
+								const currentValue = customMode?.whenToUse ??
+									prompt?.whenToUse ??
+									getWhenToUse(visualMode)
+								
+								setCurrentEditingModeSlug(visualMode)
+								setCurrentEditingField("whenToUse")
+								setLocalModeWhenToUse(currentValue || "")
+							}}
 							onChange={(e) => {
 								const value =
 									(e as unknown as CustomEvent)?.detail?.target?.value ||
 									((e as any).target as HTMLTextAreaElement).value
+								setLocalModeWhenToUse(value)
+							}}
+							onBlur={() => {
 								const customMode = findModeBySlug(visualMode, customModes)
+								
+								// For whenToUse, allow empty values (they become undefined)
+								const trimmedValue = localModeWhenToUse.trim()
+								const finalValue = trimmedValue || undefined
+								
 								if (customMode) {
 									// For custom modes, update the JSON file
 									updateCustomMode(visualMode, {
 										...customMode,
-										whenToUse: value.trim() || undefined,
+										whenToUse: finalValue,
 										source: customMode.source || "global",
 									})
 								} else {
 									// For built-in modes, update the prompts
 									updateAgentPrompt(visualMode, {
-										whenToUse: value.trim() || undefined,
+										whenToUse: finalValue,
 									})
 								}
+								
+								// Clear the editing state
+								setCurrentEditingField(null)
+								setCurrentEditingModeSlug(null)
 							}}
 							className="w-full"
 							rows={4}
@@ -1094,22 +1190,47 @@ const ModesView = ({ onDone }: ModesViewProps) => {
 							value={(() => {
 								const customMode = findModeBySlug(visualMode, customModes)
 								const prompt = customModePrompts?.[visualMode] as PromptComponent
+								
+								// Use local state if currently editing this field
+								if (currentEditingField === "customInstructions" && currentEditingModeSlug === visualMode) {
+									return localModeCustomInstructions
+								}
+								
 								return (
 									customMode?.customInstructions ??
 									prompt?.customInstructions ??
 									getCustomInstructions(mode, customModes)
 								)
 							})()}
+							onFocus={() => {
+								const customMode = findModeBySlug(visualMode, customModes)
+								const prompt = customModePrompts?.[visualMode] as PromptComponent
+								const currentValue = customMode?.customInstructions ??
+									prompt?.customInstructions ??
+									getCustomInstructions(mode, customModes)
+								
+								setCurrentEditingModeSlug(visualMode)
+								setCurrentEditingField("customInstructions")
+								setLocalModeCustomInstructions(currentValue || "")
+							}}
 							onChange={(e) => {
 								const value =
 									(e as unknown as CustomEvent)?.detail?.target?.value ||
 									((e as any).target as HTMLTextAreaElement).value
+								setLocalModeCustomInstructions(value)
+							}}
+							onBlur={() => {
 								const customMode = findModeBySlug(visualMode, customModes)
+								
+								// For customInstructions, allow empty values (they become undefined)
+								const trimmedValue = localModeCustomInstructions.trim()
+								const finalValue = trimmedValue || undefined
+								
 								if (customMode) {
 									// For custom modes, update the JSON file
 									updateCustomMode(visualMode, {
 										...customMode,
-										customInstructions: value.trim() || undefined,
+										customInstructions: finalValue,
 										source: customMode.source || "global",
 									})
 								} else {
@@ -1117,9 +1238,13 @@ const ModesView = ({ onDone }: ModesViewProps) => {
 									const existingPrompt = customModePrompts?.[visualMode] as PromptComponent
 									updateAgentPrompt(visualMode, {
 										...existingPrompt,
-										customInstructions: value.trim(),
+										customInstructions: finalValue,
 									})
 								}
+								
+								// Clear the editing state
+								setCurrentEditingField(null)
+								setCurrentEditingModeSlug(null)
 							}}
 							rows={10}
 							className="w-full"
