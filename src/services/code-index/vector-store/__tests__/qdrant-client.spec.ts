@@ -1583,7 +1583,7 @@ describe("QdrantVectorStore", () => {
 						{
 							key: "filePath",
 							match: {
-								value: expect.stringContaining("src/test.ts"),
+								value: expect.stringMatching(/.*[\/\\]src[\/\\]test\.ts$/),
 							},
 						},
 					],
@@ -1605,19 +1605,19 @@ describe("QdrantVectorStore", () => {
 						{
 							key: "filePath",
 							match: {
-								value: expect.stringContaining("src/test1.ts"),
+								value: expect.stringMatching(/.*[\/\\]src[\/\\]test1\.ts$/),
 							},
 						},
 						{
 							key: "filePath",
 							match: {
-								value: expect.stringContaining("src/test2.ts"),
+								value: expect.stringMatching(/.*[\/\\]src[\/\\]test2\.ts$/),
 							},
 						},
 						{
 							key: "filePath",
 							match: {
-								value: expect.stringContaining("src/test3.ts"),
+								value: expect.stringMatching(/.*[\/\\]src[\/\\]test3\.ts$/),
 							},
 						},
 					]),
@@ -1751,7 +1751,8 @@ describe("QdrantVectorStore", () => {
 			// Both paths should be normalized to absolute paths
 			expect(deleteCall.filter.should).toHaveLength(2)
 			deleteCall.filter.should.forEach((filter: any) => {
-				expect(filter.match.value).toMatch(/^\/.*\/src\/test.*\.ts$/) // Should be absolute paths
+				// Should be absolute paths - either Unix style (/path) or Windows style (C:\path)
+				expect(filter.match.value).toMatch(/^([a-zA-Z]:[\/\\]|[\/\\]).*[\/\\]src[\/\\]test.*\.ts$/)
 			})
 		})
 
