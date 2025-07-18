@@ -1,0 +1,20 @@
+{
+  "prNumber": "5863",
+  "repository": "RooCodeInc/Roo-Code",
+  "reviewStartTime": "2025-01-18T18:52:44Z",
+  "calledByMode": null,
+  "prMetadata": {},
+  "linkedIssue": {},
+  "existingComments": [],
+  "existingReviews": [],
+  "filesChanged": [],
+  "delegatedTasks": [],
+  "findings": {
+    "critical": [],
+    "patterns": [],
+    "redundancy": [],
+    "architecture": [],
+    "tests": []
+  },
+  "reviewStatus": "initialized"
+}

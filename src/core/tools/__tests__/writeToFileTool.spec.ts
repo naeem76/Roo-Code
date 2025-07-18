@@ -384,7 +384,7 @@ describe("writeToFileTool", () => {
 				userEdits: userEditsValue,
 				finalContent: "modified content",
 			})
-			// Set the userEdits property on the diffViewProvider mock to simulate user edits
+			// Manually set the property on the mock instance because the original saveChanges is not called
 			mockCline.diffViewProvider.userEdits = userEditsValue
 
 			await executeWriteFileTool({}, { fileExists: true })
