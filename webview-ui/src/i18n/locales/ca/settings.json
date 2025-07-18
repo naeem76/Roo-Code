@@ -21,6 +21,7 @@
 		"discardButton": "Descartar canvis"
 	},
 	"sections": {
+		"general": "General",
 		"providers": "Proveïdors",
 		"autoApprove": "Auto-aprovació",
 		"browser": "Accés a l'ordinador",
@@ -32,6 +33,15 @@
 		"experimental": "Experimental",
 		"language": "Idioma",
 		"about": "Sobre Roo Code"
+	},
+	"general": {
+		"title": "Configuració general",
+		"description": "Configureu les opcions globals que afecten el comportament de Roo Code",
+		"codebaseIndexing": {
+			"label": "Habilitar indexació de la base de codi",
+			"description": "Quan està habilitat, Roo pot indexar la vostra base de codi per a una cerca semàntica millorada i comprensió del context. Això millora la capacitat de Roo per trobar codi rellevant i proporcionar millors suggeriments.",
+			"tooltip": "L'indexació de la base de codi permet a Roo cercar i comprendre millor el vostre projecte"
+		}
 	},
 	"prompts": {
 		"description": "Configura les indicacions de suport utilitzades per a accions ràpides com millorar indicacions, explicar codi i solucionar problemes. Aquestes indicacions ajuden Roo a proporcionar millor assistència per a tasques comunes de desenvolupament."

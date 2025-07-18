@@ -21,6 +21,7 @@
 		"discardButton": "Buang perubahan"
 	},
 	"sections": {
+		"general": "Umum",
 		"providers": "Provider",
 		"autoApprove": "Auto-Approve",
 		"browser": "Browser",
@@ -32,6 +33,15 @@
 		"experimental": "Eksperimental",
 		"language": "Bahasa",
 		"about": "Tentang Roo Code"
+	},
+	"general": {
+		"title": "Pengaturan umum",
+		"description": "Konfigurasi opsi global yang mempengaruhi perilaku Roo Code",
+		"codebaseIndexing": {
+			"label": "Aktifkan pengindeksan codebase",
+			"description": "Ketika diaktifkan, Roo dapat mengindeks codebase Anda untuk pencarian semantik yang lebih baik dan pemahaman konteks. Ini meningkatkan kemampuan Roo untuk menemukan kode yang relevan dan memberikan saran yang lebih baik.",
+			"tooltip": "Pengindeksan codebase memungkinkan Roo untuk mencari dan memahami proyek Anda dengan lebih baik"
+		}
 	},
 	"prompts": {
 		"description": "Konfigurasi support prompt yang digunakan untuk aksi cepat seperti meningkatkan prompt, menjelaskan kode, dan memperbaiki masalah. Prompt ini membantu Roo memberikan bantuan yang lebih baik untuk tugas pengembangan umum."

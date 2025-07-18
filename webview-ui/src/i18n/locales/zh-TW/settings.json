@@ -21,6 +21,7 @@
 		"discardButton": "取消變更"
 	},
 	"sections": {
+		"general": "一般",
 		"providers": "供應商",
 		"autoApprove": "自動核准",
 		"browser": "電腦存取",
@@ -32,6 +33,15 @@
 		"experimental": "實驗性",
 		"language": "語言",
 		"about": "關於 Roo Code"
+	},
+	"general": {
+		"title": "一般設定",
+		"description": "配置影響 Roo Code 行為的全域選項",
+		"codebaseIndexing": {
+			"label": "啟用程式碼庫索引",
+			"description": "啟用後，Roo 可以索引您的程式碼庫以獲得更好的語義搜尋和上下文理解。這提高了 Roo 查找相關程式碼和提供更好建議的能力。",
+			"tooltip": "程式碼庫索引使 Roo 能夠更好地搜尋和理解您的專案"
+		}
 	},
 	"prompts": {
 		"description": "設定用於快速操作的支援提示詞，如增強提示詞、解釋程式碼和修復問題。這些提示詞幫助 Roo 為常見開發工作提供更好的支援。"

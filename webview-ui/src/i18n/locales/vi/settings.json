@@ -21,6 +21,7 @@
 		"discardButton": "Hủy thay đổi"
 	},
 	"sections": {
+		"general": "Tổng quát",
 		"providers": "Nhà cung cấp",
 		"autoApprove": "Phê duyệt",
 		"browser": "Trình duyệt",
@@ -32,6 +33,15 @@
 		"experimental": "Thử nghiệm",
 		"language": "Ngôn ngữ",
 		"about": "Giới thiệu"
+	},
+	"general": {
+		"title": "Cài đặt tổng quát",
+		"description": "Cấu hình các tùy chọn toàn cục ảnh hưởng đến hành vi của Roo Code",
+		"codebaseIndexing": {
+			"label": "Bật lập chỉ mục codebase",
+			"description": "Khi được bật, Roo có thể lập chỉ mục codebase của bạn để tìm kiếm ngữ nghĩa và hiểu ngữ cảnh tốt hơn. Điều này cải thiện khả năng của Roo trong việc tìm mã liên quan và đưa ra các đề xuất tốt hơn.",
+			"tooltip": "Lập chỉ mục codebase cho phép Roo tìm kiếm và hiểu dự án của bạn tốt hơn"
+		}
 	},
 	"prompts": {
 		"description": "Cấu hình các lời nhắc hỗ trợ được sử dụng cho các hành động nhanh như cải thiện lời nhắc, giải thích mã và khắc phục sự cố. Những lời nhắc này giúp Roo cung cấp hỗ trợ tốt hơn cho các tác vụ phát triển phổ biến."

@@ -21,6 +21,7 @@
 		"discardButton": "Odrzuć zmiany"
 	},
 	"sections": {
+		"general": "Ogólne",
 		"providers": "Dostawcy",
 		"autoApprove": "Auto-zatwierdzanie",
 		"browser": "Dostęp komputera",
@@ -32,6 +33,15 @@
 		"experimental": "Eksperymentalne",
 		"language": "Język",
 		"about": "O Roo Code"
+	},
+	"general": {
+		"title": "Ustawienia ogólne",
+		"description": "Skonfiguruj globalne opcje wpływające na zachowanie Roo Code",
+		"codebaseIndexing": {
+			"label": "Włącz indeksowanie bazy kodu",
+			"description": "Po włączeniu Roo może indeksować bazę kodu w celu lepszego wyszukiwania semantycznego i zrozumienia kontekstu. Poprawia to zdolność Roo do znajdowania odpowiedniego kodu i dostarczania lepszych sugestii.",
+			"tooltip": "Indeksowanie bazy kodu pozwala Roo lepiej przeszukiwać i rozumieć projekt"
+		}
 	},
 	"prompts": {
 		"description": "Skonfiguruj podpowiedzi wsparcia używane do szybkich działań, takich jak ulepszanie podpowiedzi, wyjaśnianie kodu i rozwiązywanie problemów. Te podpowiedzi pomagają Roo zapewnić lepsze wsparcie dla typowych zadań programistycznych."

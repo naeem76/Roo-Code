@@ -21,6 +21,7 @@
 		"discardButton": "변경 사항 버리기"
 	},
 	"sections": {
+		"general": "일반",
 		"providers": "공급자",
 		"autoApprove": "자동 승인",
 		"browser": "컴퓨터 접근",
@@ -32,6 +33,15 @@
 		"experimental": "실험적",
 		"language": "언어",
 		"about": "Roo Code 정보"
+	},
+	"general": {
+		"title": "일반 설정",
+		"description": "Roo Code의 동작에 영향을 주는 전역 옵션을 구성합니다",
+		"codebaseIndexing": {
+			"label": "코드베이스 인덱싱 활성화",
+			"description": "활성화하면 Roo가 더 나은 의미론적 검색과 컨텍스트 이해를 위해 코드베이스를 인덱싱할 수 있습니다. 이를 통해 Roo가 관련 코드를 찾고 더 나은 제안을 제공하는 능력이 향상됩니다.",
+			"tooltip": "코드베이스 인덱싱을 통해 Roo가 프로젝트를 더 잘 검색하고 이해할 수 있습니다"
+		}
 	},
 	"prompts": {
 		"description": "프롬프트 향상, 코드 설명, 문제 해결과 같은 빠른 작업에 사용되는 지원 프롬프트를 구성합니다. 이러한 프롬프트는 Roo가 일반적인 개발 작업에 대해 더 나은 지원을 제공하는 데 도움이 됩니다."

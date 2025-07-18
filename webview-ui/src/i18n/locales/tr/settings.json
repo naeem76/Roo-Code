@@ -21,6 +21,7 @@
 		"discardButton": "Değişiklikleri At"
 	},
 	"sections": {
+		"general": "Genel",
 		"providers": "Sağlayıcılar",
 		"autoApprove": "Oto-Onay",
 		"browser": "Bilgisayar Erişimi",
@@ -32,6 +33,15 @@
 		"experimental": "Deneysel",
 		"language": "Dil",
 		"about": "Roo Code Hakkında"
+	},
+	"general": {
+		"title": "Genel ayarlar",
+		"description": "Roo Code'un davranışını etkileyen global seçenekleri yapılandırın",
+		"codebaseIndexing": {
+			"label": "Kod tabanı indekslemeyi etkinleştir",
+			"description": "Etkinleştirildiğinde, Roo daha iyi semantik arama ve bağlam anlayışı için kod tabanınızı indeksleyebilir. Bu, Roo'nun ilgili kodu bulma ve daha iyi öneriler sağlama yeteneğini geliştirir.",
+			"tooltip": "Kod tabanı indeksleme, Roo'nun projenizi daha iyi aramasını ve anlamasını sağlar"
+		}
 	},
 	"prompts": {
 		"description": "Prompt geliştirme, kod açıklama ve sorun çözme gibi hızlı eylemler için kullanılan destek promptlarını yapılandırın. Bu promptlar, Roo'nun yaygın geliştirme görevleri için daha iyi destek sağlamasına yardımcı olur."

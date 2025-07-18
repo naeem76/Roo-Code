@@ -21,6 +21,7 @@
 		"discardButton": "Ignorer les modifications"
 	},
 	"sections": {
+		"general": "Général",
 		"providers": "Fournisseurs",
 		"autoApprove": "Auto-approbation",
 		"browser": "Accès ordinateur",
@@ -32,6 +33,15 @@
 		"experimental": "Expérimental",
 		"language": "Langue",
 		"about": "À propos de Roo Code"
+	},
+	"general": {
+		"description": "Configurer les paramètres généraux de l'application et les préférences.",
+		"codebaseIndexing": {
+			"label": "Indexation de la base de code",
+			"enableLabel": "Activer l'indexation de la base de code",
+			"enableDescription": "Activer l'indexation du code pour une recherche et une compréhension du contexte améliorées",
+			"description": "Lorsque cette option est activée, Roo peut indexer votre base de code pour fournir de meilleures capacités de recherche et de compréhension du contexte."
+		}
 	},
 	"prompts": {
 		"description": "Configurez les invites de support utilisées pour les actions rapides comme l'amélioration des invites, l'explication du code et la résolution des problèmes. Ces invites aident Roo à fournir une meilleure assistance pour les tâches de développement courantes."

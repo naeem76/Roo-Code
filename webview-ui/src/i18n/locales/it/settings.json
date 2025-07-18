@@ -21,6 +21,7 @@
 		"discardButton": "Scarta modifiche"
 	},
 	"sections": {
+		"general": "Generale",
 		"providers": "Fornitori",
 		"autoApprove": "Auto-approvazione",
 		"browser": "Accesso computer",
@@ -32,6 +33,15 @@
 		"experimental": "Sperimentale",
 		"language": "Lingua",
 		"about": "Informazioni su Roo Code"
+	},
+	"general": {
+		"title": "Impostazioni generali",
+		"description": "Configura le opzioni globali che influenzano il comportamento di Roo Code",
+		"codebaseIndexing": {
+			"label": "Abilita indicizzazione della base di codice",
+			"description": "Quando abilitato, Roo può indicizzare la tua base di codice per una ricerca semantica migliorata e comprensione del contesto. Questo migliora la capacità di Roo di trovare codice rilevante e fornire suggerimenti migliori.",
+			"tooltip": "L'indicizzazione della base di codice consente a Roo di cercare e comprendere meglio il tuo progetto"
+		}
 	},
 	"prompts": {
 		"description": "Configura i prompt di supporto utilizzati per azioni rapide come il miglioramento dei prompt, la spiegazione del codice e la risoluzione dei problemi. Questi prompt aiutano Roo a fornire una migliore assistenza per le attività di sviluppo comuni."

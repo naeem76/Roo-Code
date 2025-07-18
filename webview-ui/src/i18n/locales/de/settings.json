@@ -21,6 +21,7 @@
 		"discardButton": "Änderungen verwerfen"
 	},
 	"sections": {
+		"general": "Allgemein",
 		"providers": "Anbieter",
 		"autoApprove": "Auto-Genehmigung",
 		"browser": "Computerzugriff",
@@ -32,6 +33,15 @@
 		"experimental": "Experimentell",
 		"language": "Sprache",
 		"about": "Über Roo Code"
+	},
+	"general": {
+		"description": "Allgemeine Anwendungseinstellungen und Präferenzen konfigurieren.",
+		"codebaseIndexing": {
+			"label": "Codebase-Indexierung",
+			"enableLabel": "Codebase-Indexierung aktivieren",
+			"enableDescription": "Aktiviere die Code-Indizierung für eine verbesserte Suche und ein besseres Kontextverständnis",
+			"description": "Wenn aktiviert, kann Roo Ihre Codebase indexieren, um bessere Such- und Kontextverständnisfähigkeiten zu bieten."
+		}
 	},
 	"prompts": {
 		"description": "Konfiguriere Support-Prompts, die für schnelle Aktionen wie das Verbessern von Prompts, das Erklären von Code und das Beheben von Problemen verwendet werden. Diese Prompts helfen Roo dabei, bessere Unterstützung für häufige Entwicklungsaufgaben zu bieten."

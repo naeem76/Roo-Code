@@ -21,6 +21,7 @@
 		"discardButton": "Descartar alterações"
 	},
 	"sections": {
+		"general": "Geral",
 		"providers": "Provedores",
 		"autoApprove": "Aprovação",
 		"browser": "Navegador",
@@ -32,6 +33,15 @@
 		"experimental": "Experimental",
 		"language": "Idioma",
 		"about": "Sobre"
+	},
+	"general": {
+		"title": "Configurações gerais",
+		"description": "Configure opções globais que afetam o comportamento do Roo Code",
+		"codebaseIndexing": {
+			"label": "Ativar indexação da base de código",
+			"description": "Quando ativado, o Roo pode indexar sua base de código para pesquisa semântica aprimorada e compreensão de contexto. Isso melhora a capacidade do Roo de encontrar código relevante e fornecer melhores sugestões.",
+			"tooltip": "A indexação da base de código permite ao Roo pesquisar e compreender melhor seu projeto"
+		}
 	},
 	"prompts": {
 		"description": "Configure prompts de suporte usados para ações rápidas como melhorar prompts, explicar código e corrigir problemas. Esses prompts ajudam o Roo a fornecer melhor assistência para tarefas comuns de desenvolvimento."
