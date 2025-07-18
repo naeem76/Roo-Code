@@ -9,6 +9,7 @@ import {
 	OPEN_ROUTER_COMPUTER_USE_MODELS,
 	OPEN_ROUTER_REASONING_BUDGET_MODELS,
 	OPEN_ROUTER_REQUIRED_REASONING_BUDGET_MODELS,
+	OPEN_ROUTER_IMAGE_SUPPORT_MODELS,
 } from "@roo-code/types"
 
 import { getOpenRouterModelEndpoints, getOpenRouterModels } from "../openrouter"
@@ -147,6 +148,15 @@ describe("OpenRouter API", () => {
 					.map(([id, _]) => id)
 					.sort(),
 			).toEqual(expectedRequiredReasoningBudgetModels)
+
+			// Test image support for hardcoded models
+			expect(
+				Object.entries(models)
+					.filter(([_, model]) => model.supportsImages)
+					.map(([id, _]) => id)
+					.filter((id) => OPEN_ROUTER_IMAGE_SUPPORT_MODELS.has(id))
+					.sort(),
+			).toEqual(Array.from(OPEN_ROUTER_IMAGE_SUPPORT_MODELS).sort())
 
 			expect(models["anthropic/claude-3.7-sonnet"]).toEqual({
 				maxTokens: 8192,

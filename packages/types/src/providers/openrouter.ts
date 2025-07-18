@@ -88,3 +88,8 @@ export const OPEN_ROUTER_REASONING_BUDGET_MODELS = new Set([
 	"anthropic/claude-3.7-sonnet:thinking",
 	"google/gemini-2.5-flash-preview-05-20:thinking",
 ])
+
+// Models that support image input but may not be correctly reported by OpenRouter API
+export const OPEN_ROUTER_IMAGE_SUPPORT_MODELS = new Set([
+	"moonshotai/kimi-k2:free",
+])

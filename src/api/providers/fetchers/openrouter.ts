@@ -7,6 +7,7 @@ import {
 	OPEN_ROUTER_COMPUTER_USE_MODELS,
 	OPEN_ROUTER_REASONING_BUDGET_MODELS,
 	OPEN_ROUTER_REQUIRED_REASONING_BUDGET_MODELS,
+	OPEN_ROUTER_IMAGE_SUPPORT_MODELS,
 	anthropicModels,
 } from "@roo-code/types"
 
@@ -193,7 +194,7 @@ export const parseOpenRouterModel = ({
 	const modelInfo: ModelInfo = {
 		maxTokens: maxTokens || Math.ceil(model.context_length * 0.2),
 		contextWindow: model.context_length,
-		supportsImages: modality?.includes("image") ?? false,
+		supportsImages: modality?.includes("image") ?? OPEN_ROUTER_IMAGE_SUPPORT_MODELS.has(id) ?? false,
 		supportsPromptCache,
 		inputPrice: parseApiPrice(model.pricing?.prompt),
 		outputPrice: parseApiPrice(model.pricing?.completion),
