@@ -802,8 +802,9 @@ export class ClineProvider
 	/**
 	 * Handle switching to a new mode, including updating the associated API configuration
 	 * @param newMode The mode to switch to
+	 * @param setAsDefault Whether to set this mode as the global default for new windows
 	 */
-	public async handleModeSwitch(newMode: Mode) {
+	public async handleModeSwitch(newMode: Mode, setAsDefault: boolean = false) {
 		const cline = this.getCurrentCline()
 
 		if (cline) {
@@ -813,6 +814,11 @@ export class ClineProvider
 
 		// Store mode in instance-specific storage to prevent cross-window interference
 		this.instanceMode = newMode
+
+		// If user wants to set this as the default mode, update global state
+		if (setAsDefault) {
+			await this.setAsDefaultMode(newMode)
+		}
 
 		// Load the saved API config for the new mode if it exists
 		const savedConfigId = await this.providerSettingsManager.getModeConfigId(newMode)
@@ -842,6 +848,14 @@ export class ClineProvider
 		}
 
 		await this.postStateToWebview()
+	}
+
+	/**
+	 * Set a mode as the global default for new windows
+	 * @param mode The mode to set as default
+	 */
+	public async setAsDefaultMode(mode: Mode) {
+		await this.updateGlobalState("mode", mode)
 	}
 
 	// Provider Profile Management
@@ -1416,6 +1430,7 @@ export class ClineProvider
 			profileThresholds,
 			alwaysAllowFollowupQuestions,
 			followupAutoApproveTimeoutMs,
+			modeApiConfigs,
 		} = await this.getState()
 
 		const telemetryKey = process.env.POSTHOG_API_KEY
@@ -1529,6 +1544,7 @@ export class ClineProvider
 			hasOpenedModeSelector: this.getGlobalState("hasOpenedModeSelector") ?? false,
 			alwaysAllowFollowupQuestions: alwaysAllowFollowupQuestions ?? false,
 			followupAutoApproveTimeoutMs: followupAutoApproveTimeoutMs ?? 60000,
+			modeApiConfigs: modeApiConfigs ?? {},
 		}
 	}
 

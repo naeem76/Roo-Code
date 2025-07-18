@@ -1133,7 +1133,13 @@ export const webviewMessageHandler = async (
 			}
 			break
 		case "mode":
-			await provider.handleModeSwitch(message.text as Mode)
+			await provider.handleModeSwitch(message.text as Mode, message.bool)
+			break
+		case "setDefaultMode":
+			if (message.text) {
+				await provider.setAsDefaultMode(message.text as Mode)
+				await provider.postStateToWebview()
+			}
 			break
 		case "updateSupportPrompt":
 			try {

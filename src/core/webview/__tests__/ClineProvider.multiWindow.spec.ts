@@ -240,8 +240,8 @@ describe("ClineProvider - Multi-Window Mode Isolation", () => {
 		expect(initialState1.mode).toBe("code")
 		expect(initialState2.mode).toBe("code")
 
-		// Switch mode in provider1 to architect
-		await provider1.handleModeSwitch("architect")
+		// Switch mode in provider1 to architect (without setting as default)
+		await provider1.handleModeSwitch("architect", false)
 
 		// Check states after mode switch
 		const afterSwitchState1 = await provider1.getState()
@@ -257,11 +257,11 @@ describe("ClineProvider - Multi-Window Mode Isolation", () => {
 		await provider1.resolveWebviewView(mockWebviewView1)
 		await provider2.resolveWebviewView(mockWebviewView2)
 
-		// Switch provider1 to architect mode
-		await provider1.handleModeSwitch("architect")
+		// Switch provider1 to architect mode (without setting as default)
+		await provider1.handleModeSwitch("architect", false)
 
-		// Switch provider2 to ask mode
-		await provider2.handleModeSwitch("ask")
+		// Switch provider2 to ask mode (without setting as default)
+		await provider2.handleModeSwitch("ask", false)
 
 		// Check final states
 		const finalState1 = await provider1.getState()
@@ -273,8 +273,8 @@ describe("ClineProvider - Multi-Window Mode Isolation", () => {
 	})
 
 	test("new provider instances initialize with global mode, not instance-specific modes", async () => {
-		// Switch provider1 to architect mode
-		await provider1.handleModeSwitch("architect")
+		// Switch provider1 to architect mode (without setting as default)
+		await provider1.handleModeSwitch("architect", false)
 
 		// Create a new provider instance (simulating opening a new window)
 		const contextProxy3 = new ContextProxy(mockContext1)
@@ -301,9 +301,9 @@ describe("ClineProvider - Multi-Window Mode Isolation", () => {
 		await provider1.resolveWebviewView(mockWebviewView1)
 		await provider2.resolveWebviewView(mockWebviewView2)
 
-		// Switch modes in both providers
-		await provider1.handleModeSwitch("architect")
-		await provider2.handleModeSwitch("ask")
+		// Switch modes in both providers (without setting as default)
+		await provider1.handleModeSwitch("architect", false)
+		await provider2.handleModeSwitch("ask", false)
 
 		// Get webview states
 		const webviewState1 = await provider1.getStateToPostToWebview()
@@ -348,8 +348,8 @@ describe("ClineProvider - Multi-Window Mode Isolation", () => {
 	test("instance mode persists across state retrievals", async () => {
 		await provider1.resolveWebviewView(mockWebviewView1)
 
-		// Switch to architect mode
-		await provider1.handleModeSwitch("architect")
+		// Switch to architect mode (without setting as default)
+		await provider1.handleModeSwitch("architect", false)
 
 		// Get state multiple times
 		const state1 = await provider1.getState()
@@ -369,8 +369,8 @@ describe("ClineProvider - Multi-Window Mode Isolation", () => {
 		const initialGlobalMode = mockContext1.globalState.get("mode")
 		expect(initialGlobalMode).toBe("code")
 
-		// Switch instance mode
-		await provider1.handleModeSwitch("architect")
+		// Switch instance mode (without setting as default)
+		await provider1.handleModeSwitch("architect", false)
 
 		// Global mode should remain unchanged
 		const finalGlobalMode = mockContext1.globalState.get("mode")
@@ -412,5 +412,84 @@ describe("ClineProvider - Multi-Window Mode Isolation", () => {
 
 		// Should fallback to default mode
 		expect(state.mode).toBe(defaultModeSlug)
+	})
+
+	test("setting mode as default updates global state", async () => {
+		await provider1.resolveWebviewView(mockWebviewView1)
+
+		// Get initial global mode
+		const initialGlobalMode = mockContext1.globalState.get("mode")
+		expect(initialGlobalMode).toBe("code")
+
+		// Switch mode and set as default
+		await provider1.handleModeSwitch("architect", true)
+
+		// Global mode should be updated
+		const finalGlobalMode = mockContext1.globalState.get("mode")
+		expect(finalGlobalMode).toBe("architect")
+
+		// Instance should also have architect mode
+		const instanceState = await provider1.getState()
+		expect(instanceState.mode).toBe("architect")
+	})
+
+	test("new windows initialize with updated default mode", async () => {
+		await provider1.resolveWebviewView(mockWebviewView1)
+
+		// Switch mode and set as default in provider1
+		await provider1.handleModeSwitch("architect", true)
+
+		// Create a new provider instance (simulating opening a new window)
+		const contextProxy3 = new ContextProxy(mockContext1)
+		await contextProxy3.initialize()
+		const provider3 = new ClineProvider(mockContext1, mockOutputChannel, "sidebar", contextProxy3)
+		provider3.getMcpHub = vi.fn().mockReturnValue({
+			listTools: vi.fn().mockResolvedValue([]),
+			callTool: vi.fn().mockResolvedValue({ content: [] }),
+			listResources: vi.fn().mockResolvedValue([]),
+			readResource: vi.fn().mockResolvedValue({ contents: [] }),
+			getAllServers: vi.fn().mockReturnValue([]),
+		})
+
+		// New provider should initialize with the new default mode (architect)
+		const newProviderState = await provider3.getState()
+		expect(newProviderState.mode).toBe("architect")
+	})
+
+	test("setDefaultMode message handler updates global state", async () => {
+		await provider1.resolveWebviewView(mockWebviewView1)
+
+		// Get initial global mode
+		const initialGlobalMode = mockContext1.globalState.get("mode")
+		expect(initialGlobalMode).toBe("code")
+
+		// Get message handler
+		const messageHandler1 = (mockWebviewView1.webview.onDidReceiveMessage as any).mock.calls[0][0]
+
+		// Send setDefaultMode message
+		await messageHandler1({ type: "setDefaultMode", mode: "architect" })
+
+		// Global mode should be updated
+		const finalGlobalMode = mockContext1.globalState.get("mode")
+		expect(finalGlobalMode).toBe("architect")
+	})
+
+	test("mode switch without setAsDefault preserves global state", async () => {
+		await provider1.resolveWebviewView(mockWebviewView1)
+
+		// Get initial global mode
+		const initialGlobalMode = mockContext1.globalState.get("mode")
+		expect(initialGlobalMode).toBe("code")
+
+		// Switch mode without setting as default
+		await provider1.handleModeSwitch("architect", false)
+
+		// Global mode should remain unchanged
+		const finalGlobalMode = mockContext1.globalState.get("mode")
+		expect(finalGlobalMode).toBe("code")
+
+		// But instance should have architect mode
+		const instanceState = await provider1.getState()
+		expect(instanceState.mode).toBe("architect")
 	})
 })

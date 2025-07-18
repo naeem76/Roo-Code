@@ -128,6 +128,7 @@ export interface WebviewMessage {
 		| "requestDelaySeconds"
 		| "setApiConfigPassword"
 		| "mode"
+		| "setDefaultMode"
 		| "updatePrompt"
 		| "updateSupportPrompt"
 		| "getSystemPrompt"
