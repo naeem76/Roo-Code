@@ -379,7 +379,7 @@ export async function presentAssistantMessage(cline: Task) {
 					// Handle repetition similar to mistake_limit_reached pattern.
 					const { response, text, images } = await cline.ask(
 						repetitionCheck.askUser.messageKey as ClineAsk,
-						repetitionCheck.askUser.messageDetail.replace("{toolName}", block.name),
+						repetitionCheck.askUser.messageDetail,
 					)
 
 					if (response === "messageResponse") {
