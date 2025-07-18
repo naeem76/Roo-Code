@@ -28,3 +28,6 @@ export const BATCH_PROCESSING_CONCURRENCY = 10
 
 /**Gemini Embedder */
 export const GEMINI_MAX_ITEM_TOKENS = 2048
+
+/**Mistral Embedder */
+export const MISTRAL_MAX_ITEM_TOKENS = 8192
