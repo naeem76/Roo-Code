@@ -2,6 +2,7 @@ import path from "path"
 import fs from "fs/promises"
 
 import { TelemetryService } from "@roo-code/telemetry"
+import { DEFAULT_WRITE_DELAY_MS } from "../../shared/constants"
 
 import { ClineSayTool } from "../../shared/ExtensionMessage"
 import { getReadablePath } from "../../utils/path"
@@ -556,8 +557,8 @@ ${errorDetails ? `\nTechnical details:\n${errorDetails}\n` : ""}
 				const provider = cline.providerRef.deref()
 				const state = await provider?.getState()
 				const diagnosticsEnabled = state?.diagnosticsEnabled ?? true
-				const diagnosticsDelayMs = state?.diagnosticsDelayMs ?? 2000
-				await cline.diffViewProvider.saveChanges(diagnosticsEnabled, diagnosticsDelayMs)
+				const writeDelayMs = state?.writeDelayMs ?? DEFAULT_WRITE_DELAY_MS
+				await cline.diffViewProvider.saveChanges(diagnosticsEnabled, writeDelayMs)
 
 				// Track file edit operation
 				await cline.fileContextTracker.trackFileContext(relPath, "roo_edited" as RecordSource)

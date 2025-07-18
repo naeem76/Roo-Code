@@ -37,7 +37,7 @@ export const globalSettingsSchema = z.object({
 	alwaysAllowWrite: z.boolean().optional(),
 	alwaysAllowWriteOutsideWorkspace: z.boolean().optional(),
 	alwaysAllowWriteProtected: z.boolean().optional(),
-	writeDelayMs: z.number().optional(),
+	writeDelayMs: z.number().min(0).optional(),
 	alwaysAllowBrowser: z.boolean().optional(),
 	alwaysApproveResubmit: z.boolean().optional(),
 	requestDelaySeconds: z.number().optional(),
@@ -86,7 +86,6 @@ export const globalSettingsSchema = z.object({
 	terminalZdotdir: z.boolean().optional(),
 	terminalCompressProgressBar: z.boolean().optional(),
 
-	diagnosticsDelayMs: z.number().optional(),
 	diagnosticsEnabled: z.boolean().optional(),
 
 	rateLimitSeconds: z.number().optional(),
@@ -227,7 +226,6 @@ export const EVALS_SETTINGS: RooCodeSettings = {
 	terminalCompressProgressBar: true,
 	terminalShellIntegrationDisabled: true,
 
-	diagnosticsDelayMs: 2000,
 	diagnosticsEnabled: true,
 
 	diffEnabled: true,

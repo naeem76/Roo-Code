@@ -10,6 +10,7 @@ import { ClineSayTool } from "../../shared/ExtensionMessage"
 import { RecordSource } from "../context-tracking/FileContextTrackerTypes"
 import { fileExistsAtPath } from "../../utils/fs"
 import { insertGroups } from "../diff/insert-groups"
+import { DEFAULT_WRITE_DELAY_MS } from "../../shared/constants"
 
 export async function insertContentTool(
 	cline: Task,
@@ -158,8 +159,8 @@ export async function insertContentTool(
 		const provider = cline.providerRef.deref()
 		const state = await provider?.getState()
 		const diagnosticsEnabled = state?.diagnosticsEnabled ?? true
-		const diagnosticsDelayMs = state?.diagnosticsDelayMs ?? 2000
-		await cline.diffViewProvider.saveChanges(diagnosticsEnabled, diagnosticsDelayMs)
+		const writeDelayMs = state?.writeDelayMs ?? DEFAULT_WRITE_DELAY_MS
+		await cline.diffViewProvider.saveChanges(diagnosticsEnabled, writeDelayMs)
 
 		// Track file edit operation
 		if (relPath) {

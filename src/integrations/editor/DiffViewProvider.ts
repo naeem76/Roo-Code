@@ -12,6 +12,7 @@ import { formatResponse } from "../../core/prompts/responses"
 import { diagnosticsToProblemsString, getNewDiagnostics } from "../diagnostics"
 import { ClineSayTool } from "../../shared/ExtensionMessage"
 import { Task } from "../../core/task/Task"
+import { DEFAULT_WRITE_DELAY_MS } from "../../shared/constants"
 
 import { DecorationController } from "./DecorationController"
 
@@ -180,7 +181,7 @@ export class DiffViewProvider {
 		}
 	}
 
-	async saveChanges(diagnosticsEnabled: boolean = true, diagnosticsDelayMs: number = 2000): Promise<{
+	async saveChanges(diagnosticsEnabled: boolean = true, writeDelayMs: number = DEFAULT_WRITE_DELAY_MS): Promise<{
 		newProblemsMessage: string | undefined
 		userEdits: string | undefined
 		finalContent: string | undefined
@@ -221,7 +222,15 @@ export class DiffViewProvider {
 		if (diagnosticsEnabled) {
 			// Add configurable delay to allow linters time to process and clean up issues
 			// like unused imports (especially important for Go and other languages)
-			await delay(diagnosticsDelayMs)
+			// Ensure delay is non-negative
+			const safeDelayMs = Math.max(0, writeDelayMs)
+			
+			try {
+				await delay(safeDelayMs)
+			} catch (error) {
+				// Log error but continue - delay failure shouldn't break the save operation
+				console.warn(`Failed to apply write delay: ${error}`)
+			}
 			
 			const postDiagnostics = vscode.languages.getDiagnostics()
 

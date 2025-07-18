@@ -136,7 +136,7 @@ describe("writeToFileTool", () => {
 			deref: vi.fn().mockReturnValue({
 				getState: vi.fn().mockResolvedValue({
 					diagnosticsEnabled: true,
-					diagnosticsDelayMs: 2000,
+					writeDelayMs: 1000,
 				}),
 			}),
 		}

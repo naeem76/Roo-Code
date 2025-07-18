@@ -13,6 +13,7 @@ import { getReadablePath } from "../../utils/path"
 import { isPathOutsideWorkspace } from "../../utils/pathUtils"
 import { detectCodeOmission } from "../../integrations/editor/detect-omission"
 import { unescapeHtmlEntities } from "../../utils/text-normalization"
+import { DEFAULT_WRITE_DELAY_MS } from "../../shared/constants"
 
 export async function writeToFileTool(
 	cline: Task,
@@ -216,8 +217,8 @@ export async function writeToFileTool(
 			const provider = cline.providerRef.deref()
 			const state = await provider?.getState()
 			const diagnosticsEnabled = state?.diagnosticsEnabled ?? true
-			const diagnosticsDelayMs = state?.diagnosticsDelayMs ?? 2000
-			await cline.diffViewProvider.saveChanges(diagnosticsEnabled, diagnosticsDelayMs)
+			const writeDelayMs = state?.writeDelayMs ?? DEFAULT_WRITE_DELAY_MS
+			await cline.diffViewProvider.saveChanges(diagnosticsEnabled, writeDelayMs)
 
 			// Track file edit operation
 			if (relPath) {

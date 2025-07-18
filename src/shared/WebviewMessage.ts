@@ -107,7 +107,6 @@ export interface WebviewMessage {
 		| "updateMcpTimeout"
 		| "fuzzyMatchThreshold"
 		| "writeDelayMs"
-		| "diagnosticsDelayMs"
 		| "diagnosticsEnabled"
 		| "enhancePrompt"
 		| "enhancedPrompt"
