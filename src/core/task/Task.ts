@@ -76,6 +76,7 @@ import { truncateConversationIfNeeded } from "../sliding-window"
 import { ClineProvider } from "../webview/ClineProvider"
 import { MultiSearchReplaceDiffStrategy } from "../diff/strategies/multi-search-replace"
 import { MultiFileSearchReplaceDiffStrategy } from "../diff/strategies/multi-file-search-replace"
+import { ApplyModelDiffStrategy } from "../diff/strategies/apply-model-diff-strategy"
 import { readApiMessages, saveApiMessages, readTaskMessages, saveTaskMessages, taskMetadata } from "../task-persistence"
 import { getEnvironmentDetails } from "../environment/getEnvironmentDetails"
 import {
@@ -280,13 +281,18 @@ export class Task extends EventEmitter<ClineEvents> {
 
 			// Check experiment asynchronously and update strategy if needed
 			provider.getState().then((state) => {
-				const isMultiFileApplyDiffEnabled = experiments.isEnabled(
-					state.experiments ?? {},
-					EXPERIMENT_IDS.MULTI_FILE_APPLY_DIFF,
-				)
+				// Check if apply model is enabled first
+				if (apiConfiguration.applyModelEnabled) {
+					this.diffStrategy = new ApplyModelDiffStrategy(this, this.fuzzyMatchThreshold)
+				} else {
+					const isMultiFileApplyDiffEnabled = experiments.isEnabled(
+						state.experiments ?? {},
+						EXPERIMENT_IDS.MULTI_FILE_APPLY_DIFF,
+					)
 
-				if (isMultiFileApplyDiffEnabled) {
-					this.diffStrategy = new MultiFileSearchReplaceDiffStrategy(this.fuzzyMatchThreshold)
+					if (isMultiFileApplyDiffEnabled) {
+						this.diffStrategy = new MultiFileSearchReplaceDiffStrategy(this.fuzzyMatchThreshold)
+					}
 				}
 			})
 		}

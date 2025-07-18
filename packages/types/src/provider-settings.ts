@@ -71,6 +71,14 @@ const baseProviderSettingsSchema = z.object({
 	reasoningEffort: reasoningEffortsSchema.optional(),
 	modelMaxTokens: z.number().optional(),
 	modelMaxThinkingTokens: z.number().optional(),
+
+	// Apply model configuration for separate diff application
+	applyModelEnabled: z.boolean().optional(),
+	applyModelProvider: providerNamesSchema.optional(),
+	applyModelId: z.string().optional(),
+	applyModelApiKey: z.string().optional(),
+	applyModelBaseUrl: z.string().optional(),
+	applyModelTemperature: z.number().nullish(),
 })
 
 // Several of the providers share common model config properties.
