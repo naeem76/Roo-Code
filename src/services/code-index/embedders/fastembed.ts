@@ -41,6 +41,17 @@ export class FastEmbedEmbedder implements IEmbedder {
 	 * @returns Promise resolving to embedding response
 	 */
 	async createEmbeddings(texts: string[], model?: string): Promise<EmbeddingResponse> {
+		// Handle empty input
+		if (texts.length === 0) {
+			return {
+				embeddings: [],
+				usage: {
+					promptTokens: 0,
+					totalTokens: 0,
+				},
+			}
+		}
+
 		const modelToUse = model || this.defaultModel
 
 		// Get the FastEmbed model instance

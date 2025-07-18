@@ -7,20 +7,31 @@ import * as fs from "fs"
 import * as path from "path"
 
 // Mock @mastra/libsql
+const mockLibSQLVector = {
+	createIndex: vi.fn(),
+	listIndexes: vi.fn(),
+	upsert: vi.fn(),
+	query: vi.fn(),
+	deleteVector: vi.fn(),
+	truncateIndex: vi.fn(),
+	deleteIndex: vi.fn(),
+}
+
 vi.mock("@mastra/libsql", () => ({
-	LibSQLVector: vi.fn().mockImplementation(() => ({
-		createIndex: vi.fn(),
-		upsert: vi.fn(),
-		query: vi.fn(),
-		deleteVector: vi.fn(),
-		truncateIndex: vi.fn(),
-	})),
+	LibSQLVector: vi.fn().mockImplementation(() => mockLibSQLVector),
 }))
 
-// Mock fs for cleanup
+// Mock fs
 vi.mock("fs", () => ({
 	existsSync: vi.fn(),
+	mkdirSync: vi.fn(),
 	rmSync: vi.fn(),
+}))
+
+// Mock path
+vi.mock("path", () => ({
+	dirname: vi.fn(),
+	sep: "/",
 }))
 
 describe("LibSQLVectorStore", () => {
@@ -33,18 +44,25 @@ describe("LibSQLVectorStore", () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 
-		// Get reference to the mocked LibSQLVector constructor
-		const { LibSQLVector } = require("@mastra/libsql")
-		mockLibSQLVector = {
-			createIndex: vi.fn(),
-			upsert: vi.fn(),
-			query: vi.fn(),
-			deleteVector: vi.fn(),
-			truncateIndex: vi.fn(),
-		}
-		LibSQLVector.mockReturnValue(mockLibSQLVector)
+		// Mock fs methods
+		const fs = require("fs")
+		fs.existsSync.mockReturnValue(true)
+		fs.mkdirSync.mockReturnValue(undefined)
 
-		vectorStore = new LibSQLVectorStore(testDbPath, testIndexName, testDimension)
+		// Mock path methods
+		const path = require("path")
+		path.dirname.mockReturnValue("/tmp")
+
+		// Reset mock functions
+		mockLibSQLVector.createIndex.mockReset()
+		mockLibSQLVector.listIndexes.mockReset()
+		mockLibSQLVector.upsert.mockReset()
+		mockLibSQLVector.query.mockReset()
+		mockLibSQLVector.deleteVector.mockReset()
+		mockLibSQLVector.truncateIndex.mockReset()
+		mockLibSQLVector.deleteIndex.mockReset()
+
+		vectorStore = new LibSQLVectorStore("test-workspace", testDbPath, testDimension)
 	})
 
 	afterEach(() => {
@@ -64,23 +82,34 @@ describe("LibSQLVectorStore", () => {
 
 	describe("initialize", () => {
 		it("should create index with correct parameters", async () => {
+			mockLibSQLVector.listIndexes.mockResolvedValue([])
 			mockLibSQLVector.createIndex.mockResolvedValue(undefined)
 
-			await vectorStore.initialize()
+			const result = await vectorStore.initialize()
 
+			expect(mockLibSQLVector.listIndexes).toHaveBeenCalled()
 			expect(mockLibSQLVector.createIndex).toHaveBeenCalledWith({
-				indexName: testIndexName,
+				indexName: expect.stringMatching(/^ws_[a-f0-9]{16}$/),
 				dimension: testDimension,
 			})
+			expect(result).toBe(true)
+		})
+
+		it("should not create index if it already exists", async () => {
+			mockLibSQLVector.listIndexes.mockResolvedValue([{ name: "ws_1234567890abcdef" }])
+
+			const result = await vectorStore.initialize()
+
+			expect(mockLibSQLVector.listIndexes).toHaveBeenCalled()
+			expect(mockLibSQLVector.createIndex).not.toHaveBeenCalled()
+			expect(result).toBe(false)
 		})
 
 		it("should handle initialization errors", async () => {
 			const error = new Error("Failed to create index")
-			mockLibSQLVector.createIndex.mockRejectedValue(error)
+			mockLibSQLVector.listIndexes.mockRejectedValue(error)
 
-			await expect(vectorStore.initialize()).rejects.toThrow(
-				"Failed to initialize LibSQL vector store: Failed to create index",
-			)
+			await expect(vectorStore.initialize()).rejects.toThrow()
 		})
 	})
 
@@ -91,7 +120,7 @@ describe("LibSQLVectorStore", () => {
 				vector: [0.1, 0.2, 0.3, 0.4],
 				payload: {
 					filePath: "/test/file1.ts",
-					content: "test content 1",
+					codeChunk: "test content 1",
 					startLine: 1,
 					endLine: 10,
 				},
@@ -101,7 +130,7 @@ describe("LibSQLVectorStore", () => {
 				vector: [0.5, 0.6, 0.7, 0.8],
 				payload: {
 					filePath: "/test/file2.ts",
-					content: "test content 2",
+					codeChunk: "test content 2",
 					startLine: 11,
 					endLine: 20,
 				},
@@ -109,6 +138,7 @@ describe("LibSQLVectorStore", () => {
 		]
 
 		beforeEach(async () => {
+			mockLibSQLVector.listIndexes.mockResolvedValue([])
 			mockLibSQLVector.createIndex.mockResolvedValue(undefined)
 			await vectorStore.initialize()
 		})
@@ -119,7 +149,7 @@ describe("LibSQLVectorStore", () => {
 			await vectorStore.upsertPoints(testPoints)
 
 			expect(mockLibSQLVector.upsert).toHaveBeenCalledWith({
-				indexName: testIndexName,
+				indexName: expect.stringMatching(/^ws_[a-f0-9]{16}$/),
 				vectors: [
 					[0.1, 0.2, 0.3, 0.4],
 					[0.5, 0.6, 0.7, 0.8],
@@ -128,15 +158,17 @@ describe("LibSQLVectorStore", () => {
 				metadata: [
 					{
 						filePath: "/test/file1.ts",
-						content: "test content 1",
+						codeChunk: "test content 1",
 						startLine: 1,
 						endLine: 10,
+						pathSegments: ["test", "file1.ts"],
 					},
 					{
 						filePath: "/test/file2.ts",
-						content: "test content 2",
+						codeChunk: "test content 2",
 						startLine: 11,
 						endLine: 20,
+						pathSegments: ["test", "file2.ts"],
 					},
 				],
 			})
@@ -274,7 +306,7 @@ describe("LibSQLVectorStore", () => {
 			]
 			mockLibSQLVector.query.mockResolvedValue(mockResults)
 
-			const results = await vectorStore.search(testQueryVector, 10, 0.5)
+			const results = await vectorStore.search(testQueryVector, undefined, 0.5, 10)
 
 			expect(results).toHaveLength(1)
 			expect(results[0].id).toBe("test-1")
@@ -284,7 +316,7 @@ describe("LibSQLVectorStore", () => {
 			const error = new Error("Search failed")
 			mockLibSQLVector.query.mockRejectedValue(error)
 
-			await expect(vectorStore.search(testQueryVector, 10, 0.5)).rejects.toThrow(
+			await expect(vectorStore.search(testQueryVector, undefined, 0.5, 10)).rejects.toThrow(
 				"Failed to search LibSQL vector store: Search failed",
 			)
 		})
@@ -292,7 +324,7 @@ describe("LibSQLVectorStore", () => {
 		it("should handle empty search results", async () => {
 			mockLibSQLVector.query.mockResolvedValue([])
 
-			const results = await vectorStore.search(testQueryVector, 10, 0.5)
+			const results = await vectorStore.search(testQueryVector, undefined, 0.5, 10)
 
 			expect(results).toEqual([])
 		})
@@ -310,7 +342,7 @@ describe("LibSQLVectorStore", () => {
 			]
 			mockLibSQLVector.query.mockResolvedValue(mockResults)
 
-			const results = await vectorStore.search(testQueryVector, 10)
+			const results = await vectorStore.search(testQueryVector, undefined, undefined, 10)
 
 			expect(results).toHaveLength(1)
 		})

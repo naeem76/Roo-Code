@@ -58,13 +58,13 @@ describe("FastEmbedEmbedder", () => {
 	let mockSmallDoEmbed: any
 	let mockBaseDoEmbed: any
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		vi.clearAllMocks()
 
 		// Get references to the mocked functions
-		const { fastembed } = require("@mastra/fastembed")
-		mockSmallDoEmbed = fastembed.small.doEmbed
-		mockBaseDoEmbed = fastembed.base.doEmbed
+		const { fastembed } = await import("@mastra/fastembed")
+		mockSmallDoEmbed = vi.mocked(fastembed.small.doEmbed)
+		mockBaseDoEmbed = vi.mocked(fastembed.base.doEmbed)
 	})
 
 	describe("constructor", () => {
@@ -103,6 +103,10 @@ describe("FastEmbedEmbedder", () => {
 			expect(mockSmallDoEmbed).toHaveBeenCalledWith({ values: ["test text"] })
 			expect(result).toEqual({
 				embeddings: mockEmbeddings,
+				usage: {
+					promptTokens: 3,
+					totalTokens: 3,
+				},
 			})
 		})
 
@@ -118,6 +122,10 @@ describe("FastEmbedEmbedder", () => {
 			expect(mockSmallDoEmbed).toHaveBeenCalledWith({ values: ["text 1", "text 2"] })
 			expect(result).toEqual({
 				embeddings: mockEmbeddings,
+				usage: {
+					promptTokens: 4,
+					totalTokens: 4,
+				},
 			})
 		})
 
@@ -131,6 +139,10 @@ describe("FastEmbedEmbedder", () => {
 			expect(mockBaseDoEmbed).toHaveBeenCalledWith({ values: ["test text"] })
 			expect(result).toEqual({
 				embeddings: mockEmbeddings,
+				usage: {
+					promptTokens: 3,
+					totalTokens: 3,
+				},
 			})
 		})
 
@@ -140,6 +152,10 @@ describe("FastEmbedEmbedder", () => {
 			expect(mockSmallDoEmbed).not.toHaveBeenCalled()
 			expect(result).toEqual({
 				embeddings: [],
+				usage: {
+					promptTokens: 0,
+					totalTokens: 0,
+				},
 			})
 		})
 

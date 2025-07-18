@@ -140,7 +140,8 @@ export class CodeIndexServiceFactory {
 
 		if (vectorStoreType === "local") {
 			const localStorePath = config.localVectorStorePath || `${this.workspacePath}/.roo/vector-store`
-			return new LibSQLVectorStore(localStorePath, "codebase_index", vectorSize)
+			const databasePath = `${localStorePath}/codebase_index.db`
+			return new LibSQLVectorStore(this.workspacePath, databasePath, vectorSize)
 		} else {
 			// Default to Qdrant
 			if (!config.qdrantUrl) {
