@@ -71,6 +71,14 @@ describe("insertContentTool", () => {
 			cwd: "/",
 			consecutiveMistakeCount: 0,
 			didEditFile: false,
+			providerRef: {
+				deref: vi.fn().mockReturnValue({
+					getState: vi.fn().mockResolvedValue({
+						diagnosticsEnabled: true,
+						diagnosticsDelayMs: 2000,
+					}),
+				}),
+			},
 			rooIgnoreController: {
 				validateAccess: vi.fn().mockReturnValue(true),
 			},
