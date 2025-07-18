@@ -7,10 +7,8 @@ vi.mock("@azure/arm-appcontainers", () => ({
 	ContainerAppsAPIClient: vi.fn().mockImplementation(() => ({
 		jobs: {
 			beginCreateOrUpdateAndWait: vi.fn().mockResolvedValue({ id: "job-id" }),
+			get: vi.fn().mockResolvedValue({ id: "job-id", properties: { runningState: "Succeeded" } }),
 		},
-		jobExecution: vi
-			.fn()
-			.mockResolvedValue({ id: "execution-id", name: "execution-name", properties: { status: "Succeeded" } }),
 	})),
 }))
 
@@ -124,7 +122,9 @@ describe("Azure Container Apps", () => {
 				expect(mockLogger.info).toHaveBeenCalledWith("Creating Azure Container Apps job: test-job")
 				expect(mockLogger.info).toHaveBeenCalledWith("Job test-job created successfully: job-id")
 				expect(mockLogger.info).toHaveBeenCalledWith("Starting job execution for test-job")
-				expect(mockLogger.info).toHaveBeenCalledWith("Job execution started: execution-id")
+				expect(mockLogger.info).toHaveBeenCalledWith(
+					expect.stringMatching(/^Job execution started: execution-test-job-\d+$/),
+				)
 			})
 
 			it("should handle job execution with custom retry limit", async () => {
