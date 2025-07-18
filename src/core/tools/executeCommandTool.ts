@@ -11,6 +11,7 @@ import { Task } from "../task/Task"
 import { ToolUse, AskApproval, HandleError, PushToolResult, RemoveClosingTag, ToolResponse } from "../../shared/tools"
 import { formatResponse } from "../prompts/responses"
 import { unescapeHtmlEntities } from "../../utils/text-normalization"
+import { arePathsEqual } from "../../utils/path"
 import { ExitCodeDetails, RooTerminalCallbacks, RooTerminalProcess } from "../../integrations/terminal/types"
 import { TerminalRegistry } from "../../integrations/terminal/TerminalRegistry"
 import { Terminal } from "../../integrations/terminal/Terminal"
@@ -269,7 +270,13 @@ export async function executeCommand(
 		let workingDirInfo = ` within working directory '${workingDir.toPosix()}'`
 		const newWorkingDir = terminal.getCurrentWorkingDirectory()
 
-		return [false, `Command executed in terminal ${workingDirInfo}. ${exitStatus}\nOutput:\n${result}`]
+		// Include current working directory information if it has changed
+		let currentDirInfo = ""
+		if (!arePathsEqual(workingDir, newWorkingDir)) {
+			currentDirInfo = `\nCurrent working directory: '${newWorkingDir.toPosix()}'`
+		}
+
+		return [false, `Command executed in terminal ${workingDirInfo}. ${exitStatus}${currentDirInfo}\nOutput:\n${result}`]
 	} else {
 		return [
 			false,

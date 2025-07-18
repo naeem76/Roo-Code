@@ -159,27 +159,30 @@ export class TerminalRegistry {
 		const terminals = this.getAllTerminals()
 		let terminal: RooTerminal | undefined
 
-		// First priority: Find a terminal already assigned to this task with
-		// matching directory.
+		// First priority: Find a terminal already assigned to this task.
 		if (taskId) {
 			terminal = terminals.find((t) => {
 				if (t.busy || t.taskId !== taskId || t.provider !== provider) {
 					return false
 				}
 
-				const terminalCwd = t.getCurrentWorkingDirectory()
-
-				if (!terminalCwd) {
-					return false
+				// If directory is required, check if current working directory matches
+				if (requiredCwd) {
+					const terminalCwd = t.getCurrentWorkingDirectory()
+					if (!terminalCwd) {
+						return false
+					}
+					return arePathsEqual(vscode.Uri.file(cwd).fsPath, terminalCwd)
 				}
 
-				return arePathsEqual(vscode.Uri.file(cwd).fsPath, terminalCwd)
+				// If directory is not required, reuse the task terminal regardless of current directory
+				return true
 			})
 		}
 
 		// Second priority: Find any available terminal with matching directory
 		// that is not assigned to a different task.
-		if (!terminal) {
+		if (!terminal && requiredCwd) {
 			terminal = terminals.find((t) => {
 				if (t.busy || t.provider !== provider) {
 					return false
@@ -200,9 +203,7 @@ export class TerminalRegistry {
 			})
 		}
 
-		// Third priority: Find any non-busy terminal (only if directory is not
-		// required AND no terminals exist with different working directories).
-		// This prevents reusing terminals that have changed their working directory.
+		// Third priority: Find any non-busy terminal (only if directory is not required).
 		if (!terminal && !requiredCwd) {
 			terminal = terminals.find((t) => {
 				if (t.busy || t.provider !== provider) {
@@ -214,14 +215,7 @@ export class TerminalRegistry {
 					return false
 				}
 
-				// Only reuse terminals that are still in the requested working directory
-				// or have no shell integration (fallback to initial CWD)
-				const terminalCwd = t.getCurrentWorkingDirectory()
-				if (!terminalCwd) {
-					return false
-				}
-
-				return arePathsEqual(vscode.Uri.file(cwd).fsPath, terminalCwd)
+				return true
 			})
 		}
 

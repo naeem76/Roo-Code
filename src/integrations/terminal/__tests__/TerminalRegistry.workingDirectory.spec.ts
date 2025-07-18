@@ -44,7 +44,7 @@ describe("TerminalRegistry - Working Directory Tracking", () => {
 	})
 
 	describe("getOrCreateTerminal with changed working directory", () => {
-		it("should reuse terminal when working directory matches current directory", async () => {
+		it("should reuse task terminal regardless of current working directory when requiredCwd is false", async () => {
 			// Create a terminal with initial working directory
 			const terminal1 = await TerminalRegistry.getOrCreateTerminal("/test/path", false, "task1", "vscode")
 
@@ -61,15 +61,15 @@ describe("TerminalRegistry - Working Directory Tracking", () => {
 			// Mark terminal as not busy
 			terminal1.busy = false
 
-			// Request a terminal for the new working directory
-			const terminal2 = await TerminalRegistry.getOrCreateTerminal("/test/path/subdir", false, "task1", "vscode")
+			// Request a terminal for a different working directory but same task
+			const terminal2 = await TerminalRegistry.getOrCreateTerminal("/test/path/other", false, "task1", "vscode")
 
-			// Should reuse the same terminal since its current working directory matches
+			// Should reuse the same terminal since it's the same task and requiredCwd is false
 			expect(terminal2).toBe(terminal1)
 			expect(mockCreateTerminal).toHaveBeenCalledTimes(1) // Only one terminal created
 		})
 
-		it("should create new terminal when no existing terminal matches current working directory", async () => {
+		it("should create new terminal when requiredCwd is true and current working directory doesn't match", async () => {
 			// Create a terminal with initial working directory
 			const terminal1 = await TerminalRegistry.getOrCreateTerminal("/test/path", false, "task1", "vscode")
 
@@ -86,12 +86,37 @@ describe("TerminalRegistry - Working Directory Tracking", () => {
 			// Mark terminal as not busy
 			terminal1.busy = false
 
-			// Request a terminal for a different working directory
-			const terminal2 = await TerminalRegistry.getOrCreateTerminal("/test/path/other", false, "task1", "vscode")
+			// Request a terminal for a different working directory with requiredCwd=true
+			const terminal2 = await TerminalRegistry.getOrCreateTerminal("/test/path/other", true, "task1", "vscode")
 
-			// Should create a new terminal since no existing terminal matches the requested directory
+			// Should create a new terminal since requiredCwd is true and directories don't match
 			expect(terminal2).not.toBe(terminal1)
 			expect(mockCreateTerminal).toHaveBeenCalledTimes(2) // Two terminals created
+		})
+
+		it("should reuse terminal when requiredCwd is true and current working directory matches", async () => {
+			// Create a terminal with initial working directory
+			const terminal1 = await TerminalRegistry.getOrCreateTerminal("/test/path", false, "task1", "vscode")
+
+			// Simulate the terminal's working directory changing (like after cd command)
+			if (terminal1 instanceof Terminal) {
+				// Mock the shell integration to return the new working directory
+				Object.defineProperty(terminal1.terminal.shellIntegration!, "cwd", {
+					value: vscode.Uri.file("/test/path/subdir"),
+					writable: true,
+					configurable: true,
+				})
+			}
+
+			// Mark terminal as not busy
+			terminal1.busy = false
+
+			// Request a terminal for the same working directory with requiredCwd=true
+			const terminal2 = await TerminalRegistry.getOrCreateTerminal("/test/path/subdir", true, "task1", "vscode")
+
+			// Should reuse the same terminal since directories match
+			expect(terminal2).toBe(terminal1)
+			expect(mockCreateTerminal).toHaveBeenCalledTimes(1) // Only one terminal created
 		})
 
 		it("should handle terminals without shell integration gracefully", async () => {
@@ -118,41 +143,12 @@ describe("TerminalRegistry - Working Directory Tracking", () => {
 			const terminal1 = await TerminalRegistry.getOrCreateTerminal("/test/path", false, "task1", "vscode")
 			terminal1.busy = false
 
-			// Request a terminal for the same working directory
+			// Request a terminal for the same task
 			const terminal2 = await TerminalRegistry.getOrCreateTerminal("/test/path", false, "task1", "vscode")
 
-			// Should reuse the same terminal since it falls back to initial CWD
+			// Should reuse the same terminal since it's the same task
 			expect(terminal2).toBe(terminal1)
 			expect(mockCreateTerminal).toHaveBeenCalledTimes(1)
-		})
-
-		it("should prioritize task-specific terminals with matching current working directory", async () => {
-			// Create a terminal for task1
-			const terminal1 = await TerminalRegistry.getOrCreateTerminal("/test/path", false, "task1", "vscode")
-
-			// Create a terminal for task2
-			const terminal2 = await TerminalRegistry.getOrCreateTerminal("/test/path", false, "task2", "vscode")
-
-			// Simulate terminal1's working directory changing
-			if (terminal1 instanceof Terminal) {
-				// Mock the shell integration to return the new working directory
-				Object.defineProperty(terminal1.terminal.shellIntegration!, "cwd", {
-					value: vscode.Uri.file("/test/path/subdir"),
-					writable: true,
-					configurable: true,
-				})
-			}
-
-			// Mark both terminals as not busy
-			terminal1.busy = false
-			terminal2.busy = false
-
-			// Request a terminal for task1 with the new working directory
-			const terminal3 = await TerminalRegistry.getOrCreateTerminal("/test/path/subdir", false, "task1", "vscode")
-
-			// Should reuse terminal1 since it's assigned to task1 and has matching current working directory
-			expect(terminal3).toBe(terminal1)
-			expect(mockCreateTerminal).toHaveBeenCalledTimes(2) // Only two terminals created
 		})
 
 		it("should create separate terminals for different tasks", async () => {
