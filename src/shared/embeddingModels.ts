@@ -50,6 +50,11 @@ export const EMBEDDING_MODEL_PROFILES: EmbeddingModelProfiles = {
 			scoreThreshold: 0.15,
 			queryPrefix: "Represent this query for searching relevant code: ",
 		},
+		"manutic/nomic-embed-code": {
+			dimension: 3584,
+			scoreThreshold: 0.15,
+			queryPrefix: "Represent this query for searching relevant code: ",
+		},
 	},
 	gemini: {
 		"text-embedding-004": { dimension: 768 },
