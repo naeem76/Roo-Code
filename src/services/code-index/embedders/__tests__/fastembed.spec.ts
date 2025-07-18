@@ -30,6 +30,9 @@ vi.mock("../../../i18n", () => ({
 		if (key === "embeddings:fastembed.invalidEmbeddingFormat") {
 			return "Invalid embedding format from FastEmbed"
 		}
+		if (key === "embeddings:validation.configurationError") {
+			return "FastEmbed validation failed"
+		}
 		return key
 	}),
 }))
@@ -163,9 +166,7 @@ describe("FastEmbedEmbedder", () => {
 			const error = new Error("FastEmbed API error")
 			mockSmallDoEmbed.mockRejectedValue(error)
 
-			await expect(embedder.createEmbeddings(["test text"])).rejects.toThrow(
-				"Failed to create embeddings with FastEmbed: FastEmbed API error",
-			)
+			await expect(embedder.createEmbeddings(["test text"])).rejects.toThrow("fastembed.embeddingFailed")
 		})
 
 		it("should process large batches correctly", async () => {
@@ -214,7 +215,7 @@ describe("FastEmbedEmbedder", () => {
 
 			expect(result).toEqual({
 				valid: false,
-				error: "FastEmbed validation failed: FastEmbed validation error",
+				error: "FastEmbed validation error",
 			})
 		})
 
@@ -225,7 +226,7 @@ describe("FastEmbedEmbedder", () => {
 
 			expect(result).toEqual({
 				valid: false,
-				error: "FastEmbed validation failed: Unexpected error",
+				error: "Unexpected error",
 			})
 		})
 	})

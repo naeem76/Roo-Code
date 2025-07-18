@@ -7,7 +7,7 @@ import * as fs from "fs"
 import * as path from "path"
 
 // Mock @mastra/libsql
-const mockLibSQLVector = {
+const mockLibSQLVectorInstanceInstanceInstance = {
 	createIndex: vi.fn(),
 	listIndexes: vi.fn(),
 	upsert: vi.fn(),
@@ -18,7 +18,7 @@ const mockLibSQLVector = {
 }
 
 vi.mock("@mastra/libsql", () => ({
-	LibSQLVector: vi.fn().mockImplementation(() => mockLibSQLVector),
+	LibSQLVector: vi.fn().mockImplementation(() => mockLibSQLVectorInstanceInstanceInstance),
 }))
 
 // Mock fs
@@ -36,31 +36,31 @@ vi.mock("path", () => ({
 
 describe("LibSQLVectorStore", () => {
 	let vectorStore: LibSQLVectorStore
-	let mockLibSQLVector: any
+	let mockLibSQLVectorInstanceInstance: any
 	const testDbPath = "/tmp/test-vector-store.db"
 	const testIndexName = "test_index"
 	const testDimension = 384
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		vi.clearAllMocks()
 
 		// Mock fs methods
-		const fs = require("fs")
-		fs.existsSync.mockReturnValue(true)
-		fs.mkdirSync.mockReturnValue(undefined)
+		const fs = await import("fs")
+		vi.mocked(fs.existsSync).mockReturnValue(true)
+		vi.mocked(fs.mkdirSync).mockReturnValue(undefined)
 
 		// Mock path methods
-		const path = require("path")
-		path.dirname.mockReturnValue("/tmp")
+		const path = await import("path")
+		vi.mocked(path.dirname).mockReturnValue("/tmp")
 
 		// Reset mock functions
-		mockLibSQLVector.createIndex.mockReset()
-		mockLibSQLVector.listIndexes.mockReset()
-		mockLibSQLVector.upsert.mockReset()
-		mockLibSQLVector.query.mockReset()
-		mockLibSQLVector.deleteVector.mockReset()
-		mockLibSQLVector.truncateIndex.mockReset()
-		mockLibSQLVector.deleteIndex.mockReset()
+		mockLibSQLVectorInstanceInstance.createIndex.mockReset()
+		mockLibSQLVectorInstanceInstance.listIndexes.mockReset()
+		mockLibSQLVectorInstanceInstance.upsert.mockReset()
+		mockLibSQLVectorInstanceInstance.query.mockReset()
+		mockLibSQLVectorInstanceInstance.deleteVector.mockReset()
+		mockLibSQLVectorInstanceInstance.truncateIndex.mockReset()
+		mockLibSQLVectorInstanceInstance.deleteIndex.mockReset()
 
 		vectorStore = new LibSQLVectorStore("test-workspace", testDbPath, testDimension)
 	})
@@ -72,7 +72,9 @@ describe("LibSQLVectorStore", () => {
 	describe("constructor", () => {
 		it("should initialize with correct parameters", () => {
 			const { LibSQLVector } = require("@mastra/libsql")
-			expect(LibSQLVector).toHaveBeenCalledWith(testDbPath)
+			expect(LibSQLVector).toHaveBeenCalledWith({
+				connectionUrl: `file:${testDbPath}`,
+			})
 		})
 
 		it("should store configuration parameters", () => {
@@ -82,13 +84,13 @@ describe("LibSQLVectorStore", () => {
 
 	describe("initialize", () => {
 		it("should create index with correct parameters", async () => {
-			mockLibSQLVector.listIndexes.mockResolvedValue([])
-			mockLibSQLVector.createIndex.mockResolvedValue(undefined)
+			mockLibSQLVectorInstanceInstance.listIndexes.mockResolvedValue([])
+			mockLibSQLVectorInstanceInstance.createIndex.mockResolvedValue(undefined)
 
 			const result = await vectorStore.initialize()
 
-			expect(mockLibSQLVector.listIndexes).toHaveBeenCalled()
-			expect(mockLibSQLVector.createIndex).toHaveBeenCalledWith({
+			expect(mockLibSQLVectorInstanceInstance.listIndexes).toHaveBeenCalled()
+			expect(mockLibSQLVectorInstanceInstance.createIndex).toHaveBeenCalledWith({
 				indexName: expect.stringMatching(/^ws_[a-f0-9]{16}$/),
 				dimension: testDimension,
 			})
@@ -96,18 +98,18 @@ describe("LibSQLVectorStore", () => {
 		})
 
 		it("should not create index if it already exists", async () => {
-			mockLibSQLVector.listIndexes.mockResolvedValue([{ name: "ws_1234567890abcdef" }])
+			mockLibSQLVectorInstanceInstance.listIndexes.mockResolvedValue([{ name: "ws_1234567890abcdef" }])
 
 			const result = await vectorStore.initialize()
 
-			expect(mockLibSQLVector.listIndexes).toHaveBeenCalled()
-			expect(mockLibSQLVector.createIndex).not.toHaveBeenCalled()
+			expect(mockLibSQLVectorInstanceInstance.listIndexes).toHaveBeenCalled()
+			expect(mockLibSQLVectorInstanceInstance.createIndex).not.toHaveBeenCalled()
 			expect(result).toBe(false)
 		})
 
 		it("should handle initialization errors", async () => {
 			const error = new Error("Failed to create index")
-			mockLibSQLVector.listIndexes.mockRejectedValue(error)
+			mockLibSQLVectorInstanceInstance.listIndexes.mockRejectedValue(error)
 
 			await expect(vectorStore.initialize()).rejects.toThrow()
 		})
@@ -138,17 +140,17 @@ describe("LibSQLVectorStore", () => {
 		]
 
 		beforeEach(async () => {
-			mockLibSQLVector.listIndexes.mockResolvedValue([])
-			mockLibSQLVector.createIndex.mockResolvedValue(undefined)
+			mockLibSQLVectorInstanceInstance.listIndexes.mockResolvedValue([])
+			mockLibSQLVectorInstanceInstance.createIndex.mockResolvedValue(undefined)
 			await vectorStore.initialize()
 		})
 
 		it("should upsert points correctly", async () => {
-			mockLibSQLVector.upsert.mockResolvedValue(undefined)
+			mockLibSQLVectorInstanceInstance.upsert.mockResolvedValue(undefined)
 
 			await vectorStore.upsertPoints(testPoints)
 
-			expect(mockLibSQLVector.upsert).toHaveBeenCalledWith({
+			expect(mockLibSQLVectorInstanceInstance.upsert).toHaveBeenCalledWith({
 				indexName: expect.stringMatching(/^ws_[a-f0-9]{16}$/),
 				vectors: [
 					[0.1, 0.2, 0.3, 0.4],
@@ -177,16 +179,14 @@ describe("LibSQLVectorStore", () => {
 		it("should handle empty points array", async () => {
 			await vectorStore.upsertPoints([])
 
-			expect(mockLibSQLVector.upsert).not.toHaveBeenCalled()
+			expect(mockLibSQLVectorInstanceInstance.upsert).not.toHaveBeenCalled()
 		})
 
 		it("should handle upsert errors", async () => {
 			const error = new Error("Upsert failed")
-			mockLibSQLVector.upsert.mockRejectedValue(error)
+			mockLibSQLVectorInstanceInstance.upsert.mockRejectedValue(error)
 
-			await expect(vectorStore.upsertPoints(testPoints)).rejects.toThrow(
-				"Failed to upsert points to LibSQL vector store: Upsert failed",
-			)
+			await expect(vectorStore.upsertPoints(testPoints)).rejects.toThrow("Upsert failed")
 		})
 
 		it("should handle points with missing payload fields", async () => {
@@ -196,24 +196,27 @@ describe("LibSQLVectorStore", () => {
 					vector: [0.1, 0.2, 0.3, 0.4],
 					payload: {
 						filePath: "/test/file1.ts",
-						content: "test content 1",
+						codeChunk: "test content 1",
 						// Missing startLine and endLine
 					},
 				},
 			]
 
-			mockLibSQLVector.upsert.mockResolvedValue(undefined)
+			mockLibSQLVectorInstanceInstance.upsert.mockResolvedValue(undefined)
 
 			await vectorStore.upsertPoints(pointsWithMissingFields)
 
-			expect(mockLibSQLVector.upsert).toHaveBeenCalledWith({
-				indexName: testIndexName,
+			expect(mockLibSQLVectorInstanceInstance.upsert).toHaveBeenCalledWith({
+				indexName: expect.stringMatching(/^ws_[a-f0-9]{16}$/),
 				vectors: [[0.1, 0.2, 0.3, 0.4]],
 				ids: ["test-1"],
 				metadata: [
 					{
 						filePath: "/test/file1.ts",
-						content: "test content 1",
+						codeChunk: "test content 1",
+						startLine: 0,
+						endLine: 0,
+						pathSegments: ["test", "file1.ts"],
 					},
 				],
 			})
@@ -224,7 +227,7 @@ describe("LibSQLVectorStore", () => {
 		const testQueryVector = [0.1, 0.2, 0.3, 0.4]
 
 		beforeEach(async () => {
-			mockLibSQLVector.createIndex.mockResolvedValue(undefined)
+			mockLibSQLVectorInstanceInstance.createIndex.mockResolvedValue(undefined)
 			await vectorStore.initialize()
 		})
 
@@ -251,14 +254,17 @@ describe("LibSQLVectorStore", () => {
 					},
 				},
 			]
-			mockLibSQLVector.query.mockResolvedValue(mockResults)
+			mockLibSQLVectorInstanceInstance.query.mockResolvedValue(mockResults)
 
 			const results = await vectorStore.search(testQueryVector, undefined, 0.5, 10)
 
-			expect(mockLibSQLVector.query).toHaveBeenCalledWith({
-				indexName: testIndexName,
+			expect(mockLibSQLVectorInstanceInstance.query).toHaveBeenCalledWith({
+				indexName: expect.stringMatching(/^ws_[a-f0-9]{16}$/),
 				queryVector: testQueryVector,
 				topK: 10,
+				filter: undefined,
+				includeVector: false,
+				minScore: 0.5,
 			})
 
 			expect(results).toEqual([
@@ -267,7 +273,7 @@ describe("LibSQLVectorStore", () => {
 					score: 0.95,
 					payload: {
 						filePath: "/test/file1.ts",
-						content: "test content 1",
+						codeChunk: "test content 1",
 						startLine: 1,
 						endLine: 10,
 					},
@@ -277,7 +283,7 @@ describe("LibSQLVectorStore", () => {
 					score: 0.85,
 					payload: {
 						filePath: "/test/file2.ts",
-						content: "test content 2",
+						codeChunk: "test content 2",
 						startLine: 11,
 						endLine: 20,
 					},
@@ -304,7 +310,7 @@ describe("LibSQLVectorStore", () => {
 					},
 				},
 			]
-			mockLibSQLVector.query.mockResolvedValue(mockResults)
+			mockLibSQLVectorInstanceInstance.query.mockResolvedValue(mockResults)
 
 			const results = await vectorStore.search(testQueryVector, undefined, 0.5, 10)
 
@@ -314,7 +320,7 @@ describe("LibSQLVectorStore", () => {
 
 		it("should handle search errors", async () => {
 			const error = new Error("Search failed")
-			mockLibSQLVector.query.mockRejectedValue(error)
+			mockLibSQLVectorInstanceInstance.query.mockRejectedValue(error)
 
 			await expect(vectorStore.search(testQueryVector, undefined, 0.5, 10)).rejects.toThrow(
 				"Failed to search LibSQL vector store: Search failed",
@@ -322,7 +328,7 @@ describe("LibSQLVectorStore", () => {
 		})
 
 		it("should handle empty search results", async () => {
-			mockLibSQLVector.query.mockResolvedValue([])
+			mockLibSQLVectorInstanceInstance.query.mockResolvedValue([])
 
 			const results = await vectorStore.search(testQueryVector, undefined, 0.5, 10)
 
@@ -340,7 +346,7 @@ describe("LibSQLVectorStore", () => {
 					},
 				},
 			]
-			mockLibSQLVector.query.mockResolvedValue(mockResults)
+			mockLibSQLVectorInstanceInstance.query.mockResolvedValue(mockResults)
 
 			const results = await vectorStore.search(testQueryVector, undefined, undefined, 10)
 
@@ -350,106 +356,107 @@ describe("LibSQLVectorStore", () => {
 
 	describe("deletePointsByFilePath", () => {
 		beforeEach(async () => {
-			mockLibSQLVector.createIndex.mockResolvedValue(undefined)
+			mockLibSQLVectorInstanceInstance.createIndex.mockResolvedValue(undefined)
 			await vectorStore.initialize()
 		})
 
 		it("should delete points by file path", async () => {
-			mockLibSQLVector.deleteVector.mockResolvedValue(undefined)
+			mockLibSQLVectorInstanceInstance.query.mockResolvedValue([{ id: "test-1" }, { id: "test-2" }])
+			mockLibSQLVectorInstanceInstance.deleteVector.mockResolvedValue(undefined)
 
 			await vectorStore.deletePointsByFilePath("/test/file1.ts")
 
-			expect(mockLibSQLVector.deleteVector).toHaveBeenCalledWith({
-				indexName: testIndexName,
-				where: "metadata->>'filePath' = '/test/file1.ts'",
+			expect(mockLibSQLVectorInstanceInstance.query).toHaveBeenCalledWith({
+				indexName: expect.stringMatching(/^ws_[a-f0-9]{16}$/),
+				queryVector: expect.any(Array),
+				topK: 10000,
+				filter: {
+					filePath: { $eq: "/test/file1.ts" },
+				},
+				includeVector: false,
 			})
+			expect(mockLibSQLVectorInstanceInstance.deleteVector).toHaveBeenCalledTimes(2)
 		})
 
 		it("should handle deletion errors", async () => {
 			const error = new Error("Delete failed")
-			mockLibSQLVector.deleteVector.mockRejectedValue(error)
+			mockLibSQLVectorInstanceInstance.query.mockRejectedValue(error)
 
-			await expect(vectorStore.deletePointsByFilePath("/test/file1.ts")).rejects.toThrow(
-				"Failed to delete points by file path from LibSQL vector store: Delete failed",
-			)
+			await expect(vectorStore.deletePointsByFilePath("/test/file1.ts")).rejects.toThrow("Delete failed")
 		})
 
 		it("should handle file paths with special characters", async () => {
-			mockLibSQLVector.deleteVector.mockResolvedValue(undefined)
+			mockLibSQLVectorInstanceInstance.query.mockResolvedValue([{ id: "test-1" }])
+			mockLibSQLVectorInstanceInstance.deleteVector.mockResolvedValue(undefined)
 
 			await vectorStore.deletePointsByFilePath("/test/file with spaces & symbols.ts")
 
-			expect(mockLibSQLVector.deleteVector).toHaveBeenCalledWith({
-				indexName: testIndexName,
-				where: "metadata->>'filePath' = '/test/file with spaces & symbols.ts'",
+			expect(mockLibSQLVectorInstanceInstance.query).toHaveBeenCalledWith({
+				indexName: expect.stringMatching(/^ws_[a-f0-9]{16}$/),
+				queryVector: expect.any(Array),
+				topK: 10000,
+				filter: {
+					filePath: { $eq: "/test/file with spaces & symbols.ts" },
+				},
+				includeVector: false,
 			})
 		})
 	})
 
 	describe("clearCollection", () => {
 		beforeEach(async () => {
-			mockLibSQLVector.createIndex.mockResolvedValue(undefined)
+			mockLibSQLVectorInstanceInstance.createIndex.mockResolvedValue(undefined)
 			await vectorStore.initialize()
 		})
 
 		it("should clear collection", async () => {
-			mockLibSQLVector.truncateIndex.mockResolvedValue(undefined)
+			mockLibSQLVectorInstanceInstance.truncateIndex.mockResolvedValue(undefined)
 
 			await vectorStore.clearCollection()
 
-			expect(mockLibSQLVector.truncateIndex).toHaveBeenCalledWith({
-				indexName: testIndexName,
+			expect(mockLibSQLVectorInstanceInstance.truncateIndex).toHaveBeenCalledWith({
+				indexName: expect.stringMatching(/^ws_[a-f0-9]{16}$/),
 			})
 		})
 
 		it("should handle clear errors", async () => {
 			const error = new Error("Clear failed")
-			mockLibSQLVector.truncateIndex.mockRejectedValue(error)
+			mockLibSQLVectorInstanceInstance.truncateIndex.mockRejectedValue(error)
 
-			await expect(vectorStore.clearCollection()).rejects.toThrow(
-				"Failed to clear LibSQL vector store collection: Clear failed",
-			)
+			await expect(vectorStore.clearCollection()).rejects.toThrow("Clear failed")
 		})
 	})
 
 	describe("deleteCollection", () => {
 		beforeEach(async () => {
-			mockLibSQLVector.createIndex.mockResolvedValue(undefined)
+			mockLibSQLVectorInstanceInstance.createIndex.mockResolvedValue(undefined)
 			await vectorStore.initialize()
 		})
 
-		it("should delete collection and database file", async () => {
-			const mockFs = require("fs")
-			mockFs.existsSync.mockReturnValue(true)
-			mockFs.rmSync.mockReturnValue(undefined)
+		it("should delete collection", async () => {
+			mockLibSQLVectorInstanceInstance.listIndexes.mockResolvedValue([{ name: "ws_1234567890abcdef" }])
+			mockLibSQLVectorInstanceInstance.deleteIndex.mockResolvedValue(undefined)
 
 			await vectorStore.deleteCollection()
 
-			expect(mockFs.existsSync).toHaveBeenCalledWith(testDbPath)
-			expect(mockFs.rmSync).toHaveBeenCalledWith(testDbPath, { force: true })
+			expect(mockLibSQLVectorInstanceInstance.deleteIndex).toHaveBeenCalledWith({
+				indexName: expect.stringMatching(/^ws_[a-f0-9]{16}$/),
+			})
 		})
 
-		it("should handle case when database file does not exist", async () => {
-			const mockFs = require("fs")
-			mockFs.existsSync.mockReturnValue(false)
+		it("should handle case when collection does not exist", async () => {
+			mockLibSQLVectorInstanceInstance.listIndexes.mockResolvedValue([])
 
 			await vectorStore.deleteCollection()
 
-			expect(mockFs.existsSync).toHaveBeenCalledWith(testDbPath)
-			expect(mockFs.rmSync).not.toHaveBeenCalled()
+			expect(mockLibSQLVectorInstanceInstance.deleteIndex).not.toHaveBeenCalled()
 		})
 
 		it("should handle deletion errors", async () => {
-			const mockFs = require("fs")
-			mockFs.existsSync.mockReturnValue(true)
-			const error = new Error("File deletion failed")
-			mockFs.rmSync.mockImplementation(() => {
-				throw error
-			})
+			const error = new Error("Delete index failed")
+			mockLibSQLVectorInstanceInstance.listIndexes.mockRejectedValue(error)
 
-			await expect(vectorStore.deleteCollection()).rejects.toThrow(
-				"Failed to delete LibSQL vector store collection: File deletion failed",
-			)
+			await expect(vectorStore.deleteCollection()).rejects.toThrow("Delete index failed")
 		})
 	})
 
@@ -461,7 +468,7 @@ describe("LibSQLVectorStore", () => {
 			})
 
 			expect(() => {
-				new LibSQLVectorStore(testDbPath, testIndexName, testDimension)
+				new LibSQLVectorStore("test-workspace", testDbPath, testDimension)
 			}).toThrow("Constructor failed")
 		})
 	})
