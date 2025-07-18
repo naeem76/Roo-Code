@@ -13,7 +13,31 @@ export const formatResponse = {
 	toolApprovedWithFeedback: (feedback?: string) =>
 		`The user approved this operation and provided the following context:\n<feedback>\n${feedback}\n</feedback>`,
 
-	toolError: (error?: string) => `The tool execution failed with the following error:\n<error>\n${error}\n</error>`,
+	toolError: (error?: string) => {
+		const baseMessage = `The tool execution failed with the following error:\n<error>\n${error}\n</error>`
+
+		// Add helpful suggestions based on common error patterns
+		let suggestions = ""
+		if (error) {
+			const lowerError = error.toLowerCase()
+
+			if (lowerError.includes("permission") || lowerError.includes("access denied")) {
+				suggestions =
+					"\n\nSuggestions:\n• Check file permissions\n• Ensure the file is not locked by another process\n• Try using a different file path"
+			} else if (lowerError.includes("not found") || lowerError.includes("no such file")) {
+				suggestions =
+					"\n\nSuggestions:\n• Verify the file path is correct\n• Use list_files to check available files\n• Create the file first if it doesn't exist"
+			} else if (lowerError.includes("validation failed")) {
+				suggestions =
+					"\n\nSuggestions:\n• Check that all required parameters are provided\n• Verify parameter formats match expectations\n• Review the tool documentation for correct usage"
+			} else if (lowerError.includes("syntax error") || lowerError.includes("invalid")) {
+				suggestions =
+					"\n\nSuggestions:\n• Check the syntax of your input\n• Verify all brackets, quotes, and tags are properly closed\n• Try simplifying the operation"
+			}
+		}
+
+		return baseMessage + suggestions
+	},
 
 	rooIgnoreError: (path: string) =>
 		`Access to ${path} is blocked by the .rooignore file settings. You must try to continue in the task without using this file, or ask the user to update the .rooignore file.`,
@@ -30,8 +54,17 @@ If you require additional information from the user, use the ask_followup_questi
 Otherwise, if you have not completed the task and do not need additional information, then proceed with the next step of the task. 
 (This is an automated message, so do not respond to it conversationally.)`,
 
-	tooManyMistakes: (feedback?: string) =>
-		`You seem to be having trouble proceeding. The user has provided the following feedback to help guide you:\n<feedback>\n${feedback}\n</feedback>`,
+	tooManyMistakes: (feedback?: string) => {
+		let message = `You seem to be having trouble proceeding. This may indicate:\n• Tool parameters are incorrect\n• The approach needs to be changed\n• The task should be broken into smaller steps\n• A different tool might be more appropriate`
+
+		if (feedback) {
+			message += `\n\nThe user has provided the following feedback to help guide you:\n<feedback>\n${feedback}\n</feedback>`
+		} else {
+			message += `\n\nConsider:\n• Re-reading files to understand current state\n• Using simpler, more targeted operations\n• Asking for clarification if the task is unclear`
+		}
+
+		return message
+	},
 
 	missingToolParameterError: (paramName: string) =>
 		`Missing value for required parameter '${paramName}'. Please retry with complete response.\n\n${toolUseInstructionsReminder}`,

@@ -9,6 +9,8 @@ export class ToolRepetitionDetector {
 	private previousToolCallJson: string | null = null
 	private consecutiveIdenticalToolCallCount: number = 0
 	private readonly consecutiveIdenticalToolCallLimit: number
+	private toolFailureHistory: Array<{ toolName: string; timestamp: number; reason?: string }> = []
+	private readonly maxHistorySize = 10
 
 	/**
 	 * Creates a new ToolRepetitionDetector
@@ -48,6 +50,10 @@ export class ToolRepetitionDetector {
 			this.consecutiveIdenticalToolCallLimit > 0 &&
 			this.consecutiveIdenticalToolCallCount >= this.consecutiveIdenticalToolCallLimit
 		) {
+			// Generate enhanced error message with context
+			const recentFailures = this.getRecentFailureContext(currentToolCallBlock.name)
+			const contextMessage = this.generateContextualErrorMessage(currentToolCallBlock.name, recentFailures)
+
 			// Reset counters to allow recovery if user guides the AI past this point
 			this.consecutiveIdenticalToolCallCount = 0
 			this.previousToolCallJson = null
@@ -57,13 +63,71 @@ export class ToolRepetitionDetector {
 				allowExecution: false,
 				askUser: {
 					messageKey: "mistake_limit_reached",
-					messageDetail: t("tools:toolRepetitionLimitReached", { toolName: currentToolCallBlock.name }),
+					messageDetail: contextMessage,
 				},
 			}
 		}
 
 		// Execution is allowed
 		return { allowExecution: true }
+	}
+
+	/**
+	 * Records a tool failure for better context in future error messages
+	 */
+	public recordToolFailure(toolName: string, reason?: string): void {
+		this.toolFailureHistory.push({
+			toolName,
+			timestamp: Date.now(),
+			reason,
+		})
+
+		// Keep history size manageable
+		if (this.toolFailureHistory.length > this.maxHistorySize) {
+			this.toolFailureHistory.shift()
+		}
+	}
+
+	/**
+	 * Gets recent failure context for a specific tool
+	 */
+	private getRecentFailureContext(toolName: string): Array<{ reason?: string; timestamp: number }> {
+		const fiveMinutesAgo = Date.now() - 5 * 60 * 1000
+		return this.toolFailureHistory
+			.filter((failure) => failure.toolName === toolName && failure.timestamp > fiveMinutesAgo)
+			.map((failure) => ({ reason: failure.reason, timestamp: failure.timestamp }))
+	}
+
+	/**
+	 * Generates a contextual error message based on recent failures
+	 */
+	private generateContextualErrorMessage(
+		toolName: string,
+		recentFailures: Array<{ reason?: string; timestamp: number }>,
+	): string {
+		let message = t("tools:toolRepetitionLimitReached", { toolName })
+
+		if (recentFailures.length > 0) {
+			message += "\n\nRecent issues with this tool:"
+			const uniqueReasons = [...new Set(recentFailures.map((f) => f.reason).filter(Boolean))]
+
+			if (uniqueReasons.length > 0) {
+				message += "\n" + uniqueReasons.map((reason) => `• ${reason}`).join("\n")
+			}
+
+			message += "\n\nSuggestions:"
+			message += "\n• Try a different approach or tool"
+			message += "\n• Check if the parameters are correct"
+			message += "\n• Consider breaking down the task into smaller steps"
+
+			if (toolName === "apply_diff" || toolName === "write_to_file") {
+				message += "\n• Use read_file first to understand the current file content"
+			} else if (toolName === "execute_command") {
+				message += "\n• Verify the command syntax and file paths"
+			}
+		}
+
+		return message
 	}
 
 	/**

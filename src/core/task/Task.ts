@@ -1932,9 +1932,21 @@ export class Task extends EventEmitter<ClineEvents> {
 
 		this.toolUsage[toolName].failures++
 
+		// Record the failure in the repetition detector for better context
+		this.toolRepetitionDetector.recordToolFailure(toolName, error)
+
 		if (error) {
 			this.emit("taskToolFailed", this.taskId, toolName, error)
 		}
+
+		// Add enhanced logging for debugging tool failures
+		console.debug(`[Task ${this.taskId}] Tool failure recorded:`, {
+			toolName,
+			error,
+			totalFailures: this.toolUsage[toolName].failures,
+			totalAttempts: this.toolUsage[toolName].attempts,
+			consecutiveMistakes: this.consecutiveMistakeCount,
+		})
 	}
 
 	// Getters

@@ -2,6 +2,7 @@ import cloneDeep from "clone-deep"
 import { serializeError } from "serialize-error"
 
 import type { ToolName, ClineAsk, ToolProgressStatus } from "@roo-code/types"
+import { TelemetryEventName } from "@roo-code/types"
 import { TelemetryService } from "@roo-code/telemetry"
 
 import { defaultModeSlug, getModeBySlug } from "../../shared/modes"
@@ -307,6 +308,19 @@ export async function presentAssistantMessage(cline: Task) {
 			const handleError = async (action: string, error: Error) => {
 				const errorString = `Error ${action}: ${JSON.stringify(serializeError(error))}`
 
+				// Record the tool error for tracking and telemetry
+				cline.recordToolError(block.name as ToolName, error.message)
+
+				// Capture detailed telemetry for tool failures using existing event
+				TelemetryService.instance.captureEvent(TelemetryEventName.DIFF_APPLICATION_ERROR, {
+					taskId: cline.taskId,
+					toolName: block.name,
+					action,
+					errorMessage: error.message,
+					errorType: error.constructor.name,
+					consecutiveMistakes: cline.consecutiveMistakeCount,
+				})
+
 				await cline.say(
 					"error",
 					`Error ${action}:\n${error.message ?? JSON.stringify(serializeError(error), null, 2)}`,
@@ -364,7 +378,22 @@ export async function presentAssistantMessage(cline: Task) {
 				)
 			} catch (error) {
 				cline.consecutiveMistakeCount++
-				pushToolResult(formatResponse.toolError(error.message))
+				// Record the validation error for tracking
+				cline.recordToolError(block.name as ToolName, `Validation failed: ${error.message}`)
+
+				// Capture telemetry for validation failures using existing event
+				TelemetryService.instance.captureEvent(TelemetryEventName.SCHEMA_VALIDATION_ERROR, {
+					taskId: cline.taskId,
+					toolName: block.name,
+					errorMessage: error.message,
+					consecutiveMistakes: cline.consecutiveMistakeCount,
+					mode: mode ?? defaultModeSlug,
+				})
+
+				// Provide more helpful error message for tool validation failures
+				const enhancedErrorMessage = `Tool validation failed for ${block.name}: ${error.message}\n\nThis may indicate:\n- Invalid parameters provided to the tool\n- Tool not allowed in current mode\n- Missing required parameters\n\nPlease review the tool usage and try again with correct parameters.`
+
+				pushToolResult(formatResponse.toolError(enhancedErrorMessage))
 				break
 			}
 
@@ -398,6 +427,9 @@ export async function presentAssistantMessage(cline: Task) {
 						// Track tool repetition in telemetry.
 						TelemetryService.instance.captureConsecutiveMistakeError(cline.taskId)
 					}
+
+					// Capture telemetry for tool repetition using existing event
+					TelemetryService.instance.captureConsecutiveMistakeError(cline.taskId)
 
 					// Return tool result message about the repetition
 					pushToolResult(
