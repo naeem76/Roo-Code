@@ -106,6 +106,8 @@ export interface ExtensionMessage {
 		| "codeIndexSettingsSaved"
 		| "codeIndexSecretStatus"
 		| "editorContext"
+		| "showDeleteMessageDialog"
+		| "showEditMessageDialog"
 	text?: string
 	payload?: any // Add a generic payload for now, can refine later
 	editorContext?: {
@@ -165,6 +167,8 @@ export interface ExtensionMessage {
 	visibility?: ShareVisibility
 	rulesFolderPath?: string
 	settings?: any
+	messageTs?: number
+	context?: string
 }
 
 export type ExtensionState = Pick<
@@ -191,6 +195,7 @@ export type ExtensionState = Pick<
 	| "alwaysAllowExecute"
 	| "alwaysAllowUpdateTodoList"
 	| "allowedCommands"
+	| "deniedCommands"
 	| "allowedMaxRequests"
 	| "browserToolEnabled"
 	| "browserViewportSize"
@@ -387,6 +392,7 @@ export interface ClineApiReqInfo {
 	cost?: number
 	cancelReason?: ClineApiReqCancelReason
 	streamingFailedMessage?: string
+	apiProtocol?: "anthropic" | "openai"
 }
 
 export type ClineApiReqCancelReason = "streaming_failed" | "user_cancelled"
