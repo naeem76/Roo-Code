@@ -178,7 +178,7 @@ export const RulesSettings = ({ className, hasUnsavedChanges, ...props }: RulesS
 			<Section>
 				<div className="space-y-6">
 					{/* Magic Rules Generation subsection */}
-					<div className="flex flex-col gap-3">
+					<div className="flex flex-col gap-4">
 						<div className="flex flex-col gap-1">
 							<div className="flex items-center gap-2 font-bold">
 								<Sparkles className="w-4 h-4" />
@@ -188,9 +188,9 @@ export const RulesSettings = ({ className, hasUnsavedChanges, ...props }: RulesS
 								{t("settings:rules.magicGeneration.description")}
 							</div>
 						</div>
-						<div className="flex flex-col gap-4 pl-3 border-l-2 border-vscode-button-background">
+						<div className="flex flex-col gap-3 pl-3 border-l-2 border-vscode-button-background">
 							{/* Recommendation box */}
-							<div className="flex items-start gap-2 p-3 bg-vscode-inputValidation-infoBackground border border-vscode-inputValidation-infoBorder rounded-md">
+							<div className="flex items-start gap-2 p-2 bg-vscode-inputValidation-infoBackground border border-vscode-inputValidation-infoBorder rounded-md">
 								<Info className="w-4 h-4 text-vscode-inputValidation-infoForeground mt-0.5 flex-shrink-0" />
 								<div className="text-sm text-vscode-inputValidation-infoForeground">
 									{t("settings:rules.autoApproveRecommendation")}
@@ -233,7 +233,7 @@ export const RulesSettings = ({ className, hasUnsavedChanges, ...props }: RulesS
 
 							{/* Small repository warning */}
 							{sourceFileCount !== null && sourceFileCount > 0 && sourceFileCount < 20 && (
-								<div className="flex items-start gap-2 p-3 bg-vscode-inputValidation-warningBackground border border-vscode-inputValidation-warningBorder rounded-md">
+								<div className="flex items-start gap-2 p-2 bg-vscode-inputValidation-warningBackground border border-vscode-inputValidation-warningBorder rounded-md">
 									<AlertTriangle className="w-4 h-4 text-vscode-inputValidation-warningForeground mt-0.5 flex-shrink-0" />
 									<div className="text-sm text-vscode-inputValidation-warningForeground">
 										{t("settings:rules.smallRepoWarning", { count: sourceFileCount })}
@@ -241,7 +241,7 @@ export const RulesSettings = ({ className, hasUnsavedChanges, ...props }: RulesS
 								</div>
 							)}
 							{hasExistingFiles && (
-								<div className="flex items-start gap-2 p-3 bg-vscode-inputValidation-warningBackground border border-vscode-inputValidation-warningBorder rounded-md">
+								<div className="flex items-start gap-2 p-2 bg-vscode-inputValidation-warningBackground border border-vscode-inputValidation-warningBorder rounded-md">
 									<AlertTriangle className="w-4 h-4 text-vscode-inputValidation-warningForeground mt-0.5 flex-shrink-0" />
 									<div className="text-sm text-vscode-inputValidation-warningForeground">
 										<div>{t("settings:rules.overwriteWarning")}</div>
@@ -254,7 +254,7 @@ export const RulesSettings = ({ className, hasUnsavedChanges, ...props }: RulesS
 								</div>
 							)}
 
-							<div className="border-t border-vscode-panel-border pt-2">
+							<div className="border-t border-vscode-panel-border pt-2 space-y-2">
 								<label className="flex items-center gap-2 cursor-pointer hover:opacity-80">
 									<input
 										type="checkbox"
@@ -268,9 +268,7 @@ export const RulesSettings = ({ className, hasUnsavedChanges, ...props }: RulesS
 										</div>
 									</div>
 								</label>
-							</div>
 
-							<div className="border-t border-vscode-panel-border pt-2">
 								<label className="flex items-center gap-2 cursor-pointer hover:opacity-80">
 									<input
 										type="checkbox"
@@ -292,9 +290,7 @@ export const RulesSettings = ({ className, hasUnsavedChanges, ...props }: RulesS
 										</div>
 									</div>
 								</label>
-							</div>
 
-							<div className="border-t border-vscode-panel-border pt-4">
 								<label className="flex items-center gap-2 cursor-pointer hover:opacity-80">
 									<input
 										type="checkbox"
@@ -333,7 +329,7 @@ export const RulesSettings = ({ className, hasUnsavedChanges, ...props }: RulesS
 								)}
 							</div>
 
-							<div className="flex flex-col gap-3">
+							<div className="flex flex-col gap-2 mt-3">
 								<Select value={selectedApiConfig} onValueChange={setSelectedApiConfig}>
 									<SelectTrigger className="w-fit min-w-[5rem] max-w-[8rem]">
 										<SelectValue placeholder={t("settings:rules.selectApiConfig")} />
