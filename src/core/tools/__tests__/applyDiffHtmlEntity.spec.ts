@@ -32,6 +32,13 @@ describe("HTML Entity Handling in apply_diff Tools", () => {
 			api: {
 				getModel: vi.fn().mockReturnValue({ id: "gpt-4" }), // Non-Claude model
 			},
+			providerRef: {
+				deref: vi.fn().mockReturnValue({
+					getState: vi.fn().mockResolvedValue({
+						unescapeHtmlEntitiesInDiffs: false, // Default to false
+					}),
+				}),
+			},
 			diffStrategy: {
 				applyDiff: vi.fn().mockResolvedValue({
 					success: true,
@@ -254,6 +261,125 @@ describe("HTML Entity Handling in apply_diff Tools", () => {
 				diffContent,
 				NaN,
 			)
+		})
+	})
+
+	describe("Setting-based HTML entity unescaping", () => {
+		it("should unescape HTML entities when setting is enabled for non-Claude models", async () => {
+			// Enable the setting
+			mockCline.providerRef.deref.mockReturnValue({
+				getState: vi.fn().mockResolvedValue({
+					unescapeHtmlEntitiesInDiffs: true,
+				}),
+			})
+
+			const diffContent = `\<<<<<<< SEARCH
+-------
+// Comment with &amp; entity
+=======
+// Comment with &amp; entity updated
+>>>>>>> REPLACE`
+
+			mockBlock = {
+				params: {
+					path: "test.js",
+					diff: diffContent,
+				},
+				partial: false,
+			}
+
+			await applyDiffToolLegacy(
+				mockCline,
+				mockBlock,
+				mockAskApproval,
+				mockHandleError,
+				mockPushToolResult,
+				mockRemoveClosingTag,
+			)
+
+			// Verify that diffStrategy.applyDiff was called with unescaped content
+			const actualDiffContent = mockCline.diffStrategy.applyDiff.mock.calls[0][1]
+			expect(actualDiffContent).toContain("// Comment with & entity")
+			expect(actualDiffContent).toContain("// Comment with & entity updated")
+		})
+
+		it("should not unescape HTML entities when setting is disabled for non-Claude models", async () => {
+			// Disable the setting (default behavior)
+			mockCline.providerRef.deref.mockReturnValue({
+				getState: vi.fn().mockResolvedValue({
+					unescapeHtmlEntitiesInDiffs: false,
+				}),
+			})
+
+			const diffContent = `\<<<<<<< SEARCH
+-------
+// Comment with &amp; entity
+=======
+// Comment with &amp; entity updated
+>>>>>>> REPLACE`
+
+			mockBlock = {
+				params: {
+					path: "test.js",
+					diff: diffContent,
+				},
+				partial: false,
+			}
+
+			await applyDiffToolLegacy(
+				mockCline,
+				mockBlock,
+				mockAskApproval,
+				mockHandleError,
+				mockPushToolResult,
+				mockRemoveClosingTag,
+			)
+
+			// Verify that diffStrategy.applyDiff was called with original content (not unescaped)
+			const actualDiffContent = mockCline.diffStrategy.applyDiff.mock.calls[0][1]
+			expect(actualDiffContent).toContain("// Comment with &amp; entity")
+			expect(actualDiffContent).toContain("// Comment with &amp; entity updated")
+		})
+
+		it("should never unescape HTML entities for Claude models regardless of setting", async () => {
+			// Enable the setting
+			mockCline.providerRef.deref.mockReturnValue({
+				getState: vi.fn().mockResolvedValue({
+					unescapeHtmlEntitiesInDiffs: true,
+				}),
+			})
+
+			// Set up Claude model
+			mockCline.api.getModel.mockReturnValue({ id: "claude-3-sonnet" })
+
+			const diffContent = `\<<<<<<< SEARCH
+-------
+// Comment with &amp; entity
+=======
+// Comment with &amp; entity updated
+>>>>>>> REPLACE`
+
+			mockBlock = {
+				params: {
+					path: "test.js",
+					diff: diffContent,
+				},
+				partial: false,
+			}
+
+			await applyDiffToolLegacy(
+				mockCline,
+				mockBlock,
+				mockAskApproval,
+				mockHandleError,
+				mockPushToolResult,
+				mockRemoveClosingTag,
+			)
+
+			// Verify that diffStrategy.applyDiff was called with original content (not unescaped)
+			const actualDiffContent = mockCline.diffStrategy.applyDiff.mock.calls[0][1]
+			expect(actualDiffContent).toContain("// Comment with &amp; entity")
+			expect(actualDiffContent).toContain("// Comment with &amp; entity updated")
 		})
 	})
 })

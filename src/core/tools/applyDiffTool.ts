@@ -10,6 +10,7 @@ import { ToolUse, RemoveClosingTag, AskApproval, HandleError, PushToolResult } f
 import { formatResponse } from "../prompts/responses"
 import { fileExistsAtPath } from "../../utils/fs"
 import { RecordSource } from "../context-tracking/FileContextTrackerTypes"
+import { unescapeHtmlEntities } from "../../utils/text-normalization"
 
 export async function applyDiffToolLegacy(
 	cline: Task,
@@ -21,6 +22,16 @@ export async function applyDiffToolLegacy(
 ) {
 	const relPath: string | undefined = block.params.path
 	let diffContent: string | undefined = block.params.diff
+
+	// Apply HTML entity unescaping based on user setting
+	if (diffContent) {
+		const state = (await cline.providerRef.deref()?.getState()) ?? {}
+		const unescapeHtmlEntitiesInDiffs = (state as any).unescapeHtmlEntitiesInDiffs ?? false
+
+		if (unescapeHtmlEntitiesInDiffs && !cline.api.getModel().id.includes("claude")) {
+			diffContent = unescapeHtmlEntities(diffContent)
+		}
+	}
 
 	const sharedMessageProps: ClineSayTool = {
 		tool: "appliedDiff",

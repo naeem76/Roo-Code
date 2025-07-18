@@ -10,6 +10,7 @@ import { ToolUse, RemoveClosingTag, AskApproval, HandleError, PushToolResult } f
 import { formatResponse } from "../prompts/responses"
 import { fileExistsAtPath } from "../../utils/fs"
 import { RecordSource } from "../context-tracking/FileContextTrackerTypes"
+import { unescapeHtmlEntities } from "../../utils/text-normalization"
 import { parseXml } from "../../utils/xml"
 import { EXPERIMENT_IDS, experiments } from "../../shared/experiments"
 import { applyDiffToolLegacy } from "./applyDiffTool"
@@ -409,8 +410,17 @@ Original error: ${errorMessage}`
 				let successCount = 0
 				let formattedError = ""
 
-				// Use diff items as-is without HTML entity unescaping to prevent search mismatches
-				const processedDiffItems = diffItems
+				// Apply HTML entity unescaping based on user setting
+				let processedDiffItems = diffItems
+				const state = (await cline.providerRef.deref()?.getState()) ?? {}
+				const unescapeHtmlEntitiesInDiffs = (state as any).unescapeHtmlEntitiesInDiffs ?? false
+
+				if (unescapeHtmlEntitiesInDiffs && !cline.api.getModel().id.includes("claude")) {
+					processedDiffItems = diffItems.map((item) => ({
+						...item,
+						content: item.content ? unescapeHtmlEntities(item.content) : item.content,
+					}))
+				}
 
 				// Apply all diffs at once with the array-based method
 				const diffResult = (await cline.diffStrategy?.applyDiff(originalContent, processedDiffItems)) ?? {
