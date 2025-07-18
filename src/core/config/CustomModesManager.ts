@@ -352,170 +352,60 @@ export class CustomModesManager {
 	}
 
 	public async getCustomModes(): Promise<ModeConfig[]> {
-		try {
-			// Check if we have a valid cached result.
-			const now = Date.now()
+		// Check if we have a valid cached result.
+		const now = Date.now()
 
-			if (this.cachedModes && now - this.cachedAt < CustomModesManager.cacheTTL) {
-				logger.debug("Returning cached custom modes", { count: this.cachedModes.length })
-				return this.cachedModes
-			}
+		if (this.cachedModes && now - this.cachedAt < CustomModesManager.cacheTTL) {
+			return this.cachedModes
+		}
 
-			logger.debug("Loading custom modes from files")
+		// Get modes from settings file.
+		const settingsPath = await this.getCustomModesFilePath()
+		const settingsModes = await this.loadModesFromFile(settingsPath)
 
-			// Get modes from settings file.
-			const settingsPath = await this.getCustomModesFilePath()
-			const settingsModes = await this.loadModesFromFile(settingsPath)
+		// Get modes from .roomodes if it exists.
+		const roomodesPath = await this.getWorkspaceRoomodes()
+		const roomodesModes = roomodesPath ? await this.loadModesFromFile(roomodesPath) : []
 
-			// Get modes from .roomodes if it exists.
-			const roomodesPath = await this.getWorkspaceRoomodes()
-			const roomodesModes = roomodesPath ? await this.loadModesFromFile(roomodesPath) : []
+		// Create maps to store modes by source.
+		const projectModes = new Map<string, ModeConfig>()
+		const globalModes = new Map<string, ModeConfig>()
 
-			logger.debug("Loaded modes from files", {
-				settingsCount: settingsModes.length,
-				roomodesCount: roomodesModes.length,
-				settingsPath,
-				roomodesPath
-			})
+		// Add project modes (they take precedence).
+		for (const mode of roomodesModes) {
+			projectModes.set(mode.slug, { ...mode, source: "project" as const })
+		}
 
-			// Create maps to store modes by source.
-			const projectModes = new Map<string, ModeConfig>()
-			const globalModes = new Map<string, ModeConfig>()
-
-			// Add project modes (they take precedence).
-			for (const mode of roomodesModes) {
-				if (!mode.slug) {
-					logger.warn("Found mode without slug in roomodes, skipping", { mode })
-					continue
-				}
-				projectModes.set(mode.slug, { ...mode, source: "project" as const })
-			}
-
-			// Add global modes.
-			for (const mode of settingsModes) {
-				if (!mode.slug) {
-					logger.warn("Found mode without slug in settings, skipping", { mode })
-					continue
-				}
-				if (!projectModes.has(mode.slug)) {
-					globalModes.set(mode.slug, { ...mode, source: "global" as const })
-				}
-			}
-
-			// Combine modes in the correct order: project modes first, then global modes.
-			const mergedModes = [
-				...roomodesModes
-					.filter((mode) => mode.slug) // Defensive check
-					.map((mode) => ({ ...mode, source: "project" as const })),
-				...settingsModes
-					.filter((mode) => mode.slug && !projectModes.has(mode.slug)) // Defensive checks
-					.map((mode) => ({ ...mode, source: "global" as const })),
-			]
-
-			logger.debug("Merged custom modes", {
-				totalCount: mergedModes.length,
-				projectCount: projectModes.size,
-				globalCount: globalModes.size
-			})
-
-			// Validate merged modes before updating state
-			const validModes = mergedModes.filter((mode) => {
-				const isValid = mode.slug && mode.name && mode.roleDefinition && Array.isArray(mode.groups)
-				if (!isValid) {
-					logger.warn("Found invalid mode, filtering out", { mode })
-				}
-				return isValid
-			})
-
-			if (validModes.length !== mergedModes.length) {
-				logger.warn("Filtered out invalid modes", {
-					original: mergedModes.length,
-					valid: validModes.length
-				})
-			}
-
-			// Update global state with validated modes
-			await this.context.globalState.update("customModes", validModes)
-
-			// Update cache
-			this.cachedModes = validModes
-			this.cachedAt = now
-
-			logger.info("Successfully loaded custom modes", { count: validModes.length })
-			return validModes
-		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : String(error)
-			logger.error("Failed to get custom modes", { error: errorMessage })
-
-			// Try to recover from global state
-			try {
-				const fallbackModes = this.context.globalState.get("customModes", [])
-				logger.info("Recovered custom modes from global state", { count: fallbackModes.length })
-				
-				// Update cache with fallback data
-				this.cachedModes = fallbackModes
-				this.cachedAt = Date.now()
-				
-				return fallbackModes
-			} catch (recoveryError) {
-				logger.error("Failed to recover custom modes from global state", {
-					error: recoveryError instanceof Error ? recoveryError.message : String(recoveryError)
-				})
-				
-				// Return empty array as last resort
-				return []
+		// Add global modes.
+		for (const mode of settingsModes) {
+			if (!projectModes.has(mode.slug)) {
+				globalModes.set(mode.slug, { ...mode, source: "global" as const })
 			}
 		}
+
+		// Combine modes in the correct order: project modes first, then global modes.
+		const mergedModes = [
+			...roomodesModes.map((mode) => ({ ...mode, source: "project" as const })),
+			...settingsModes
+				.filter((mode) => !projectModes.has(mode.slug))
+				.map((mode) => ({ ...mode, source: "global" as const })),
+		]
+
+		await this.context.globalState.update("customModes", mergedModes)
+
+		this.cachedModes = mergedModes
+		this.cachedAt = now
+
+		return mergedModes
 	}
 
 	public async updateCustomMode(slug: string, config: ModeConfig): Promise<void> {
 		try {
-			// Comprehensive validation to prevent empty fields from being saved
-			const validationErrors: string[] = []
-			
-			// Validate required fields are not empty
-			if (!config.name || config.name.trim() === "") {
-				validationErrors.push("Mode name cannot be empty")
-			}
-			
-			if (!config.roleDefinition || config.roleDefinition.trim() === "") {
-				validationErrors.push("Role definition cannot be empty")
-			}
-			
-			if (!config.slug || config.slug.trim() === "") {
-				validationErrors.push("Mode slug cannot be empty")
-			}
-			
-			// Validate optional fields are not empty strings (they should be undefined if not provided)
-			if (config.description !== undefined && config.description.trim() === "") {
-				validationErrors.push("Description cannot be empty (use undefined instead)")
-			}
-			
-			if (config.whenToUse !== undefined && config.whenToUse.trim() === "") {
-				validationErrors.push("When to use cannot be empty (use undefined instead)")
-			}
-			
-			if (config.customInstructions !== undefined && config.customInstructions.trim() === "") {
-				validationErrors.push("Custom instructions cannot be empty (use undefined instead)")
-			}
-			
-			// Validate groups array is not empty
-			if (!config.groups || !Array.isArray(config.groups) || config.groups.length === 0) {
-				validationErrors.push("At least one tool group must be selected")
-			}
-			
-			// If we have validation errors, throw them
-			if (validationErrors.length > 0) {
-				const errorMessage = `Invalid mode configuration: ${validationErrors.join(", ")}`
-				logger.error(`Validation failed for mode ${slug}`, { errors: validationErrors })
-				throw new Error(errorMessage)
-			}
-			
-			// Use schema validation as a secondary check
+			// Validate the mode configuration before saving
 			const validationResult = modeConfigSchema.safeParse(config)
 			if (!validationResult.success) {
-				const errors = validationResult.error.errors.map((e: any) => e.message).join(", ")
-				logger.error(`Schema validation failed for mode ${slug}`, { errors: validationResult.error.errors })
+				const errors = validationResult.error.errors.map((e) => e.message).join(", ")
+				logger.error(`Invalid mode configuration for ${slug}`, { errors: validationResult.error.errors })
 				throw new Error(`Invalid mode configuration: ${errors}`)
 			}
 
@@ -543,43 +433,25 @@ export class CustomModesManager {
 			}
 
 			await this.queueWrite(async () => {
-				try {
-					// Ensure source is set correctly based on target file.
-					const modeWithSource = {
-						...config,
-						source: isProjectMode ? ("project" as const) : ("global" as const),
-					}
-
-					await this.updateModesInFile(targetPath, (modes) => {
-						const updatedModes = modes.filter((m) => m.slug !== slug)
-						updatedModes.push(modeWithSource)
-						return updatedModes
-					})
-
-					// Refresh state before clearing cache to ensure consistency
-					await this.refreshMergedState()
-					this.clearCache()
-					
-					// Log successful update for debugging
-					logger.info(`Successfully updated custom mode: ${slug}`, {
-						source: modeWithSource.source,
-						targetPath
-					})
-				} catch (writeError) {
-					// If file write fails, ensure cache is still cleared to prevent stale data
-					this.clearCache()
-					throw writeError
+				// Ensure source is set correctly based on target file.
+				const modeWithSource = {
+					...config,
+					source: isProjectMode ? ("project" as const) : ("global" as const),
 				}
+
+				await this.updateModesInFile(targetPath, (modes) => {
+					const updatedModes = modes.filter((m) => m.slug !== slug)
+					updatedModes.push(modeWithSource)
+					return updatedModes
+				})
+
+				this.clearCache()
+				await this.refreshMergedState()
 			})
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error)
 			logger.error("Failed to update custom mode", { slug, error: errorMessage })
-			
-			// Clear cache on error to prevent inconsistent state
-			this.clearCache()
-			
 			vscode.window.showErrorMessage(t("common:customModes.errors.updateFailed", { error: errorMessage }))
-			throw error // Re-throw to allow caller to handle
 		}
 	}
 
@@ -615,52 +487,18 @@ export class CustomModesManager {
 	}
 
 	private async refreshMergedState(): Promise<void> {
-		try {
-			const settingsPath = await this.getCustomModesFilePath()
-			const roomodesPath = await this.getWorkspaceRoomodes()
+		const settingsPath = await this.getCustomModesFilePath()
+		const roomodesPath = await this.getWorkspaceRoomodes()
 
-			logger.debug("Refreshing merged state", { settingsPath, roomodesPath })
+		const settingsModes = await this.loadModesFromFile(settingsPath)
+		const roomodesModes = roomodesPath ? await this.loadModesFromFile(roomodesPath) : []
+		const mergedModes = await this.mergeCustomModes(roomodesModes, settingsModes)
 
-			const settingsModes = await this.loadModesFromFile(settingsPath)
-			const roomodesModes = roomodesPath ? await this.loadModesFromFile(roomodesPath) : []
-			const mergedModes = await this.mergeCustomModes(roomodesModes, settingsModes)
+		await this.context.globalState.update("customModes", mergedModes)
 
-			logger.debug("Merged modes loaded", {
-				settingsCount: settingsModes.length,
-				roomodesCount: roomodesModes.length,
-				mergedCount: mergedModes.length
-			})
+		this.clearCache()
 
-			// Update global state with merged modes
-			await this.context.globalState.update("customModes", mergedModes)
-
-			// Update cache with fresh data
-			this.cachedModes = mergedModes
-			this.cachedAt = Date.now()
-
-			// Notify listeners of the update
-			await this.onUpdate()
-		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : String(error)
-			logger.error("Failed to refresh merged state", { error: errorMessage })
-			
-			// On error, clear cache to prevent stale data
-			this.clearCache()
-			
-			// Try to recover by loading from global state
-			try {
-				const fallbackModes = this.context.globalState.get("customModes", [])
-				logger.info("Recovered custom modes from global state", { count: fallbackModes.length })
-				this.cachedModes = fallbackModes
-				this.cachedAt = Date.now()
-			} catch (recoveryError) {
-				logger.error("Failed to recover custom modes from global state", {
-					error: recoveryError instanceof Error ? recoveryError.message : String(recoveryError)
-				})
-			}
-			
-			throw error
-		}
+		await this.onUpdate()
 	}
 
 	public async deleteCustomMode(slug: string): Promise<void> {
@@ -891,10 +729,10 @@ export class CustomModesManager {
 
 			// Merge custom prompts if provided
 			if (customPrompts) {
-				if (customPrompts.roleDefinition) (exportMode as any).roleDefinition = customPrompts.roleDefinition
-				if (customPrompts.description) (exportMode as any).description = customPrompts.description
-				if (customPrompts.whenToUse) (exportMode as any).whenToUse = customPrompts.whenToUse
-				if (customPrompts.customInstructions) (exportMode as any).customInstructions = customPrompts.customInstructions
+				if (customPrompts.roleDefinition) exportMode.roleDefinition = customPrompts.roleDefinition
+				if (customPrompts.description) exportMode.description = customPrompts.description
+				if (customPrompts.whenToUse) exportMode.whenToUse = customPrompts.whenToUse
+				if (customPrompts.customInstructions) exportMode.customInstructions = customPrompts.customInstructions
 			}
 
 			// Add rules files if any exist
@@ -961,24 +799,24 @@ export class CustomModesManager {
 				// Validate the mode configuration
 				const validationResult = modeConfigSchema.safeParse(modeConfig)
 				if (!validationResult.success) {
-					logger.error(`Invalid mode configuration for ${(modeConfig as any).slug}`, {
+					logger.error(`Invalid mode configuration for ${modeConfig.slug}`, {
 						errors: validationResult.error.errors,
 					})
 					return {
 						success: false,
-						error: `Invalid mode configuration for ${(modeConfig as any).slug}: ${validationResult.error.errors.map((e: any) => e.message).join(", ")}`,
+						error: `Invalid mode configuration for ${modeConfig.slug}: ${validationResult.error.errors.map((e) => e.message).join(", ")}`,
 					}
 				}
 
 				// Check for existing mode conflicts
 				const existingModes = await this.getCustomModes()
-				const existingMode = existingModes.find((m) => m.slug === (importMode as any).slug)
+				const existingMode = existingModes.find((m) => m.slug === importMode.slug)
 				if (existingMode) {
-					logger.info(`Overwriting existing mode: ${(importMode as any).slug}`)
+					logger.info(`Overwriting existing mode: ${importMode.slug}`)
 				}
 
 				// Import the mode configuration with the specified source
-				await this.updateCustomMode((importMode as any).slug, {
+				await this.updateCustomMode(importMode.slug, {
 					...modeConfig,
 					source: source, // Use the provided source parameter
 				})
@@ -989,13 +827,13 @@ export class CustomModesManager {
 
 					// Always remove the existing rules folder for this mode if it exists
 					// This ensures that if the imported mode has no rules, the folder is cleaned up
-					const rulesFolderPath = path.join(workspacePath, ".roo", `rules-${(importMode as any).slug}`)
+					const rulesFolderPath = path.join(workspacePath, ".roo", `rules-${importMode.slug}`)
 					try {
 						await fs.rm(rulesFolderPath, { recursive: true, force: true })
-						logger.info(`Removed existing rules folder for mode ${(importMode as any).slug}`)
+						logger.info(`Removed existing rules folder for mode ${importMode.slug}`)
 					} catch (error) {
 						// It's okay if the folder doesn't exist
-						logger.debug(`No existing rules folder to remove for mode ${(importMode as any).slug}`)
+						logger.debug(`No existing rules folder to remove for mode ${importMode.slug}`)
 					}
 
 					// Only create new rules files if they exist in the import
@@ -1037,13 +875,13 @@ export class CustomModesManager {
 
 					// Always remove the existing rules folder for this mode if it exists
 					// This ensures that if the imported mode has no rules, the folder is cleaned up
-					const rulesFolderPath = path.join(globalRooDir, `rules-${(importMode as any).slug}`)
+					const rulesFolderPath = path.join(globalRooDir, `rules-${importMode.slug}`)
 					try {
 						await fs.rm(rulesFolderPath, { recursive: true, force: true })
-						logger.info(`Removed existing global rules folder for mode ${(importMode as any).slug}`)
+						logger.info(`Removed existing global rules folder for mode ${importMode.slug}`)
 					} catch (error) {
 						// It's okay if the folder doesn't exist
-						logger.debug(`No existing global rules folder to remove for mode ${(importMode as any).slug}`)
+						logger.debug(`No existing global rules folder to remove for mode ${importMode.slug}`)
 					}
 
 					// Import the new rules files with path validation
