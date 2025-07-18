@@ -1904,6 +1904,8 @@ export const webviewMessageHandler = async (
 				const addToGitignore = message.addToGitignore || false
 				const alwaysAllowWriteProtected = message.alwaysAllowWriteProtected || false
 				const apiConfigName = message.apiConfigName
+				const includeCustomRules = message.includeCustomRules || false
+				const customRulesText = message.customRulesText || ""
 
 				// Save current API config to restore later
 				const currentApiConfig = getGlobalState("currentApiConfigName")
@@ -1920,6 +1922,8 @@ export const webviewMessageHandler = async (
 					selectedRuleTypes,
 					addToGitignore,
 					alwaysAllowWriteProtected,
+					includeCustomRules,
+					customRulesText,
 				)
 
 				// Spawn a new task in code mode to generate the rules
@@ -1954,7 +1958,7 @@ export const webviewMessageHandler = async (
 			}
 			break
 		case "checkExistingRuleFiles":
-			// Check which rule files already exist
+			// Check which rule files already exist and count source files
 			try {
 				const workspacePath = getWorkspacePath()
 				if (!workspacePath) {
@@ -1963,6 +1967,7 @@ export const webviewMessageHandler = async (
 
 				const { fileExistsAtPath } = await import("../../utils/fs")
 				const path = await import("path")
+				const fs = await import("fs/promises")
 
 				const ruleTypeToPath: Record<string, string> = {
 					general: path.join(workspacePath, ".roo", "rules", "coding-standards.md"),
@@ -1984,9 +1989,28 @@ export const webviewMessageHandler = async (
 					}
 				}
 
+				// Count all files in the workspace
+				let sourceFileCount = 0
+				try {
+					// Use VS Code API to count all files
+					const vscode = await import("vscode")
+
+					// Find all files (excluding common non-project files)
+					const pattern = "**/*"
+					const excludePattern =
+						"**/node_modules/**,**/.git/**,**/dist/**,**/build/**,**/.next/**,**/.nuxt/**,**/coverage/**,**/.cache/**"
+
+					const files = await vscode.workspace.findFiles(pattern, excludePattern)
+					sourceFileCount = files.length
+				} catch (error) {
+					// If counting fails, set to -1 to indicate unknown
+					sourceFileCount = -1
+				}
+
 				await provider.postMessageToWebview({
 					type: "existingRuleFiles",
 					files: existingFiles,
+					sourceFileCount,
 				})
 			} catch (error) {
 				// Silently fail - not critical

@@ -9,6 +9,8 @@ export async function createRulesGenerationTaskMessage(
 	selectedRuleTypes: string[],
 	addToGitignore: boolean,
 	alwaysAllowWriteProtected: boolean = false,
+	includeCustomRules: boolean = false,
+	customRulesText: string = "",
 ): Promise<string> {
 	// Only create directories if auto-approve is enabled
 	if (alwaysAllowWriteProtected) {
@@ -135,7 +137,7 @@ ${ruleInstructions
    - Project-specific conventions and best practices
    - File organization patterns
 
-5. **Keep rules concise** - aim for 20-30 lines per file, focusing on the most important guidelines
+5. **Keep rules concise** - aim for 20 lines per file, focusing on the most important guidelines
 
 6. **Open the generated files** in the editor for review after creation
 
@@ -148,6 +150,12 @@ ${
    - Add each generated file path to .gitignore (e.g., .roo/rules/coding-standards.md)
    - If .gitignore doesn't exist, create it
    - If the entries already exist in .gitignore, don't duplicate them`
+		: ""
+}
+
+${
+	includeCustomRules && customRulesText
+		? `\n**Additional rules from User to add to the rules file:**\n${customRulesText}`
 		: ""
 }`
 

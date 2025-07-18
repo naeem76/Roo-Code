@@ -6,6 +6,7 @@ import { vscode } from "@/utils/vscode"
 import { cn } from "@/lib/utils"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, StandardTooltip } from "@/components/ui"
+import { VSCodeTextArea } from "@vscode/webview-ui-toolkit/react"
 
 import { SectionHeader } from "./SectionHeader"
 import { Section } from "./Section"
@@ -29,10 +30,13 @@ export const RulesSettings = ({ className, hasUnsavedChanges, ...props }: RulesS
 		type: "success" | "error" | null
 		message: string
 	}>({ type: null, message: "" })
-	const [addToGitignore, setAddToGitignore] = useState(false)
+	const [addToGitignore, setAddToGitignore] = useState(true)
 	const [_existingFiles, setExistingFiles] = useState<string[]>([])
-	const [alwaysAllowWriteProtected, setAlwaysAllowWriteProtected] = useState(false)
+	const [alwaysAllowWriteProtected, setAlwaysAllowWriteProtected] = useState(true)
 	const [selectedApiConfig, setSelectedApiConfig] = useState<string>("")
+	const [includeCustomRules, setIncludeCustomRules] = useState(false)
+	const [customRulesText, setCustomRulesText] = useState("")
+	const [sourceFileCount, setSourceFileCount] = useState<number | null>(null)
 
 	const { listApiConfigMeta, currentApiConfigName } = useExtensionState()
 
@@ -118,6 +122,10 @@ export const RulesSettings = ({ className, hasUnsavedChanges, ...props }: RulesS
 						exists: message.files?.includes(rule.id) || false,
 					})),
 				)
+				// Set source file count if provided
+				if (message.sourceFileCount !== undefined) {
+					setSourceFileCount(message.sourceFileCount)
+				}
 			} else if (message.type === "state") {
 				// Update alwaysAllowWriteProtected from the extension state
 				if (message.state?.alwaysAllowWriteProtected !== undefined) {
@@ -150,6 +158,8 @@ export const RulesSettings = ({ className, hasUnsavedChanges, ...props }: RulesS
 			addToGitignore,
 			alwaysAllowWriteProtected,
 			apiConfigName: selectedApiConfig,
+			includeCustomRules,
+			customRulesText: includeCustomRules ? customRulesText : "",
 		})
 	}
 
@@ -221,6 +231,15 @@ export const RulesSettings = ({ className, hasUnsavedChanges, ...props }: RulesS
 								</div>
 							</div>
 
+							{/* Small repository warning */}
+							{sourceFileCount !== null && sourceFileCount > 0 && sourceFileCount < 20 && (
+								<div className="flex items-start gap-2 p-3 bg-vscode-inputValidation-warningBackground border border-vscode-inputValidation-warningBorder rounded-md">
+									<AlertTriangle className="w-4 h-4 text-vscode-inputValidation-warningForeground mt-0.5 flex-shrink-0" />
+									<div className="text-sm text-vscode-inputValidation-warningForeground">
+										{t("settings:rules.smallRepoWarning", { count: sourceFileCount })}
+									</div>
+								</div>
+							)}
 							{hasExistingFiles && (
 								<div className="flex items-start gap-2 p-3 bg-vscode-inputValidation-warningBackground border border-vscode-inputValidation-warningBorder rounded-md">
 									<AlertTriangle className="w-4 h-4 text-vscode-inputValidation-warningForeground mt-0.5 flex-shrink-0" />
@@ -235,7 +254,7 @@ export const RulesSettings = ({ className, hasUnsavedChanges, ...props }: RulesS
 								</div>
 							)}
 
-							<div className="border-t border-vscode-panel-border pt-4">
+							<div className="border-t border-vscode-panel-border pt-2">
 								<label className="flex items-center gap-2 cursor-pointer hover:opacity-80">
 									<input
 										type="checkbox"
@@ -251,7 +270,7 @@ export const RulesSettings = ({ className, hasUnsavedChanges, ...props }: RulesS
 								</label>
 							</div>
 
-							<div className="border-t border-vscode-panel-border pt-4">
+							<div className="border-t border-vscode-panel-border pt-2">
 								<label className="flex items-center gap-2 cursor-pointer hover:opacity-80">
 									<input
 										type="checkbox"
@@ -273,6 +292,45 @@ export const RulesSettings = ({ className, hasUnsavedChanges, ...props }: RulesS
 										</div>
 									</div>
 								</label>
+							</div>
+
+							<div className="border-t border-vscode-panel-border pt-4">
+								<label className="flex items-center gap-2 cursor-pointer hover:opacity-80">
+									<input
+										type="checkbox"
+										checked={includeCustomRules}
+										onChange={(e) => setIncludeCustomRules(e.target.checked)}
+									/>
+									<div>
+										<div className="text-sm font-medium">
+											{t("settings:rules.includeCustomRules")}
+										</div>
+										<div className="text-xs text-vscode-descriptionForeground">
+											{t("settings:rules.includeCustomRulesDescription")}
+										</div>
+									</div>
+								</label>
+
+								{includeCustomRules && (
+									<div className="mt-3 pl-6">
+										<VSCodeTextArea
+											resize="vertical"
+											value={customRulesText}
+											onChange={(e) => {
+												const value =
+													(e as unknown as CustomEvent)?.detail?.target?.value ||
+													((e as any).target as HTMLTextAreaElement).value
+												setCustomRulesText(value)
+											}}
+											placeholder={t("settings:rules.customRulesPlaceholder")}
+											rows={6}
+											className="w-full"
+										/>
+										<div className="text-xs text-vscode-descriptionForeground mt-1">
+											{t("settings:rules.customRulesHint")}
+										</div>
+									</div>
+								)}
 							</div>
 
 							<div className="flex flex-col gap-3">

@@ -241,6 +241,8 @@ export interface WebviewMessage {
 	addToGitignore?: boolean // For generateRules
 	alwaysAllowWriteProtected?: boolean // For generateRules
 	apiConfigName?: string // For generateRules
+	includeCustomRules?: boolean // For generateRules
+	customRulesText?: string // For generateRules
 	files?: string[] // For existingRuleFiles response
 	codeIndexSettings?: {
 		// Global state settings
