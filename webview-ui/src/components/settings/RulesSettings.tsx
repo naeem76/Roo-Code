@@ -1,6 +1,6 @@
 import { HTMLAttributes, useState, useEffect } from "react"
 import { useAppTranslation } from "@/i18n/TranslationContext"
-import { FileText, Loader2, AlertTriangle, Info } from "lucide-react"
+import { FileText, Loader2, AlertTriangle, Info, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { vscode } from "@/utils/vscode"
 import { cn } from "@/lib/utils"
@@ -156,7 +156,7 @@ export const RulesSettings = ({ className, ...props }: RulesSettingsProps) => {
 
 	return (
 		<div className={cn("flex flex-col gap-2", className)} {...props}>
-			<SectionHeader>
+			<SectionHeader description={t("settings:rules.description")}>
 				<div className="flex items-center gap-2">
 					<FileText className="w-4" />
 					<div>{t("settings:rules.title")}</div>
@@ -164,132 +164,135 @@ export const RulesSettings = ({ className, ...props }: RulesSettingsProps) => {
 			</SectionHeader>
 
 			<Section>
-				<div className="space-y-4">
-					<p className="text-vscode-descriptionForeground text-sm">{t("settings:rules.description")}</p>
-
-					{/* Recommendation box */}
-					<div className="flex items-start gap-2 p-3 bg-vscode-inputValidation-infoBackground border border-vscode-inputValidation-infoBorder rounded-md">
-						<Info className="w-4 h-4 text-vscode-inputValidation-infoForeground mt-0.5 flex-shrink-0" />
-						<div className="text-sm text-vscode-inputValidation-infoForeground">
-							{t("settings:rules.autoApproveRecommendation")}
+				<div className="space-y-6">
+					{/* Magic Rules Generation subsection */}
+					<div className="flex flex-col gap-3">
+						<div className="flex flex-col gap-1">
+							<div className="flex items-center gap-2 font-bold">
+								<Sparkles className="w-4 h-4" />
+								<div>{t("settings:rules.magicGeneration.title")}</div>
+							</div>
+							<div className="text-vscode-descriptionForeground">
+								{t("settings:rules.magicGeneration.description")}
+							</div>
 						</div>
-					</div>
+						<div className="flex flex-col gap-4 pl-3 border-l-2 border-vscode-button-background">
+							{/* Recommendation box */}
+							<div className="flex items-start gap-2 p-3 bg-vscode-inputValidation-infoBackground border border-vscode-inputValidation-infoBorder rounded-md">
+								<Info className="w-4 h-4 text-vscode-inputValidation-infoForeground mt-0.5 flex-shrink-0" />
+								<div className="text-sm text-vscode-inputValidation-infoForeground">
+									{t("settings:rules.autoApproveRecommendation")}
+								</div>
+							</div>
 
-					<div className="space-y-4">
-						<div>
-							<h4 className="text-sm font-medium mb-3">{t("settings:rules.selectTypes")}</h4>
-							<div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-2">
-								{ruleTypes.map((ruleType) => (
-									<div
-										key={ruleType.id}
-										onClick={() => handleRuleTypeToggle(ruleType.id)}
-										className={cn(
-											"relative p-3 rounded-md border cursor-pointer transition-all",
-											"hover:border-vscode-focusBorder",
-											ruleType.checked
-												? "bg-vscode-list-activeSelectionBackground border-vscode-focusBorder"
-												: "bg-vscode-editor-background border-vscode-panel-border",
-										)}>
-										<div className="flex-1">
-											<div className="text-sm font-medium flex items-center gap-1">
-												{ruleType.label}
-												{ruleType.exists && (
-													<span
-														className="text-vscode-testing-iconQueued"
-														title={t("settings:rules.fileExists")}>
-														•
-													</span>
-												)}
-											</div>
-											<div className="text-xs text-vscode-descriptionForeground mt-1">
-												{ruleType.description}
+							<div>
+								<h4 className="text-sm font-medium mb-3">{t("settings:rules.selectTypes")}</h4>
+								<div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-2">
+									{ruleTypes.map((ruleType) => (
+										<div
+											key={ruleType.id}
+											onClick={() => handleRuleTypeToggle(ruleType.id)}
+											className={cn(
+												"relative p-3 rounded-md border cursor-pointer transition-all",
+												"hover:border-vscode-focusBorder",
+												ruleType.checked
+													? "bg-vscode-list-activeSelectionBackground border-vscode-focusBorder"
+													: "bg-vscode-editor-background border-vscode-panel-border",
+											)}>
+											<div className="flex-1">
+												<div className="text-sm font-medium flex items-center gap-1">
+													{ruleType.label}
+													{ruleType.exists && (
+														<span
+															className="text-vscode-testing-iconQueued"
+															title={t("settings:rules.fileExists")}>
+															•
+														</span>
+													)}
+												</div>
+												<div className="text-xs text-vscode-descriptionForeground mt-1">
+													{ruleType.description}
+												</div>
 											</div>
 										</div>
-									</div>
-								))}
-							</div>
-						</div>
-
-						{hasExistingFiles && (
-							<div className="flex items-start gap-2 p-3 bg-vscode-inputValidation-warningBackground border border-vscode-inputValidation-warningBorder rounded-md">
-								<AlertTriangle className="w-4 h-4 text-vscode-inputValidation-warningForeground mt-0.5 flex-shrink-0" />
-								<div className="text-sm text-vscode-inputValidation-warningForeground">
-									<div>{t("settings:rules.overwriteWarning")}</div>
-									<ul className="mt-1 ml-4 list-disc">
-										{existingRules.map((rule) => (
-											<li key={rule.id}>{rule.label}</li>
-										))}
-									</ul>
+									))}
 								</div>
 							</div>
-						)}
 
-						<div className="border-t border-vscode-panel-border pt-4">
-							<label className="flex items-center gap-2 cursor-pointer hover:opacity-80">
-								<input
-									type="checkbox"
-									checked={addToGitignore}
-									onChange={(e) => setAddToGitignore(e.target.checked)}
-								/>
-								<div>
-									<div className="text-sm font-medium">{t("settings:rules.addToGitignore")}</div>
-									<div className="text-xs text-vscode-descriptionForeground">
-										{t("settings:rules.addToGitignoreDescription")}
-									</div>
-								</div>
-							</label>
-						</div>
-
-						<div className="border-t border-vscode-panel-border pt-4">
-							<label className="flex items-center gap-2 cursor-pointer hover:opacity-80">
-								<input
-									type="checkbox"
-									checked={alwaysAllowWriteProtected}
-									onChange={(e) => {
-										setAlwaysAllowWriteProtected(e.target.checked)
-										vscode.postMessage({
-											type: "alwaysAllowWriteProtected",
-											bool: e.target.checked,
-										})
-									}}
-								/>
-								<div>
-									<div className="text-sm font-medium">
-										{t("settings:rules.autoApproveProtected")}
-									</div>
-									<div className="text-xs text-vscode-descriptionForeground">
-										{t("settings:rules.autoApproveProtectedDescription")}
-									</div>
-								</div>
-							</label>
-						</div>
-
-						<div className="space-y-4">
-							<div className="flex items-center gap-3">
-								<div className="w-48">
-									<label className="text-sm font-medium mb-2 block">
-										{t("settings:rules.apiConfigLabel")}
-									</label>
-									<Select value={selectedApiConfig} onValueChange={setSelectedApiConfig}>
-										<SelectTrigger>
-											<SelectValue placeholder={t("settings:rules.selectApiConfig")} />
-										</SelectTrigger>
-										<SelectContent>
-											{(listApiConfigMeta || []).map((config) => (
-												<SelectItem key={config.id} value={config.name}>
-													{config.name}
-												</SelectItem>
+							{hasExistingFiles && (
+								<div className="flex items-start gap-2 p-3 bg-vscode-inputValidation-warningBackground border border-vscode-inputValidation-warningBorder rounded-md">
+									<AlertTriangle className="w-4 h-4 text-vscode-inputValidation-warningForeground mt-0.5 flex-shrink-0" />
+									<div className="text-sm text-vscode-inputValidation-warningForeground">
+										<div>{t("settings:rules.overwriteWarning")}</div>
+										<ul className="mt-1 ml-4 list-disc">
+											{existingRules.map((rule) => (
+												<li key={rule.id}>{rule.label}</li>
 											))}
-										</SelectContent>
-									</Select>
+										</ul>
+									</div>
 								</div>
+							)}
+
+							<div className="border-t border-vscode-panel-border pt-4">
+								<label className="flex items-center gap-2 cursor-pointer hover:opacity-80">
+									<input
+										type="checkbox"
+										checked={addToGitignore}
+										onChange={(e) => setAddToGitignore(e.target.checked)}
+									/>
+									<div>
+										<div className="text-sm font-medium">{t("settings:rules.addToGitignore")}</div>
+										<div className="text-xs text-vscode-descriptionForeground">
+											{t("settings:rules.addToGitignoreDescription")}
+										</div>
+									</div>
+								</label>
+							</div>
+
+							<div className="border-t border-vscode-panel-border pt-4">
+								<label className="flex items-center gap-2 cursor-pointer hover:opacity-80">
+									<input
+										type="checkbox"
+										checked={alwaysAllowWriteProtected}
+										onChange={(e) => {
+											setAlwaysAllowWriteProtected(e.target.checked)
+											vscode.postMessage({
+												type: "alwaysAllowWriteProtected",
+												bool: e.target.checked,
+											})
+										}}
+									/>
+									<div>
+										<div className="text-sm font-medium">
+											{t("settings:rules.autoApproveProtected")}
+										</div>
+										<div className="text-xs text-vscode-descriptionForeground">
+											{t("settings:rules.autoApproveProtectedDescription")}
+										</div>
+									</div>
+								</label>
+							</div>
+
+							<div className="flex flex-col gap-3">
+								<Select value={selectedApiConfig} onValueChange={setSelectedApiConfig}>
+									<SelectTrigger className="w-fit min-w-[5rem] max-w-[8rem]">
+										<SelectValue placeholder={t("settings:rules.selectApiConfig")} />
+									</SelectTrigger>
+									<SelectContent>
+										{(listApiConfigMeta || []).map((config) => (
+											<SelectItem key={config.id} value={config.name}>
+												{config.name}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
 
 								<Button
 									onClick={handleGenerateRules}
 									disabled={isGenerating || !selectedApiConfig}
 									variant="default"
 									size="default"
-									className="mt-6"
+									className="w-full"
 									title={t("settings:rules.generateButtonTooltip")}>
 									{isGenerating ? (
 										<>
@@ -304,29 +307,29 @@ export const RulesSettings = ({ className, ...props }: RulesSettingsProps) => {
 									)}
 								</Button>
 							</div>
-						</div>
 
-						{isGenerating && (
-							<p className="text-vscode-descriptionForeground text-sm">
-								{t("settings:rules.creatingTaskDescription")}
-							</p>
-						)}
-
-						{generationStatus.type === "success" && (
-							<div className="text-vscode-testing-iconPassed text-sm">
-								<p>{t("settings:rules.taskCreated")}</p>
-								<p className="text-vscode-descriptionForeground">{generationStatus.message}</p>
-							</div>
-						)}
-
-						{generationStatus.type === "error" && (
-							<div className="text-vscode-testing-iconFailed text-sm">
-								<p>{t("settings:rules.error")}</p>
-								<p className="text-vscode-descriptionForeground">
-									{t("settings:rules.errorDescription", { error: generationStatus.message })}
+							{isGenerating && (
+								<p className="text-vscode-descriptionForeground text-sm">
+									{t("settings:rules.creatingTaskDescription")}
 								</p>
-							</div>
-						)}
+							)}
+
+							{generationStatus.type === "success" && (
+								<div className="text-vscode-testing-iconPassed text-sm">
+									<p>{t("settings:rules.taskCreated")}</p>
+									<p className="text-vscode-descriptionForeground">{generationStatus.message}</p>
+								</div>
+							)}
+
+							{generationStatus.type === "error" && (
+								<div className="text-vscode-testing-iconFailed text-sm">
+									<p>{t("settings:rules.error")}</p>
+									<p className="text-vscode-descriptionForeground">
+										{t("settings:rules.errorDescription", { error: generationStatus.message })}
+									</p>
+								</div>
+							)}
+						</div>
 					</div>
 				</div>
 			</Section>
