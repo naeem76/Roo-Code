@@ -311,34 +311,6 @@
 				"description": "Sıcaklık, top-p ve diğer gelişmiş ayarları yapın."
 			}
 		},
-		"geminiSections": {
-			"modelParameters": {
-				"title": "Çıktı Kontrolleri",
-				"description": "topP, topK ve maxOutputTokens'e ince ayar yapın"
-			}
-		},
-		"geminiParameters": {
-			"topK": {
-				"title": "En K",
-				"description": "Düşük bir değer metni daha öngörülebilir hale getirirken, yüksek bir değer onu daha yaratıcı hale getirir."
-			},
-			"topP": {
-				"title": "En P",
-				"description": "Düşük bir değer daha odaklanmış metne yol açarken, yüksek bir değer daha çeşitli sonuçlara neden olur."
-			},
-			"maxOutputTokens": {
-				"title": "Maksimum Çıkış Jetonu",
-				"description": "Bu parametre, modelin oluşturmasına izin verilen yanıtın maksimum uzunluğunu ayarlar."
-			},
-			"urlContext": {
-				"title": "URL Bağlamını Etkinleştir",
-				"description": "Gemini'nin bağlantılı sayfaları okuyarak içeriklerini çıkarmasına, karşılaştırmasına ve bilgili yanıtlara sentezlemesine olanak tanır."
-			},
-			"groundingSearch": {
-				"title": "Google Arama ile Topraklamayı Etkinleştir",
-				"description": "Doğrulanabilir alıntılarla doğru, güncel yanıtlar için Gemini'yi gerçek zamanlı web verilerine bağlar."
-			}
-		},
 		"googleCloudSetup": {
 			"title": "Google Cloud Vertex AI'yi kullanmak için şunları yapmanız gerekir:",
 			"step1": "1. Google Cloud hesabı oluşturun, Vertex AI API'sini etkinleştirin ve istediğiniz Claude modellerini etkinleştirin.",

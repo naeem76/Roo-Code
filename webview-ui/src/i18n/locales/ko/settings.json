@@ -311,34 +311,6 @@
 				"description": "온도, top-p 및 기타 고급 설정을 조정합니다."
 			}
 		},
-		"geminiSections": {
-			"modelParameters": {
-				"title": "출력 제어",
-				"description": "topP, topK 및 maxOutputTokens 미세 조정"
-			}
-		},
-		"geminiParameters": {
-			"topK": {
-				"title": "상위 K",
-				"description": "값이 낮으면 텍스트를 더 예측하기 쉬워지고, 값이 높으면 더 창의적으로 만듭니다."
-			},
-			"topP": {
-				"title": "상위 P",
-				"description": "값이 낮으면 더 집중된 텍스트가 되고, 값이 높으면 더 다양한 결과가 나옵니다."
-			},
-			"maxOutputTokens": {
-				"title": "최대 출력 토큰",
-				"description": "이 매개변수는 모델이 생성할 수 있는 응답의 최대 길이를 설정합니다."
-			},
-			"urlContext": {
-				"title": "URL 컨텍스트 활성화",
-				"description": "Gemini가 연결된 페이지를 읽고 콘텐츠를 추출, 비교 및 종합하여 정보에 입각한 응답을 생성하도록 합니다."
-			},
-			"groundingSearch": {
-				"title": "Google 검색으로 그라운딩 활성화",
-				"description": "Gemini를 실시간 웹 데이터에 연결하여 검증 가능한 인용과 함께 정확하고 최신 답변을 제공합니다."
-			}
-		},
 		"googleCloudSetup": {
 			"title": "Google Cloud Vertex AI를 사용하려면:",
 			"step1": "1. Google Cloud 계정을 만들고, Vertex AI API를 활성화하고, 원하는 Claude 모델을 활성화하세요.",

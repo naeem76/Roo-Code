@@ -311,34 +311,6 @@
 				"description": "Ajusta la temperatura, top-p y otros parámetros avanzados."
 			}
 		},
-		"geminiSections": {
-			"modelParameters": {
-				"title": "Controles de Salida",
-				"description": "Ajusta topP, topK y maxOutputTokens"
-			}
-		},
-		"geminiParameters": {
-			"topK": {
-				"title": "Top K",
-				"description": "Un valor bajo hace que el texto sea más predecible, mientras que un valor alto lo hace más creativo."
-			},
-			"topP": {
-				"title": "Top P",
-				"description": "Un valor bajo conduce a un texto más enfocado, mientras que un valor alto da como resultado resultados más diversos."
-			},
-			"maxOutputTokens": {
-				"title": "Máximo de Tokens de Salida",
-				"description": "Este parámetro establece la longitud máxima de la respuesta que el modelo puede generar."
-			},
-			"urlContext": {
-				"title": "Habilitar Contexto de URL",
-				"description": "Permite a Gemini leer páginas enlazadas para extraer, comparar y sintetizar su contenido en respuestas informadas."
-			},
-			"groundingSearch": {
-				"title": "Habilitar Grounding con Búsqueda de Google",
-				"description": "Conecta a Gemini con datos web en tiempo real para obtener respuestas precisas y actualizadas con citas verificables."
-			}
-		},
 		"googleCloudSetup": {
 			"title": "Para usar Google Cloud Vertex AI, necesita:",
 			"step1": "1. Crear una cuenta de Google Cloud, habilitar la API de Vertex AI y habilitar los modelos Claude deseados.",
