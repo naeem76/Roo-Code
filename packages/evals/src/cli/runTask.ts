@@ -304,9 +304,10 @@ export const runTask = async ({ run, task, publish, logger }: RunTaskOptions) =>
 	})
 
 	try {
+		const timeoutMs = (run.timeout || 5) * 60 * 1_000 // Convert minutes to milliseconds
 		await pWaitFor(() => !!taskFinishedAt || !!taskAbortedAt || isClientDisconnected, {
 			interval: 1_000,
-			timeout: EVALS_TIMEOUT,
+			timeout: timeoutMs,
 		})
 	} catch (_error) {
 		taskTimedOut = true
