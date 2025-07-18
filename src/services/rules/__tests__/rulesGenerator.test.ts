@@ -96,5 +96,86 @@ describe("rulesGenerator", () => {
 			expect(message).toContain("Identify architectural patterns")
 			expect(message).toContain("separation of concerns")
 		})
+
+		it("should include custom rules when includeCustomRules is true", async () => {
+			const customRulesText = "Always use TypeScript interfaces instead of types"
+			const message = await createRulesGenerationTaskMessage(
+				mockWorkspacePath,
+				["general"],
+				false,
+				false,
+				true,
+				customRulesText,
+			)
+
+			expect(message).toContain("Additional rules from User to add to the rules file:")
+			expect(message).toContain(customRulesText)
+		})
+
+		it("should not include custom rules when includeCustomRules is false", async () => {
+			const customRulesText = "Always use TypeScript interfaces instead of types"
+			const message = await createRulesGenerationTaskMessage(
+				mockWorkspacePath,
+				["general"],
+				false,
+				false,
+				false,
+				customRulesText,
+			)
+
+			expect(message).not.toContain("Additional rules from User to add to the rules file:")
+			expect(message).not.toContain(customRulesText)
+		})
+
+		it("should handle empty custom rules text", async () => {
+			const message = await createRulesGenerationTaskMessage(
+				mockWorkspacePath,
+				["general"],
+				false,
+				false,
+				true,
+				"",
+			)
+
+			expect(message).not.toContain("Additional rules from User to add to the rules file:")
+		})
+
+		it("should handle mkdir errors gracefully", async () => {
+			// Mock mkdir to throw an error
+			vi.mocked(fs.mkdir).mockRejectedValueOnce(new Error("Permission denied"))
+
+			// Should not throw even if mkdir fails
+			await expect(
+				createRulesGenerationTaskMessage(mockWorkspacePath, ["general"], false, true),
+			).resolves.toBeDefined()
+		})
+
+		it("should filter out invalid rule types", async () => {
+			const message = await createRulesGenerationTaskMessage(
+				mockWorkspacePath,
+				["general", "invalid-type", "code"],
+				false,
+				false,
+			)
+
+			// Should include valid types
+			expect(message).toContain(".roo/rules/coding-standards.md")
+			expect(message).toContain(".roo/rules-code/implementation-rules.md")
+
+			// Should not include invalid type
+			expect(message).not.toContain("invalid-type")
+		})
+
+		it("should handle all rule types", async () => {
+			const allRuleTypes = ["general", "code", "architect", "debug", "docs-extractor"]
+			const message = await createRulesGenerationTaskMessage(mockWorkspacePath, allRuleTypes, false, false)
+
+			// Check all rule files are mentioned
+			expect(message).toContain(".roo/rules/coding-standards.md")
+			expect(message).toContain(".roo/rules-code/implementation-rules.md")
+			expect(message).toContain(".roo/rules-architect/architecture-rules.md")
+			expect(message).toContain(".roo/rules-debug/debugging-rules.md")
+			expect(message).toContain(".roo/rules-docs-extractor/documentation-rules.md")
+		})
 	})
 })

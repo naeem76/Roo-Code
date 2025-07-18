@@ -1888,11 +1888,7 @@ export const webviewMessageHandler = async (
 			try {
 				const workspacePath = getWorkspacePath()
 				if (!workspacePath) {
-					await provider.postMessageToWebview({
-						type: "rulesGenerationStatus",
-						success: false,
-						error: "No workspace folder open",
-					})
+					vscode.window.showErrorMessage("No workspace folder open. Please open a folder to generate rules.")
 					break
 				}
 
@@ -1907,13 +1903,13 @@ export const webviewMessageHandler = async (
 				const includeCustomRules = message.includeCustomRules || false
 				const customRulesText = message.customRulesText || ""
 
-				// Save current API config to restore later
-				const currentApiConfig = getGlobalState("currentApiConfigName")
-
-				// Temporarily switch to the selected API config if provided
-				if (apiConfigName && apiConfigName !== currentApiConfig) {
-					await updateGlobalState("currentApiConfigName", apiConfigName)
-					await provider.postStateToWebview()
+				// Switch to the selected API config if provided
+				if (apiConfigName) {
+					const currentApiConfig = getGlobalState("currentApiConfigName")
+					if (apiConfigName !== currentApiConfig) {
+						await updateGlobalState("currentApiConfigName", apiConfigName)
+						await provider.activateProviderProfile({ name: apiConfigName })
+					}
 				}
 
 				// Create a comprehensive message for the rules generation task using existing analysis logic
@@ -1929,19 +1925,6 @@ export const webviewMessageHandler = async (
 				// Spawn a new task in code mode to generate the rules
 				await provider.initClineWithTask(rulesGenerationMessage)
 
-				// Restore the original API config
-				if (apiConfigName && apiConfigName !== currentApiConfig) {
-					await updateGlobalState("currentApiConfigName", currentApiConfig)
-					await provider.postStateToWebview()
-				}
-
-				// Send success message back to webview indicating task was created
-				await provider.postMessageToWebview({
-					type: "rulesGenerationStatus",
-					success: true,
-					text: "Rules generation task created successfully. The new task will analyze your codebase and generate comprehensive rules.",
-				})
-
 				// Automatically navigate to the chat tab to show the new task
 				await provider.postMessageToWebview({
 					type: "action",
@@ -1949,12 +1932,9 @@ export const webviewMessageHandler = async (
 					tab: "chat",
 				})
 			} catch (error) {
-				// Send error message back to webview
-				await provider.postMessageToWebview({
-					type: "rulesGenerationStatus",
-					success: false,
-					error: error instanceof Error ? error.message : String(error),
-				})
+				// Show error message to user
+				const errorMessage = error instanceof Error ? error.message : String(error)
+				vscode.window.showErrorMessage(`Failed to generate rules: ${errorMessage}`)
 			}
 			break
 		case "checkExistingRuleFiles":

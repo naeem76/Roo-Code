@@ -1,6 +1,6 @@
 import { HTMLAttributes, useState, useEffect } from "react"
 import { useAppTranslation } from "@/i18n/TranslationContext"
-import { FileText, Loader2, AlertTriangle, Info, Sparkles } from "lucide-react"
+import { FileText, AlertTriangle, Info, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { vscode } from "@/utils/vscode"
 import { cn } from "@/lib/utils"
@@ -25,13 +25,7 @@ interface RuleType {
 
 export const RulesSettings = ({ className, hasUnsavedChanges, ...props }: RulesSettingsProps) => {
 	const { t } = useAppTranslation()
-	const [isGenerating, setIsGenerating] = useState(false)
-	const [generationStatus, setGenerationStatus] = useState<{
-		type: "success" | "error" | null
-		message: string
-	}>({ type: null, message: "" })
 	const [addToGitignore, setAddToGitignore] = useState(true)
-	const [_existingFiles, setExistingFiles] = useState<string[]>([])
 	const [alwaysAllowWriteProtected, setAlwaysAllowWriteProtected] = useState(true)
 	const [selectedApiConfig, setSelectedApiConfig] = useState<string>("")
 	const [includeCustomRules, setIncludeCustomRules] = useState(false)
@@ -100,21 +94,7 @@ export const RulesSettings = ({ className, hasUnsavedChanges, ...props }: RulesS
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
 			const message = event.data
-			if (message.type === "rulesGenerationStatus") {
-				setIsGenerating(false)
-				if (message.success) {
-					setGenerationStatus({
-						type: "success",
-						message: message.text || "",
-					})
-				} else {
-					setGenerationStatus({
-						type: "error",
-						message: message.error || "Unknown error occurred",
-					})
-				}
-			} else if (message.type === "existingRuleFiles") {
-				setExistingFiles(message.files || [])
+			if (message.type === "existingRuleFiles") {
 				// Update rule types with existence information
 				setRuleTypes((prev) =>
 					prev.map((rule) => ({
@@ -141,15 +121,8 @@ export const RulesSettings = ({ className, hasUnsavedChanges, ...props }: RulesS
 	const handleGenerateRules = () => {
 		const selectedRules = ruleTypes.filter((rule) => rule.checked)
 		if (selectedRules.length === 0) {
-			setGenerationStatus({
-				type: "error",
-				message: t("settings:rules.noRulesSelected"),
-			})
 			return
 		}
-
-		setIsGenerating(true)
-		setGenerationStatus({ type: null, message: "" })
 
 		// Send message to extension to generate rules
 		vscode.postMessage({
@@ -165,6 +138,7 @@ export const RulesSettings = ({ className, hasUnsavedChanges, ...props }: RulesS
 
 	const existingRules = ruleTypes.filter((rule) => rule.checked && rule.exists)
 	const hasExistingFiles = existingRules.length > 0
+	const hasSelectedRules = ruleTypes.some((rule) => rule.checked)
 
 	return (
 		<div className={cn("flex flex-col gap-2", className)} {...props}>
@@ -347,51 +321,25 @@ export const RulesSettings = ({ className, hasUnsavedChanges, ...props }: RulesS
 									content={
 										hasUnsavedChanges
 											? t("settings:rules.unsavedChangesError")
-											: t("settings:rules.generateButtonTooltip")
+											: !hasSelectedRules
+												? t("settings:rules.noRulesSelected")
+												: t("settings:rules.generateButtonTooltip")
 									}>
 									<span className="w-full">
 										<Button
 											onClick={handleGenerateRules}
-											disabled={isGenerating || !selectedApiConfig || hasUnsavedChanges}
+											disabled={!selectedApiConfig || hasUnsavedChanges || !hasSelectedRules}
 											variant="default"
 											size="default"
 											className="w-full">
-											{isGenerating ? (
-												<>
-													<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-													{t("settings:rules.generating")}
-												</>
-											) : (
-												<>
-													<FileText className="mr-2 h-4 w-4" />
-													{t("settings:rules.generateButton")}
-												</>
-											)}
+											<>
+												<FileText className="mr-2 h-4 w-4" />
+												{t("settings:rules.generateButton")}
+											</>
 										</Button>
 									</span>
 								</StandardTooltip>
 							</div>
-
-							{isGenerating && (
-								<p className="text-vscode-descriptionForeground text-sm">
-									{t("settings:rules.creatingTaskDescription")}
-								</p>
-							)}
-
-							{generationStatus.type === "success" && (
-								<div className="text-vscode-testing-iconPassed text-sm">
-									<p>{generationStatus.message || t("settings:rules.taskCreated")}</p>
-								</div>
-							)}
-
-							{generationStatus.type === "error" && (
-								<div className="text-vscode-testing-iconFailed text-sm">
-									<p>{t("settings:rules.error")}</p>
-									<p className="text-vscode-descriptionForeground">
-										{t("settings:rules.errorDescription", { error: generationStatus.message })}
-									</p>
-								</div>
-							)}
 						</div>
 					</div>
 				</div>

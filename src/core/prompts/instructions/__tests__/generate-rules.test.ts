@@ -90,4 +90,65 @@ describe("ruleTypeDefinitions", () => {
 			expect(rule.analysisSteps.length).toBeGreaterThan(0)
 		})
 	})
+
+	it("should have correct paths for each rule type", () => {
+		expect(ruleTypeDefinitions.general.path).toBe(".roo/rules/coding-standards.md")
+		expect(ruleTypeDefinitions.code.path).toBe(".roo/rules-code/implementation-rules.md")
+		expect(ruleTypeDefinitions.architect.path).toBe(".roo/rules-architect/architecture-rules.md")
+		expect(ruleTypeDefinitions.debug.path).toBe(".roo/rules-debug/debugging-rules.md")
+		expect(ruleTypeDefinitions["docs-extractor"].path).toBe(".roo/rules-docs-extractor/documentation-rules.md")
+	})
+
+	it("should include proper instructions for existing rule files", () => {
+		const ruleInstructions: RuleInstruction[] = [ruleTypeDefinitions.general]
+		const options: RulesGenerationOptions = {
+			selectedRuleTypes: ["general"],
+			addToGitignore: false,
+			alwaysAllowWriteProtected: false,
+			includeCustomRules: false,
+			customRulesText: "",
+		}
+
+		const result = generateRulesInstructions(ruleInstructions, options)
+
+		expect(result).toContain("Look for existing rule files")
+		expect(result).toContain("CLAUDE.md, .cursorrules, .cursor/rules, or .github/copilot-instructions.md")
+		expect(result).toContain("If found, incorporate and improve upon their content")
+	})
+
+	it("should include instructions to open files after generation", () => {
+		const ruleInstructions: RuleInstruction[] = [ruleTypeDefinitions.general]
+		const options: RulesGenerationOptions = {
+			selectedRuleTypes: ["general"],
+			addToGitignore: false,
+			alwaysAllowWriteProtected: false,
+			includeCustomRules: false,
+			customRulesText: "",
+		}
+
+		const result = generateRulesInstructions(ruleInstructions, options)
+
+		expect(result).toContain("Open the generated files")
+		expect(result).toContain("in the editor for review after creation")
+	})
+
+	it("should include proper formatting instructions", () => {
+		const ruleInstructions: RuleInstruction[] = [ruleTypeDefinitions.general]
+		const options: RulesGenerationOptions = {
+			selectedRuleTypes: ["general"],
+			addToGitignore: false,
+			alwaysAllowWriteProtected: false,
+			includeCustomRules: false,
+			customRulesText: "",
+		}
+
+		const result = generateRulesInstructions(ruleInstructions, options)
+
+		expect(result).toContain("Make the rules actionable and specific")
+		expect(result).toContain("Build/lint/test commands")
+		expect(result).toContain("Code style guidelines")
+		expect(result).toContain("Error handling patterns")
+		expect(result).toContain("Keep rules concise")
+		expect(result).toContain("aim for 20 lines per file")
+	})
 })
