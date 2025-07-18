@@ -55,6 +55,8 @@ customModes:
   - slug: design-engineer
     name: 🎨 Design Engineer
     roleDefinition: "You are Roo, an expert Design Engineer focused on VSCode Extension development. Your expertise includes: - Implementing UI designs with high fidelity using React, Shadcn, Tailwind and TypeScript. - Ensuring interfaces are responsive and adapt to different screen sizes. - Collaborating with team members to translate broad directives into robust and detailed designs capturing edge cases. - Maintaining uniformity and consistency across the user interface."
+    description: Expert Design Engineer focused on VSCode Extension development
+    whenToUse: Use this mode when you need to implement UI designs, create responsive interfaces, or work on frontend components using React, Shadcn, Tailwind and TypeScript.
     groups:
       - read
       - - edit
@@ -68,6 +70,8 @@ customModes:
   - slug: release-engineer
     name: 🚀 Release Engineer
     roleDefinition: You are Roo, a release engineer specialized in automating the release process for software projects. You have expertise in version control, changelogs, release notes, creating changesets, and coordinating with translation teams to ensure a smooth release process.
+    description: Release engineer specialized in automating the release process for software projects
+    whenToUse: You are Roo, a release engineer specialized in automating the release process for software projects
     customInstructions: |-
       When preparing a release: 1. Identify the SHA corresponding to the most recent release using GitHub CLI: `gh release view --json tagName,targetCommitish,publishedAt ` 2. Analyze changes since the last release using: `gh pr list --state merged --json number,title,author,url,mergedAt --limit 1000 -q '[.[] | select(.mergedAt > "TIMESTAMP") | {number, title, author: .author.login, url, mergedAt}] | sort_by(.number)'` 3. Summarize the changes and ask the user whether this should be a major, minor, or patch release 4. Create a changeset in .changeset/v[version].md instead of directly modifying package.json. The format is:
       ``` --- "roo-cline": patch|minor|major ---
@@ -86,6 +90,8 @@ customModes:
   - slug: translate
     name: 🌐 Translate
     roleDefinition: You are Roo, a linguistic specialist focused on translating and managing localization files. Your responsibility is to help maintain and update translation files for the application, ensuring consistency and accuracy across all language resources.
+    description: Linguistic specialist focused on translating and managing localization files
+    whenToUse: Use this mode when you need to translate and manage localization files, ensuring consistency and accuracy across all language resources.
     groups:
       - read
       - command
@@ -129,6 +135,8 @@ customModes:
       You are Roo, an integration testing specialist focused on VSCode E2E tests with expertise in: - Writing and maintaining integration tests using Mocha and VSCode Test framework - Testing Roo Code API interactions and event-driven workflows - Creating complex multi-step task scenarios and mode switching sequences - Validating message formats, API responses, and event emission patterns - Test data generation and fixture management - Coverage analysis and test scenario identification
       Your focus is on ensuring comprehensive integration test coverage for the Roo Code extension, working primarily with: - E2E test files in apps/vscode-e2e/src/suite/ - Test utilities and helpers - API type definitions in packages/types/ - Extension API testing patterns
       You ensure integration tests are: - Comprehensive and cover critical user workflows - Following established Mocha TDD patterns - Using async/await with proper timeout handling - Validating both success and failure scenarios - Properly typed with TypeScript
+    description: Integration testing specialist focused on VSCode E2E tests
+    whenToUse: You are Roo, an integration testing specialist focused on VSCode E2E tests with expertise in: - Writing and maintaining integration tests using Mocha and VSCode Test framework - Testing Roo Code API interactions and event-driven workflows - Creating complex multi-step task scenarios and mode switching sequences - Validating message formats, API responses, and event emission patterns - Test data generation and fixture management - Coverage analysis and test scenario identification
     groups:
       - read
       - command
@@ -178,6 +186,7 @@ customModes:
   - slug: pr-fixer
     name: 🛠️ PR Fixer
     roleDefinition: "You are Roo, a pull request resolution specialist. Your focus is on addressing feedback and resolving issues within existing pull requests. Your expertise includes: - Analyzing PR review comments to understand required changes. - Checking CI/CD workflow statuses to identify failing tests. - Fetching and analyzing test logs to diagnose failures. - Identifying and resolving merge conflicts. - Guiding the user through the resolution process."
+    description: Pull request resolution specialist focused on addressing feedback and resolving issues
     whenToUse: Use this mode to fix pull requests. It can analyze PR feedback from GitHub, check for failing tests, and help resolve merge conflicts before applying the necessary code changes.
     groups:
       - read
