@@ -13,6 +13,29 @@ vi.mock("@roo-code/cloud", () => ({
 	getRooCodeApiUrl: () => "https://test.api.com",
 }))
 
+// Mock the modes import
+vi.mock("../../../shared/modes", () => ({
+	modes: [
+		{
+			slug: "architect",
+			name: "🏗️ Architect",
+			roleDefinition: "You are an architect",
+			whenToUse: "Use for planning",
+			description: "Plan and design",
+			groups: ["read", "edit"],
+			customInstructions: "Plan first",
+		},
+		{
+			slug: "code",
+			name: "💻 Code",
+			roleDefinition: "You are a coder",
+			whenToUse: "Use for coding",
+			description: "Write code",
+			groups: ["read", "edit", "command"],
+		},
+	],
+}))
+
 describe("RemoteConfigLoader", () => {
 	let loader: RemoteConfigLoader
 
@@ -330,6 +353,126 @@ describe("RemoteConfigLoader", () => {
 
 			// Restore original Date.now
 			Date.now = originalDateNow
+		})
+	})
+
+	describe("built-in modes integration", () => {
+		it("should include built-in modes when API returns empty", async () => {
+			const mockModesYaml = `items: []`
+			const mockMcpsYaml = `items: []`
+
+			mockedAxios.get.mockImplementation((url: string) => {
+				if (url.includes("/modes")) {
+					return Promise.resolve({ data: mockModesYaml })
+				}
+				if (url.includes("/mcps")) {
+					return Promise.resolve({ data: mockMcpsYaml })
+				}
+				return Promise.reject(new Error("Unknown URL"))
+			})
+
+			const items = await loader.loadAllItems()
+
+			// Should include 2 built-in modes (architect and code from mock)
+			expect(items).toHaveLength(2)
+			expect(items[0]).toEqual({
+				type: "mode",
+				id: "architect",
+				name: "🏗️ Architect",
+				description: "Plan and design",
+				author: "Roo Code",
+				tags: ["built-in", "core"],
+				content: expect.stringContaining("slug: architect"),
+			})
+			expect(items[1]).toEqual({
+				type: "mode",
+				id: "code",
+				name: "💻 Code",
+				description: "Write code",
+				author: "Roo Code",
+				tags: ["built-in", "core"],
+				content: expect.stringContaining("slug: code"),
+			})
+		})
+
+		it("should merge API modes with built-in modes", async () => {
+			const mockModesYaml = `items:
+		- id: "api-mode"
+		  name: "API Mode"
+		  description: "A mode from API"
+		  content: "test content"`
+
+			const mockMcpsYaml = `items: []`
+
+			mockedAxios.get.mockImplementation((url: string) => {
+				if (url.includes("/modes")) {
+					return Promise.resolve({ data: mockModesYaml })
+				}
+				if (url.includes("/mcps")) {
+					return Promise.resolve({ data: mockMcpsYaml })
+				}
+				return Promise.reject(new Error("Unknown URL"))
+			})
+
+			const items = await loader.loadAllItems()
+
+			// Should include 2 built-in modes + 1 API mode = 3 total
+			expect(items).toHaveLength(3)
+			
+			// Check that we have both built-in and API modes
+			const modeIds = items.map(item => item.id)
+			expect(modeIds).toContain("architect")
+			expect(modeIds).toContain("code")
+			expect(modeIds).toContain("api-mode")
+		})
+
+		it("should allow API modes to override built-in modes", async () => {
+			const mockModesYaml = `items:
+		- id: "architect"
+		  name: "Custom Architect"
+		  description: "Overridden architect mode"
+		  content: "custom content"`
+
+			const mockMcpsYaml = `items: []`
+
+			mockedAxios.get.mockImplementation((url: string) => {
+				if (url.includes("/modes")) {
+					return Promise.resolve({ data: mockModesYaml })
+				}
+				if (url.includes("/mcps")) {
+					return Promise.resolve({ data: mockMcpsYaml })
+				}
+				return Promise.reject(new Error("Unknown URL"))
+			})
+
+			const items = await loader.loadAllItems()
+
+			// Should have 2 modes: overridden architect + built-in code
+			expect(items).toHaveLength(2)
+			
+			const architectMode = items.find(item => item.id === "architect")
+			expect(architectMode).toEqual({
+				type: "mode",
+				id: "architect",
+				name: "Custom Architect",
+				description: "Overridden architect mode",
+				content: "custom content",
+			})
+
+			const codeMode = items.find(item => item.id === "code")
+			expect(codeMode?.name).toBe("💻 Code") // Should be built-in version
+		})
+
+		it("should fallback to built-in modes when API fails", async () => {
+			// Mock API to fail
+			mockedAxios.get.mockRejectedValue(new Error("API failure"))
+
+			const items = await loader.loadAllItems()
+
+			// Should still return built-in modes
+			expect(items).toHaveLength(2)
+			expect(items[0].id).toBe("architect")
+			expect(items[1].id).toBe("code")
 		})
 	})
 })

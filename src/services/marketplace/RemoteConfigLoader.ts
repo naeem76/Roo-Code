@@ -4,6 +4,7 @@ import { z } from "zod"
 import { getRooCodeApiUrl } from "@roo-code/cloud"
 import type { MarketplaceItem, MarketplaceItemType } from "@roo-code/types"
 import { modeMarketplaceItemSchema, mcpMarketplaceItemSchema } from "@roo-code/types"
+import { modes } from "../../shared/modes"
 
 // Response schemas for YAML API responses
 const modeMarketplaceResponse = z.object({
@@ -32,24 +33,71 @@ export class RemoteConfigLoader {
 		return items
 	}
 
+	/**
+	 * Convert built-in modes to marketplace format
+	 */
+	private getBuiltInModes(): MarketplaceItem[] {
+		return modes.map((mode) => ({
+			type: "mode" as const,
+			id: mode.slug,
+			name: mode.name,
+			description: mode.description || mode.whenToUse || "Built-in mode",
+			author: "Roo Code",
+			tags: ["built-in", "core"],
+			content: yaml.stringify({
+				slug: mode.slug,
+				name: mode.name,
+				roleDefinition: mode.roleDefinition,
+				whenToUse: mode.whenToUse,
+				description: mode.description,
+				groups: mode.groups,
+				customInstructions: mode.customInstructions,
+			}),
+		}))
+	}
+
 	private async fetchModes(): Promise<MarketplaceItem[]> {
 		const cacheKey = "modes"
 		const cached = this.getFromCache(cacheKey)
 		if (cached) return cached
 
-		const data = await this.fetchWithRetry<string>(`${this.apiBaseUrl}/api/marketplace/modes`)
+		let apiModes: MarketplaceItem[] = []
+		
+		try {
+			const data = await this.fetchWithRetry<string>(`${this.apiBaseUrl}/api/marketplace/modes`)
 
-		// Parse and validate YAML response
-		const yamlData = yaml.parse(data)
-		const validated = modeMarketplaceResponse.parse(yamlData)
+			// Parse and validate YAML response
+			const yamlData = yaml.parse(data)
+			const validated = modeMarketplaceResponse.parse(yamlData)
 
-		const items: MarketplaceItem[] = validated.items.map((item) => ({
-			type: "mode" as const,
-			...item,
-		}))
+			apiModes = validated.items.map((item: any) => ({
+				type: "mode" as const,
+				...item,
+			}))
+		} catch (error) {
+			console.warn("Failed to fetch modes from API, using built-in modes only:", error)
+		}
 
-		this.setCache(cacheKey, items)
-		return items
+		// Get built-in modes
+		const builtInModes = this.getBuiltInModes()
+
+		// Combine built-in modes with API modes, with API modes taking precedence for duplicates
+		const allModes = [...builtInModes]
+		
+		// Add API modes, replacing any built-in modes with the same ID
+		apiModes.forEach((apiMode) => {
+			const existingIndex = allModes.findIndex((mode) => mode.id === apiMode.id)
+			if (existingIndex !== -1) {
+				// Replace built-in mode with API version
+				allModes[existingIndex] = apiMode
+			} else {
+				// Add new API mode
+				allModes.push(apiMode)
+			}
+		})
+
+		this.setCache(cacheKey, allModes)
+		return allModes
 	}
 
 	private async fetchMcps(): Promise<MarketplaceItem[]> {
@@ -63,7 +111,7 @@ export class RemoteConfigLoader {
 		const yamlData = yaml.parse(data)
 		const validated = mcpMarketplaceResponse.parse(yamlData)
 
-		const items: MarketplaceItem[] = validated.items.map((item) => ({
+		const items: MarketplaceItem[] = validated.items.map((item: any) => ({
 			type: "mcp" as const,
 			...item,
 		}))
