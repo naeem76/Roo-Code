@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useExtensionState } from "@/context/ExtensionStateContext"
 
 interface MarketplaceInstallModalProps {
 	item: MarketplaceItem | null
@@ -28,6 +29,7 @@ export const MarketplaceInstallModal: React.FC<MarketplaceInstallModalProps> = (
 	hasWorkspace,
 }) => {
 	const { t } = useAppTranslation()
+	const { cwd } = useExtensionState()
 	const [scope, setScope] = useState<"project" | "global">(hasWorkspace ? "project" : "global")
 	const [selectedMethodIndex, setSelectedMethodIndex] = useState(0)
 	const [parameterValues, setParameterValues] = useState<Record<string, string>>({})
@@ -341,10 +343,25 @@ export const MarketplaceInstallModal: React.FC<MarketplaceInstallModalProps> = (
 								</div>
 								{effectiveParameters.map((param) => (
 									<div key={param.key} className="space-y-1">
-										<label htmlFor={param.key} className="text-sm">
-											{param.name}
-											{param.optional ? " (optional)" : ""}
-										</label>
+										<div className="flex items-center justify-between">
+											<label htmlFor={param.key} className="text-sm">
+												{param.name}
+												{param.optional ? " (optional)" : ""}
+											</label>
+											{hasWorkspace && /path|cwd|repo/i.test(param.key) && (
+												<Button
+													variant="link"
+													size="sm"
+													onClick={() =>
+														setParameterValues((prev) => ({
+															...prev,
+															[param.key]: "${workspaceFolder}",
+														}))
+													}>
+													{t("marketplace:install.useWorkspacePath")}
+												</Button>
+											)}
+										</div>
 										<Input
 											id={param.key}
 											type="text"
