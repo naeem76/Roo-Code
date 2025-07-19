@@ -484,28 +484,38 @@ const ServerRow = ({ server, alwaysAllowMcp }: { server: McpServer; alwaysAllowM
 						background: "var(--vscode-textCodeBlock-background)",
 						borderRadius: "0 0 4px 4px",
 						width: "100%",
+						padding: "10px",
+						boxSizing: "border-box",
 					}}>
-					<div
-						style={{
-							color: "var(--vscode-testing-iconFailed)",
-							marginBottom: "8px",
-							padding: "0 10px",
-							overflowWrap: "break-word",
-							wordBreak: "break-word",
-						}}>
-						{server.error &&
-							server.error.split("\n").map((item, index) => (
-								<React.Fragment key={index}>
-									{index > 0 && <br />}
-									{item}
-								</React.Fragment>
-							))}
+					{/* Show full error history when disconnected */}
+					<div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+						{server.errorHistory && server.errorHistory.length > 0 ? (
+							[...server.errorHistory]
+								.sort((a, b) => b.timestamp - a.timestamp)
+								.map((error, index) => (
+									<McpErrorRow key={`${error.timestamp}-${index}`} error={error} />
+								))
+						) : server.error ? (
+							<div
+								style={{
+									color: "var(--vscode-testing-iconFailed)",
+									overflowWrap: "break-word",
+									wordBreak: "break-word",
+								}}>
+								{server.error.split("\n").map((item, index) => (
+									<React.Fragment key={index}>
+										{index > 0 && <br />}
+										{item}
+									</React.Fragment>
+								))}
+							</div>
+						) : null}
 					</div>
 					<VSCodeButton
 						appearance="secondary"
 						onClick={handleRestart}
 						disabled={server.status === "connecting"}
-						style={{ width: "calc(100% - 20px)", margin: "0 10px 10px 10px" }}>
+						style={{ marginTop: "10px", width: "100%" }}>
 						{server.status === "connecting"
 							? t("mcp:serverStatus.retrying")
 							: t("mcp:serverStatus.retryConnection")}

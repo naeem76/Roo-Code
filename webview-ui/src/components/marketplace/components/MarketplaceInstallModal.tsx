@@ -13,8 +13,6 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useExtensionState } from "@/context/ExtensionStateContext"
-
 interface MarketplaceInstallModalProps {
 	item: MarketplaceItem | null
 	isOpen: boolean
@@ -29,7 +27,6 @@ export const MarketplaceInstallModal: React.FC<MarketplaceInstallModalProps> = (
 	hasWorkspace,
 }) => {
 	const { t } = useAppTranslation()
-	const { cwd } = useExtensionState()
 	const [scope, setScope] = useState<"project" | "global">(hasWorkspace ? "project" : "global")
 	const [selectedMethodIndex, setSelectedMethodIndex] = useState(0)
 	const [parameterValues, setParameterValues] = useState<Record<string, string>>({})

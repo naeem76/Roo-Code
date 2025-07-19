@@ -84,6 +84,7 @@
 		"prerequisites": "Prerequisites",
 		"configuration": "Configuration",
 		"configurationDescription": "Configure the parameters required for this MCP server",
+		"useWorkspacePath": "Use workspace path",
 		"button": "Install",
 		"successTitle": "{{name}} Installed",
 		"successDescription": "Installation completed successfully",
